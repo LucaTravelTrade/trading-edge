@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="de">
 
 <head>
@@ -2287,12 +2287,11 @@
 
     function setHTML(h) { document.getElementById('mc').innerHTML = h; }
 
-    // ── TRADINGVIEW CHART ─────────────────────────────────────────────────────────
     function renderTradingViewChart(sym) {
       const section = document.getElementById('tv-chart-section');
       if (!section) return;
 
-      const uid = 'tv-' + sym + '-' + Date.now();
+      const uid = 'tv_' + sym.replace(/[^a-zA-Z0-9]/g, '') + '_' + Date.now();
 
       section.innerHTML = `
         <div class="tv-section-title">
@@ -2312,35 +2311,43 @@
         </div>
       `;
 
-      const container = document.getElementById(uid);
-      const scriptEl = document.createElement('script');
-      scriptEl.type = 'text/javascript';
-      scriptEl.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-      scriptEl.async = true;
-      // innerHTML (not textContent) is how TradingView reads the config
-      scriptEl.innerHTML = JSON.stringify({
-        autosize: true,
-        symbol: sym,
-        interval: "D",
-        timezone: "Europe/Berlin",
-        theme: "dark",
-        style: "1",
-        locale: "en",
-        backgroundColor: "#131722",
-        hide_top_toolbar: false,
-        hide_legend: false,
-        save_image: true,
-        hide_volume: false,
-        support_host: "https://www.tradingview.com",
-        studies: [
-          { id: "MASimple@tv-scriptstd", inputs: { length: 10 } },
-          { id: "MASimple@tv-scriptstd", inputs: { length: 20 } },
-          { id: "MASimple@tv-scriptstd", inputs: { length: 50 } },
-          { id: "MASimple@tv-scriptstd", inputs: { length: 100 } },
-          { id: "MASimple@tv-scriptstd", inputs: { length: 200 } }
-        ]
-      });
-      container.appendChild(scriptEl);
+      function createWidget() {
+        if (window._tvWidget) {
+          try { window._tvWidget.remove(); } catch(e) {}
+          window._tvWidget = null;
+        }
+        window._tvWidget = new TradingView.widget({
+          autosize: true,
+          container_id: uid,
+          symbol: sym,
+          interval: 'D',
+          timezone: 'America/New_York',
+          theme: 'dark',
+          style: '1',
+          locale: 'en',
+          toolbar_bg: '#161b22',
+          enable_publishing: false,
+          allow_symbol_change: false,
+          save_image: true,
+          hide_side_toolbar: false,
+          studies: [
+            { id: 'MASimple@tv-scriptstd', inputs: { length: 10 } },
+            { id: 'MASimple@tv-scriptstd', inputs: { length: 20 } },
+            { id: 'MASimple@tv-scriptstd', inputs: { length: 50 } },
+            { id: 'MASimple@tv-scriptstd', inputs: { length: 100 } },
+            { id: 'MASimple@tv-scriptstd', inputs: { length: 200 } }
+          ]
+        });
+      }
+
+      if (typeof TradingView !== 'undefined' && TradingView.widget) {
+        createWidget();
+      } else {
+        const s = document.createElement('script');
+        s.src = 'https://s3.tradingview.com/tv.js';
+        s.onload = createWidget;
+        document.head.appendChild(s);
+      }
     }
   </script>
 </body>

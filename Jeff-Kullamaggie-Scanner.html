@@ -1458,7 +1458,7 @@
         safe(`https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?interval=1d&range=5d`)
       ]);
 
-      // Sektor & Sektor-ETF bestimmen (Finnhub finnhubIndustry → ETF)
+      // Sector & Sector-ETF bestimmen (Finnhub finnhubIndustry → ETF)
       const SECTOR_ETF = {
         // Finnhub industry names
         'Technology': 'XLK', 'Software': 'XLK', 'Semiconductors': 'XLK', 'Hardware': 'XLK',
@@ -1478,7 +1478,7 @@
       const sectorEtfSym = SECTOR_ETF[out.sector] || null;
       out.sectorEtfSym = sectorEtfSym;
 
-      // Sektor-ETF Chartdaten laden (für VARS)
+      // Sector-ETF Chartdaten laden (für VARS)
       let sectorEtfD = null;
       if (sectorEtfSym) {
         sectorEtfD = await safe(`https://query1.finance.yahoo.com/v8/finance/chart/${sectorEtfSym}?interval=1d&range=6mo`);
@@ -1554,7 +1554,7 @@
         }
       }
 
-      // ── Sektor-ETF VARS vs SPY (gleiche Parameter: LB=50, MA=20) ──────────────
+      // ── Sector-ETF VARS vs SPY (gleiche Parameter: LB=50, MA=20) ──────────────
       const er = sectorEtfD?.chart?.result?.[0];
       if (er && spyD?.chart?.result?.[0]) {
         const eq = er.indicators.quote[0];
@@ -1702,7 +1702,7 @@
         <span class="mc-badge ${s1.cls}">${s1.badge}</span>
       </div>
       <div class="mc ${sSector.cls}">
-        <div class="mc-lbl">VARS ${d.sectorEtfSym || 'Sektor'} · 50d · MA 20 (vs SPY)</div>
+        <div class="mc-lbl">VARS ${d.sectorEtfSym || 'Sector'} · 50d · MA 20 (vs SPY)</div>
         <div class="mc-val ${sSector.cls}">${sSector.valStr}</div>
         <div class="mc-sub">${sSector.sub}${d.sector ? ` · ${d.sector}` : ''}</div>
         <span class="mc-badge ${sSector.cls}">${sSector.badge}</span>
@@ -1766,7 +1766,7 @@
       const plan = buildPlan(d, rating);
 
       // Options section
-      const optHtml = d.optErr ? `<div class="no-opt"><strong>Options Not available</strong> — Ticker hat möglicherweise keine US-Optionen oder Daten konnten nicht geladen werden.</div>` : buildOptionsHtml(d, f, fK);
+      const optHtml = d.optErr ? `<div class="no-opt"><strong>Options Not available</strong> — Ticker may have no US options or data could not be loaded.</div>` : buildOptionsHtml(d, f, fK);
 
       const html = `
     <!-- TICKER HEADER -->
@@ -1797,7 +1797,7 @@
         <div class="verdict-label">${ratingDesc[rating]}</div>
       </div>
       <div class="verdict-body">
-        <h2>${d.sym} — Setup-Urteil (${pass}/${total} Checks ✅)</h2>
+        <h2>${d.sym} — Setup Verdict (${pass}/${total} Checks ✅)</h2>
         <div class="verdict-reasons">${tags}</div>
         <div class="verdict-plan">${plan}</div>
       </div>
@@ -2088,49 +2088,49 @@
       return [
         {
           cat: 'kulla', s: d.atrExt < 3 ? 'pass' : d.atrExt < 4 ? 'warn' : 'fail',
-          Short: 'ATR Ext', n: 'ATR Extension < 4x von 50-MA',
+          short: 'ATR Ext', n: 'ATR Extension < 4x von 50-MA',
           desc: `Aktuell ${d.atrExt.toFixed(2)}x — Kulla/Jeff Hard Rule: kein Entry above 4x`,
           v: d.atrExt.toFixed(2) + 'x'
         },
         {
           cat: 'kulla', s: d.rangePos >= 0.7 ? 'pass' : d.rangePos >= 0.6 ? 'warn' : 'fail',
-          Short: 'Near Highs', n: 'Nahe 52-Wochen Highs (>70%)',
+          short: 'Near Highs', n: 'Nahe 52-Wochen Highs (>70%)',
           desc: `52w Range position: ${(d.rangePos * 100).toFixed(0)}% — Momentum-Leader Near Highs`,
           v: (d.rangePos * 100).toFixed(0) + '%'
         },
         {
           cat: 'kulla', s: d.avgDolVol >= 30e6 ? 'pass' : d.avgDolVol >= 10e6 ? 'warn' : 'fail',
-          Short: 'Liquidität', n: 'Liquidität > $30M Ø tägl. Dollar-Vol (20d)',
+          short: 'Liquidity', n: 'Liquidity > $30M Ø tägl. Dollar-Vol (20d)',
           desc: `Ø $${(d.avgDolVol / 1e6).toFixed(1)}M/Tag (letzte 20 Handelstage) — min $30M für institutionelles Interesse`,
           v: 'Ø $' + (d.avgDolVol / 1e6).toFixed(1) + 'M'
         },
         {
           cat: 'kulla', s: d.adr >= 5 ? 'pass' : d.adr >= 4 ? 'warn' : 'fail',
-          Short: 'ADR%', n: 'ADR% ≥ 4–5% (Swing-Volatilität)',
+          short: 'ADR%', n: 'ADR% ≥ 4–5% (Swing-Volatilität)',
           desc: `${d.adr.toFixed(1)}% daily range — min 4–5% needed for swing trades`,
           v: d.adr.toFixed(1) + '%'
         },
         {
           cat: 'kulla', s: d.price > d.ma50 * 1.02 ? 'pass' : d.price > d.ma50 ? 'warn' : 'fail',
-          Short: 'above MA50', n: 'Price above 50-MA (Uptrend)',
+          short: 'above MA50', n: 'Price above 50-MA (Uptrend)',
           desc: `$${d.price.toFixed(2)} vs MA50 $${d.ma50.toFixed(2)} — ${d.price > d.ma50 ? 'above' : 'below'} 50-MA`,
           v: d.price > d.ma50 ? '+' + ((d.price / d.ma50 - 1) * 100).toFixed(1) + '%' : ((d.price / d.ma50 - 1) * 100).toFixed(1) + '%'
         },
         {
           cat: 'jeff', s: d.lodDist < 0.5 ? 'pass' : d.lodDist < 0.6 ? 'warn' : 'fail',
-          Short: '60% Regel', n: '60% ATR Rule (LoD Distance)',
+          short: '60% Regel', n: '60% ATR Rule (LoD Distance)',
           desc: `(Preis–LoD)/ATR = ${(d.lodDist * 100).toFixed(1)}% — Jeff Hard Rule: kein Entry above 60%`,
           v: (d.lodDist * 100).toFixed(1) + '%'
         },
         {
           cat: 'jeff', s: d.rvol >= 2 ? 'pass' : d.rvol >= 1 ? 'warn' : 'fail',
-          Short: 'RVOL', n: 'RVOL ≥ 2x bei Entry',
+          short: 'RVOL', n: 'RVOL ≥ 2x bei Entry',
           desc: `${d.rvol.toFixed(2)}x — Jeff: "Price fades always outside of RVOL"`,
           v: d.rvol.toFixed(2) + 'x'
         },
         {
           cat: 'jeff', s: (d.atr / d.price) >= 0.025 ? 'pass' : (d.atr / d.price) >= 0.015 ? 'warn' : 'fail',
-          Short: 'ATR/Price', n: 'ATR/Price > 2% (Bewegungspotenzial)',
+          short: 'ATR/Price', n: 'ATR/Price > 2% (Bewegungspotenzial)',
           desc: `${(d.atr / d.price * 100).toFixed(1)}% — enough range for profitable swing trades`,
           v: (d.atr / d.price * 100).toFixed(1) + '%'
         },
@@ -2140,7 +2140,7 @@
             (d.vars1m.rs > 0 && d.vars1m.rs > d.vars1m.ma) ? 'pass' :
               (d.vars1m.rs < 0 && d.vars1m.rs > d.vars1m.ma) ? 'pass' :
                 (d.vars1m.rs > 0 && d.vars1m.rs < d.vars1m.ma) ? 'warn' : 'fail',
-          Short: 'VARS 1M',
+          short: 'VARS 1M',
           n: 'VARS 1M — Vol. Adj. RS vs SPY',
           desc: d.vars1m
             ? `RS: ${d.vars1m.rs > 0 ? '+' : ''}${d.vars1m.rs.toFixed(1)} · MA: ${d.vars1m.ma.toFixed(1)} — ${d.vars1m.rs > 0 ? 'above Null' : 'below Null'}, ${d.vars1m.rs > d.vars1m.ma ? 'above MA (stärker werdend)' : 'below MA (Kraft verlierend)'}`
@@ -2155,13 +2155,13 @@
       const items = [];
       items.push({
         cat: 'opt', s: d.price > d.maxPainStrike ? 'pass' : 'warn',
-        Short: 'vs Max Pain', n: 'Price above Max Pain',
+        short: 'vs Max Pain', n: 'Price above Max Pain',
         desc: `Max Pain $${d.maxPainStrike?.toFixed(2)} — Price ${d.price > d.maxPainStrike ? 'above (Bullish)' : 'below (Pin-Druck)'}`,
         v: d.price > d.maxPainStrike ? '+' + ((d.price - d.maxPainStrike)).toFixed(2) : '-' + (d.maxPainStrike - d.price).toFixed(2)
       });
       items.push({
         cat: 'opt', s: d.pcRatio < 1 ? 'pass' : d.pcRatio < 1.5 ? 'warn' : 'fail',
-        Short: 'P/C Ratio', n: 'Put/Call OI Ratio',
+        short: 'P/C Ratio', n: 'Put/Call OI Ratio',
         desc: `${d.pcRatio.toFixed(2)} — ${d.pcRatio < 1 ? 'Bullish positioning' : d.pcRatio < 1.5 ? 'Neutral' : 'Stark abgesichert'}`,
         v: d.pcRatio.toFixed(2)
       });
@@ -2285,12 +2285,11 @@
 
     function setHTML(h) { document.getElementById('mc').innerHTML = h; }
 
-    // ── TRADINGVIEW CHART ─────────────────────────────────────────────────────────
     function renderTradingViewChart(sym) {
       const section = document.getElementById('tv-chart-section');
       if (!section) return;
 
-      const uid = 'tv-' + sym + '-' + Date.now();
+      const uid = 'tv_' + sym.replace(/[^a-zA-Z0-9]/g, '') + '_' + Date.now();
 
       section.innerHTML = `
         <div class="tv-section-title">
@@ -2310,35 +2309,43 @@
         </div>
       `;
 
-      const container = document.getElementById(uid);
-      const scriptEl = document.createElement('script');
-      scriptEl.type = 'text/javascript';
-      scriptEl.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-      scriptEl.async = true;
-      // innerHTML (not textContent) is how TradingView reads the config
-      scriptEl.innerHTML = JSON.stringify({
-        autosize: true,
-        symbol: sym,
-        interval: "D",
-        timezone: "Europe/Berlin",
-        theme: "dark",
-        style: "1",
-        locale: "en",
-        backgroundColor: "#131722",
-        hide_top_toolbar: false,
-        hide_legend: false,
-        save_image: true,
-        hide_volume: false,
-        support_host: "https://www.tradingview.com",
-        studies: [
-          { id: "MASimple@tv-scriptstd", inputs: { length: 10 } },
-          { id: "MASimple@tv-scriptstd", inputs: { length: 20 } },
-          { id: "MASimple@tv-scriptstd", inputs: { length: 50 } },
-          { id: "MASimple@tv-scriptstd", inputs: { length: 100 } },
-          { id: "MASimple@tv-scriptstd", inputs: { length: 200 } }
-        ]
-      });
-      container.appendChild(scriptEl);
+      function createWidget() {
+        if (window._tvWidget) {
+          try { window._tvWidget.remove(); } catch(e) {}
+          window._tvWidget = null;
+        }
+        window._tvWidget = new TradingView.widget({
+          autosize: true,
+          container_id: uid,
+          symbol: sym,
+          interval: 'D',
+          timezone: 'America/New_York',
+          theme: 'dark',
+          style: '1',
+          locale: 'en',
+          toolbar_bg: '#161b22',
+          enable_publishing: false,
+          allow_symbol_change: false,
+          save_image: true,
+          hide_side_toolbar: false,
+          studies: [
+            { id: 'MASimple@tv-scriptstd', inputs: { length: 10 } },
+            { id: 'MASimple@tv-scriptstd', inputs: { length: 20 } },
+            { id: 'MASimple@tv-scriptstd', inputs: { length: 50 } },
+            { id: 'MASimple@tv-scriptstd', inputs: { length: 100 } },
+            { id: 'MASimple@tv-scriptstd', inputs: { length: 200 } }
+          ]
+        });
+      }
+
+      if (typeof TradingView !== 'undefined' && TradingView.widget) {
+        createWidget();
+      } else {
+        const s = document.createElement('script');
+        s.src = 'https://s3.tradingview.com/tv.js';
+        s.onload = createWidget;
+        document.head.appendChild(s);
+      }
     }
   </script>
 </body>
