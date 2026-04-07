@@ -1,11 +1,79 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=Ticker-Scanner.html">
-  <title>Trading Edge — Redirecting…</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trading Edge — Jeff Sun × Kullamaggie System</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0d1117;
+      color: #e6edf3;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 32px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #58a6ff;
+      text-align: center;
+    }
+    .sub {
+      font-size: 13px;
+      color: #8b949e;
+      text-align: center;
+      margin-top: 6px;
+    }
+    .cards {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 14px;
+      padding: 28px 36px;
+      text-align: center;
+      text-decoration: none;
+      transition: border-color .2s, transform .2s;
+      min-width: 220px;
+    }
+    .card:hover {
+      border-color: #58a6ff;
+      transform: translateY(-3px);
+    }
+    .card .icon { font-size: 40px; margin-bottom: 12px; }
+    .card .title { font-size: 16px; font-weight: 700; color: #e6edf3; margin-bottom: 6px; }
+    .card .desc { font-size: 12px; color: #8b949e; }
+    .card.en { border-color: #238636; }
+    .card.en:hover { border-color: #3fb950; }
+    .footer { font-size: 12px; color: #8b949e; }
+  </style>
 </head>
 <body>
-  <script>window.location.href = 'Ticker-Scanner.html';</script>
+  <div>
+    <h1>⚡ Trading Edge</h1>
+    <div class="sub">Jeff Sun × Kullamaggie Momentum System</div>
+  </div>
+  <div class="cards">
+    <a class="card en" href="Jeff-Kullamaggie-Scanner.html">
+      <div class="icon">🇬🇧</div>
+      <div class="title">Jeff × Kullamaggie Scanner</div>
+      <div class="desc">English · EP · VCP · GEX · Options · TradingView Chart</div>
+    </a>
+    <a class="card" href="Ticker-Scanner.html">
+      <div class="icon">🇩🇪</div>
+      <div class="title">Ticker Scanner (Deutsch)</div>
+      <div class="desc">Deutsch · EP · VCP · GEX · Optionen · TradingView Chart</div>
+    </a>
+  </div>
+  <div class="footer">Price data via Yahoo Finance · Charts via TradingView · No API key required</div>
 </body>
 </html>

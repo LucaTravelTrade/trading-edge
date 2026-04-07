@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Luca Kaiser — Momentum Trading Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #e6edf3; font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; font-size: 14px; line-height: 1.6; }
+  .header { background: linear-gradient(135deg,#161b22 0%,#1c2128 100%); border-bottom: 1px solid #30363d; padding: 24px 40px; }
+  .header h1 { font-size: 24px; font-weight: 700; color: #58a6ff; letter-spacing: 0.5px; }
+  .header .subtitle { color: #8b949e; font-size: 13px; margin-top: 4px; }
+  .header .meta { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap; }
+  .meta-item { background: #21262d; padding: 8px 16px; border-radius: 6px; border: 1px solid #30363d; }
+  .meta-item .label { color: #8b949e; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .meta-item .value { color: #e6edf3; font-size: 16px; font-weight: 600; margin-top: 2px; }
+  .meta-item .value.green { color: #3fb950; }
+  .meta-item .value.red { color: #f85149; }
+  .meta-item .value.yellow { color: #e3b341; }
+  .meta-item .value.blue { color: #58a6ff; }
+  .container { max-width: 1400px; margin: 0 auto; padding: 32px 40px; }
+  .section { margin-bottom: 48px; }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #30363d; }
+  .section-num { background: #58a6ff; color: #0d1117; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+  .section-header h2 { font-size: 18px; font-weight: 600; color: #e6edf3; }
+  .section-header .tag { background: #21262d; color: #8b949e; font-size: 11px; padding: 3px 10px; border-radius: 12px; border: 1px solid #30363d; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px; }
+  .card h3 { font-size: 14px; font-weight: 600; color: #58a6ff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .card h3::before { content: ''; width: 3px; height: 16px; background: #58a6ff; border-radius: 2px; }
+  .card p { color: #8b949e; font-size: 13px; line-height: 1.7; }
+  .card ul { list-style: none; }
+  .card ul li { color: #8b949e; font-size: 13px; padding: 5px 0; border-bottom: 1px solid #21262d; display: flex; align-items: flex-start; gap: 8px; }
+  .card ul li::before { content: '▸'; color: #58a6ff; flex-shrink: 0; margin-top: 1px; }
+  .card ul li strong { color: #e6edf3; }
+  .highlight { background: #21262d; border-left: 3px solid #58a6ff; padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 16px 0; }
+  .highlight p { color: #8b949e; font-size: 13px; }
+  .highlight strong { color: #e6edf3; }
+  .warn-box { background: #1c1a0e; border: 1px solid #e3b341; border-radius: 8px; padding: 14px 18px; margin: 16px 0; }
+  .warn-box p { color: #b3901a; font-size: 13px; }
+  .warn-box strong { color: #e3b341; }
+  .success-box { background: #0d1a10; border: 1px solid #3fb950; border-radius: 8px; padding: 14px 18px; margin: 16px 0; }
+  .success-box p { color: #2e7d39; font-size: 13px; }
+  .success-box strong { color: #3fb950; }
+  .danger-box { background: #200d0d; border: 1px solid #f85149; border-radius: 8px; padding: 14px 18px; margin: 16px 0; }
+  .danger-box p { color: #a03030; font-size: 13px; }
+  .danger-box strong { color: #f85149; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table th { background: #21262d; color: #8b949e; font-weight: 600; padding: 10px 14px; text-align: left; border-bottom: 2px solid #30363d; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table td { padding: 10px 14px; border-bottom: 1px solid #21262d; color: #e6edf3; }
+  table tr:hover td { background: #21262d; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge.green { background: #0d2010; color: #3fb950; border: 1px solid #3fb950; }
+  .badge.red { background: #200d0d; color: #f85149; border: 1px solid #f85149; }
+  .badge.yellow { background: #1c1a0e; color: #e3b341; border: 1px solid #e3b341; }
+  .badge.blue { background: #0d1728; color: #58a6ff; border: 1px solid #58a6ff; }
+  .badge.purple { background: #160d28; color: #bc8cff; border: 1px solid #bc8cff; }
+  .rule-block { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px 20px; margin-bottom: 12px; }
+  .rule-block .rule-title { color: #58a6ff; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .rule-block p { color: #8b949e; font-size: 13px; }
+  .rule-block code { background: #21262d; color: #ffa657; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; }
+  .rule-block.hard { border-color: #f85149; }
+  .rule-block.hard .rule-title { color: #f85149; }
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before { content:''; position:absolute; left:6px; top:0; bottom:0; width:2px; background:#30363d; }
+  .timeline-item { position:relative; margin-bottom:20px; }
+  .timeline-item::before { content:''; position:absolute; left:-21px; top:5px; width:10px; height:10px; border-radius:50%; border:2px solid; }
+  .timeline-item.green::before { border-color:#3fb950; background:#0d2010; }
+  .timeline-item.red::before { border-color:#f85149; background:#200d0d; }
+  .timeline-item.yellow::before { border-color:#e3b341; background:#1c1a0e; }
+  .timeline-item.blue::before { border-color:#58a6ff; background:#0d1728; }
+  .timeline-item .date { font-size:12px; color:#8b949e; margin-bottom:3px; }
+  .timeline-item .title { font-size:14px; color:#e6edf3; font-weight:600; }
+  .timeline-item .desc { font-size:13px; color:#8b949e; margin-top:3px; }
+  .score-bar { height: 8px; border-radius: 4px; background: #21262d; overflow: hidden; margin-top: 4px; }
+  .score-fill { height: 100%; border-radius: 4px; }
+  .footnote { color: #8b949e; font-size: 11px; font-style: italic; margin-top: 8px; padding: 8px; border-top: 1px solid #21262d; }
+  .toc { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px 28px; margin-bottom: 32px; }
+  .toc h3 { color: #8b949e; font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+  .toc ul { list-style: none; }
+  .toc ul li { padding: 5px 0; }
+  .toc ul li a { color: #58a6ff; text-decoration: none; font-size: 13px; }
+  .toc ul li a:hover { text-decoration: underline; }
+  .footer { background: #161b22; border-top: 1px solid #30363d; padding: 24px 40px; text-align: center; color: #8b949e; font-size: 12px; margin-top: 48px; }
+  /* Calculator styles */
+  .calc-box { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+  .calc-box h3 { color: #58a6ff; font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+  .input-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; align-items: flex-end; }
+  .input-group { display: flex; flex-direction: column; gap: 4px; min-width: 140px; }
+  .input-group label { color: #8b949e; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .input-group input { background: #21262d; border: 1px solid #30363d; border-radius: 6px; padding: 8px 12px; color: #e6edf3; font-size: 14px; outline: none; transition: border-color 0.2s; }
+  .input-group input:focus { border-color: #58a6ff; }
+  .calc-btn { background: #238636; color: #fff; border: none; border-radius: 6px; padding: 9px 20px; cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .calc-btn:hover { background: #2ea043; }
+  .calc-result { background: #21262d; border-radius: 8px; padding: 14px 18px; margin-top: 14px; display: none; }
+  .calc-result.show { display: block; }
+  .calc-result .result-title { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .calc-result .result-value { font-size: 20px; font-weight: 700; }
+  .calc-result .result-detail { font-size: 12px; color: #8b949e; margin-top: 4px; }
+  /* Gauge styles */
+  .gauge-container { text-align: center; padding: 16px; }
+  .gauge-label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .gauge-value { font-size: 28px; font-weight: 700; }
+  .gauge-sub { font-size: 12px; color: #8b949e; margin-top: 4px; }
+  /* Checklist styles */
+  .checklist-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid #21262d; }
+  .checklist-item:last-child { border-bottom: none; }
+  .check-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #30363d; flex-shrink: 0; margin-top: 2px; cursor: pointer; transition: all 0.15s; }
+  .check-dot.pass { background: #3fb950; border-color: #3fb950; }
+  .check-dot.fail { background: #f85149; border-color: #f85149; }
+  .check-dot.warn { background: #e3b341; border-color: #e3b341; }
+  .check-text strong { color: #e6edf3; font-size: 13px; }
+  .check-text span { color: #8b949e; font-size: 12px; display: block; }
+  /* Rating badge large */
+  .rating-display { text-align: center; padding: 16px; border-radius: 8px; border: 2px solid; margin-top: 16px; }
+  .rating-display .rating-letter { font-size: 48px; font-weight: 900; }
+  .rating-display .rating-label { font-size: 13px; margin-top: 4px; }
+  /* Decision tree */
+  .decision-node { background: #21262d; border: 1px solid #30363d; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; }
+  .decision-node.green { border-color: #3fb950; }
+  .decision-node.red { border-color: #f85149; }
+  .decision-node.blue { border-color: #58a6ff; }
+  .decision-node .node-q { font-size: 13px; color: #e6edf3; font-weight: 600; }
+  .decision-node .node-a { font-size: 12px; color: #8b949e; margin-top: 4px; }
+  .tree-indent { margin-left: 24px; border-left: 2px solid #30363d; padding-left: 16px; margin-top: 4px; }
+  /* T+3 tracker */
+  .day-badge { display: inline-block; width: 36px; height: 36px; border-radius: 50%; text-align: center; line-height: 36px; font-size: 12px; font-weight: 700; }
+  .day-badge.t0 { background: #0d1728; color: #58a6ff; border: 2px solid #58a6ff; }
+  .day-badge.t1 { background: #0d1a10; color: #3fb950; border: 2px solid #3fb950; }
+  .day-badge.t2 { background: #1c1a0e; color: #e3b341; border: 2px solid #e3b341; }
+  .day-badge.t3plus { background: #160d28; color: #bc8cff; border: 2px solid #bc8cff; }
+  /* Breadth bars */
+  .breadth-bar-wrap { margin-bottom: 12px; }
+  .breadth-bar-label { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .breadth-bar-label span { font-size: 12px; color: #8b949e; }
+  .breadth-bar-label strong { font-size: 12px; color: #e6edf3; }
+  .breadth-bar { height: 10px; background: #21262d; border-radius: 5px; overflow: hidden; }
+  .breadth-fill { height: 100%; border-radius: 5px; transition: width 0.5s; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>⚡ Luca Kaiser — Momentum Trading Dashboard</h1>
+  <div class="subtitle">Kullamaggie × Jeff Sun Hybrid System · Episodic Pivot + VCP Breakout · ATR/RVOL-Based Execution</div>
+  <div class="meta">
+    <div class="meta-item"><div class="label">System</div><div class="value blue">EP + VCP/ORH</div></div>
+    <div class="meta-item"><div class="label">Markt-Regime</div><div class="value yellow">Neutral / Distribution</div></div>
+    <div class="meta-item"><div class="label">SPY ATR-Extension</div><div class="value yellow">3.8x</div></div>
+    <div class="meta-item"><div class="label">MMTW (% über 20-MA)</div><div class="value red">38%</div></div>
+    <div class="meta-item"><div class="label">Aktive Positionen</div><div class="value blue">2 / 3 max</div></div>
+    <div class="meta-item"><div class="label">R-Exposure</div><div class="value green">1.4R</div></div>
+    <div class="meta-item"><div class="label">Datum</div><div class="value">30.03.2026</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- TOC -->
+<div class="toc">
+  <h3>Inhaltsverzeichnis</h3>
+  <ul>
+    <li><a href="#s1">1. Marktumfeld — Breadth, ATR-Extension, Regime</a></li>
+    <li><a href="#s2">2. Setup-Qualifikation — Pre-Trade Checklist (A/B/C Rating)</a></li>
+    <li><a href="#s3">3. Focus List — Aktuelle Kandidaten</a></li>
+    <li><a href="#s4">4. Episodic Pivot Analyse — EP-Kriterienkatalog</a></li>
+    <li><a href="#s5">5. Breakout / VCP Analyse — Continuation Setup</a></li>
+    <li><a href="#s6">6. Entry-Kalkulator — 60% ATR Regel + Positionsgrösse</a></li>
+    <li><a href="#s7">7. 3-Stop Strategie — Stopp-Kalkulator</a></li>
+    <li><a href="#s8">8. T+3 Tracker — Aktive Positionen & Management</a></li>
+    <li><a href="#s9">9. GEX & Options Chain Analyse</a></li>
+    <li><a href="#s10">10. Options IV Skew & Term Structure</a></li>
+    <li><a href="#s11">11. Harte Regeln & Entscheidungsbaum</a></li>
+    <li><a href="#s12">12. Kostenlose API-Quellen für dieses Dashboard</a></li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: MARKTUMFELD -->
+<!-- ============================================================ -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <h2>Marktumfeld — Breadth, ATR-Extension & Regime</h2>
+    <span class="tag">Top-Down Analyse</span>
+  </div>
+
+  <div class="grid-4" style="margin-bottom:24px;">
+    <div class="card">
+      <div class="gauge-container">
+        <div class="gauge-label">SPY ATR% von 50-MA</div>
+        <div class="gauge-value yellow">3.8x</div>
+        <div class="gauge-sub">Grenze: 4x = kein neuer Long</div>
+        <div class="score-bar" style="margin-top:10px;"><div class="score-fill" style="width:57%;background:#e3b341;"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#8b949e;margin-top:3px;"><span>0x</span><span>4x HARD STOP</span><span>7x</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="gauge-container">
+        <div class="gauge-label">MMTW — % über 20-MA</div>
+        <div class="gauge-value red">38%</div>
+        <div class="gauge-sub">Warnung: Breadth schwach</div>
+        <div class="score-bar" style="margin-top:10px;"><div class="score-fill" style="width:38%;background:#f85149;"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#8b949e;margin-top:3px;"><span>0%</span><span>50% Neutral</span><span>100%</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="gauge-container">
+        <div class="gauge-label">MMFI — % über 50-MA</div>
+        <div class="gauge-value yellow">47%</div>
+        <div class="gauge-sub">Grenzbereich: Verteilung</div>
+        <div class="score-bar" style="margin-top:10px;"><div class="score-fill" style="width:47%;background:#e3b341;"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#8b949e;margin-top:3px;"><span>0%</span><span>50% Neutral</span><span>100%</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="gauge-container">
+        <div class="gauge-label">MMOH — % über 200-MA</div>
+        <div class="gauge-value green">61%</div>
+        <div class="gauge-sub">Langfrist-Uptrend intakt</div>
+        <div class="score-bar" style="margin-top:10px;"><div class="score-fill" style="width:61%;background:#3fb950;"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#8b949e;margin-top:3px;"><span>0%</span><span>50% Neutral</span><span>100%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Market Regime Einschätzung</h3>
+      <div class="warn-box">
+        <p><strong>AKTUELL: NEUTRALE / VERTEILUNGSPHASE</strong><br>
+        MMTW 38% — Mehrheit der Aktien unter 20-MA. SPY hält sich über 50-MA, aber Breadth divergiert. Hohe Selektivität geboten — nur A-Rated Setups mit starker RS eingehen. Keine neuen Positionen auf Breakouts in schwachen Sektoren.</p>
+      </div>
+      <ul>
+        <li><strong>RSP vs SPY:</strong> <span class="badge yellow">RSP underperformt</span> — Big Tech trägt Index, Breadth täuscht</li>
+        <li><strong>QQQ ATR-Extension:</strong> <strong>4.1x</strong> — bereits an HARD STOP Grenze</li>
+        <li><strong>IWM (Small Cap):</strong> <span class="badge red">Schwach</span> — unter 50-MA</li>
+        <li><strong>Empfehlung:</strong> Positionsgrösse reduzieren, nur EP-Qualität eingehen</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Top-Down Sektoren-Matrix</h3>
+      <div class="breadth-bar-wrap">
+        <div class="breadth-bar-label"><span>XLK — Technology</span><strong style="color:#3fb950">+2.1%</strong></div>
+        <div class="breadth-bar"><div class="breadth-fill" style="width:72%;background:#3fb950;"></div></div>
+      </div>
+      <div class="breadth-bar-wrap">
+        <div class="breadth-bar-label"><span>XLF — Financials</span><strong style="color:#3fb950">+1.4%</strong></div>
+        <div class="breadth-bar"><div class="breadth-fill" style="width:61%;background:#3fb950;"></div></div>
+      </div>
+      <div class="breadth-bar-wrap">
+        <div class="breadth-bar-label"><span>XLE — Energy</span><strong style="color:#e3b341">-0.3%</strong></div>
+        <div class="breadth-bar"><div class="breadth-fill" style="width:48%;background:#e3b341;"></div></div>
+      </div>
+      <div class="breadth-bar-wrap">
+        <div class="breadth-bar-label"><span>XLV — Healthcare</span><strong style="color:#f85149">-1.8%</strong></div>
+        <div class="breadth-bar"><div class="breadth-fill" style="width:28%;background:#f85149;"></div></div>
+      </div>
+      <div class="breadth-bar-wrap">
+        <div class="breadth-bar-label"><span>XLY — Consumer Disc.</span><strong style="color:#e3b341">+0.5%</strong></div>
+        <div class="breadth-bar"><div class="breadth-fill" style="width:54%;background:#e3b341;"></div></div>
+      </div>
+      <div class="breadth-bar-wrap">
+        <div class="breadth-bar-label"><span>XLC — Communication</span><strong style="color:#3fb950">+1.9%</strong></div>
+        <div class="breadth-bar"><div class="breadth-fill" style="width:68%;background:#3fb950;"></div></div>
+      </div>
+      <p class="footnote">Quellen: TradingView Symbole MMTW, MMFI, MMOH · Sektoren via SPDR ETFs · Täglich manuell aktualisieren</p>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <p><strong>Jeff Sun ATR-Timing-Signal:</strong> SPY/QQQ bei 6–7x ATR% Extension → Longs reduzieren, Short-Kandidaten suchen. Bei Oversold ATR-Level → aggressiv Long gehen. Aktuell: 3.8x auf SPY = noch im handelbaren Bereich aber nahe der Grenze. <strong>Kein neuer Long wenn QQQ über 4x bleibt.</strong></p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: SETUP-QUALIFIKATION -->
+<!-- ============================================================ -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <h2>Setup-Qualifikation — Pre-Trade Checklist</h2>
+    <span class="tag">Interaktiv</span>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Setup Checklist — Ticker eingeben und prüfen</h3>
+      <div style="margin-bottom:16px;display:flex;gap:10px;">
+        <input id="ticker-input" type="text" placeholder="z.B. NVDA" style="background:#21262d;border:1px solid #30363d;border-radius:6px;padding:8px 12px;color:#e6edf3;font-size:14px;outline:none;flex:1;" />
+        <button class="calc-btn" onclick="resetChecklist()">Reset</button>
+      </div>
+
+      <div id="checklist">
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="check-dot" id="c1"></div>
+          <div class="check-text">
+            <strong>RS > Markt (1M / 3M / 6M)</strong>
+            <span>RS-Linie vs. SPY/QQQ steigt — Pflicht laut Jeff: "RS First, Setup Second"</span>
+          </div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="check-dot" id="c2"></div>
+          <div class="check-text">
+            <strong>VCP / Enge Base vorhanden</strong>
+            <span>Kerzen werden enger, Volumen trocknet aus, Stock über 10-MA & 20-MA</span>
+          </div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="check-dot" id="c3"></div>
+          <div class="check-text">
+            <strong>ADR% ≥ 4–5%</strong>
+            <span>Mindest-Volatilität für Swing Trading — niedrigeres ADR = langsamere Moves</span>
+          </div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="check-dot" id="c4"></div>
+          <div class="check-text">
+            <strong>ATR% von 50-MA &lt; 4x</strong>
+            <span>Nicht zu extended — Jeff's Hard Rule #2. Über 4x = kein Einstieg</span>
+          </div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="check-dot" id="c5"></div>
+          <div class="check-text">
+            <strong>RVOL ≥ 2x bei Entry</strong>
+            <span>"Price fades always outside of RVOL" — Jeff Sun. Kein RVOL = kein Trade</span>
+          </div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="check-dot" id="c6"></div>
+          <div class="check-text">
+            <strong>LoD-Distanz &lt; 60% ATR</strong>
+            <span>Jeff's härteste Regel. (Preis – LoD) / ATR &lt; 0.60 → sonst Skip</span>
+          </div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="check-dot" id="c7"></div>
+          <div class="check-text">
+            <strong>30-Min Wartezeit eingehalten</strong>
+            <span>Kein Entry in ersten 30 Min (Ausnahme: extremes RVOL überschreibt)</span>
+          </div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="check-dot" id="c8"></div>
+          <div class="check-text">
+            <strong>Kein Earnings-Risiko</strong>
+            <span>Kein Trade pre/post Earnings Release. Kein Overnight-Risiko für Biotechs</span>
+          </div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="check-dot" id="c9"></div>
+          <div class="check-text">
+            <strong>Markt-Regime positiv</strong>
+            <span>MMTW > 50% oder klarer Uptrend. Nicht gegen fallende 200-MA traden</span>
+          </div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="check-dot" id="c10"></div>
+          <div class="check-text">
+            <strong>Max 3 neue Positionen heute</strong>
+            <span>Jeff's Hard Rule: nicht mehr als 3 neue Positionen pro Session öffnen</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="calc-btn" onclick="calcRating()" style="margin-top:16px;width:100%;">Rating berechnen</button>
+      <div id="rating-result" class="rating-display" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <h3>A-Rating: Das Idealbild (Jeff Sun)</h3>
+      <div class="success-box">
+        <p><strong>Alle 10 Kriterien erfüllt = A-Rated Execution Opportunity</strong><br>
+        "RS Leader + VCP + RVOL confirming + LoD &lt;60% ATR + ATR% &lt;4x + kein Gap-Resistance + kein Earnings/Eco-Data" → Jeff: "Only trade A-rated setups."</p>
+      </div>
+      <ul>
+        <li><strong>A-Rating (9–10/10):</strong> <span class="badge green">Volle Position — alle 3 Tranchen</span></li>
+        <li><strong>B-Rating (7–8/10):</strong> <span class="badge yellow">Halbe Position — 1–2 Tranchen</span></li>
+        <li><strong>C-Rating (5–6/10):</strong> <span class="badge red">Skip — oder minimale Sonde</span></li>
+        <li><strong>D-Rating (&lt;5/10):</strong> <span class="badge red">KEIN TRADE — keine Ausnahmen</span></li>
+      </ul>
+      <div class="highlight" style="margin-top:16px;">
+        <p><strong>Screensaver-Chart Kriterien:</strong></p>
+        <p>① Starker Prior Uptrend → ② Glatter Pullback/Konsolidierung → ③ Preis über 10-MA & 20-MA → ④ Volumen kontrahiert → ⑤ RS-Linie hält neue Highs → ⑥ ADR% erhöht → ⑦ ATR% von 50-MA: 1–3x</p>
+      </div>
+      <div class="rule-block" style="margin-top:12px;">
+        <div class="rule-title">Quick Reference — Positionsgrösse nach Rating</div>
+        <p>A: <code>R-Risk 1–2% × Konto</code> | B: <code>R-Risk 0.5–1%</code> | C/D: <code>0%</code></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: FOCUS LIST -->
+<!-- ============================================================ -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <h2>Focus List — Aktuelle Kandidaten</h2>
+    <span class="tag">Max 5–15 Namen</span>
+  </div>
+
+  <div class="highlight">
+    <p><strong>Watchlist ≠ Focus List:</strong> Die Focus List enthält max 5–15 Namen, die ALLE Kriterien erfüllen und auf einen RVOL-Trigger warten. Jeder Name auf der Liste hat heute Nacht einen Price-Alert in TradingView auf dem Breakout-Level.</p>
+  </div>
+
+  <div class="card">
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Setup-Typ</th>
+            <th>ADR%</th>
+            <th>RVOL</th>
+            <th>ATR-Ext (50MA)</th>
+            <th>RS-Status</th>
+            <th>Entry Level</th>
+            <th>Stop (LoD)</th>
+            <th>60% ATR Check</th>
+            <th>Rating</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>EXPL</strong></td>
+            <td><span class="badge purple">Episodic Pivot</span></td>
+            <td><strong style="color:#3fb950">7.2%</strong></td>
+            <td><strong style="color:#3fb950">4.8x</strong></td>
+            <td><span style="color:#3fb950">1.9x</span></td>
+            <td><span class="badge green">RS Leader</span></td>
+            <td>$24.80 (ORH)</td>
+            <td>$22.40</td>
+            <td><span class="badge green">PASS 38%</span></td>
+            <td><span class="badge green">A</span></td>
+          </tr>
+          <tr>
+            <td><strong>MSTF</strong></td>
+            <td><span class="badge blue">VCP Breakout</span></td>
+            <td><strong style="color:#3fb950">5.4%</strong></td>
+            <td><strong style="color:#e3b341">1.9x</strong></td>
+            <td><span style="color:#3fb950">2.4x</span></td>
+            <td><span class="badge green">RS Leader</span></td>
+            <td>$187.50 (30-Min ORH)</td>
+            <td>$181.20</td>
+            <td><span class="badge green">PASS 44%</span></td>
+            <td><span class="badge green">A</span></td>
+          </tr>
+          <tr>
+            <td><strong>RDNT</strong></td>
+            <td><span class="badge blue">VCP Breakout</span></td>
+            <td><strong style="color:#3fb950">6.1%</strong></td>
+            <td><strong style="color:#e3b341">1.4x</strong></td>
+            <td><span style="color:#e3b341">3.1x</span></td>
+            <td><span class="badge yellow">RS Neutral</span></td>
+            <td>$41.20 (Daily High)</td>
+            <td>$38.80</td>
+            <td><span class="badge yellow">BORDER 58%</span></td>
+            <td><span class="badge yellow">B</span></td>
+          </tr>
+          <tr>
+            <td><strong>HTGL</strong></td>
+            <td><span class="badge purple">Episodic Pivot</span></td>
+            <td><strong style="color:#3fb950">9.3%</strong></td>
+            <td><strong style="color:#3fb950">6.2x</strong></td>
+            <td><span style="color:#3fb950">1.2x</span></td>
+            <td><span class="badge green">RS Leader</span></td>
+            <td>$15.40 (1-Min ORH)</td>
+            <td>$13.80</td>
+            <td><span class="badge green">PASS 31%</span></td>
+            <td><span class="badge green">A</span></td>
+          </tr>
+          <tr>
+            <td><strong>FNCE</strong></td>
+            <td><span class="badge blue">VCP Breakout</span></td>
+            <td><strong style="color:#e3b341">3.8%</strong></td>
+            <td><strong style="color:#f85149">0.9x</strong></td>
+            <td><span style="color:#f85149">4.8x</span></td>
+            <td><span class="badge red">RS Lagging</span></td>
+            <td>$92.00</td>
+            <td>$88.50</td>
+            <td><span class="badge red">FAIL 66%</span></td>
+            <td><span class="badge red">D — Skip</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="footnote">* Beispiel-Daten. Täglich manuell befüllen nach Post-Market Screener-Routine. RVOL = Live-Wert zum Zeitpunkt des möglichen Entries. ATR-Extension von 50-MA täglich neu berechnen. Pflichtlektüre: Jeff Sun Screener #1 (CANSLIM), #2 (High ADR%), #3 (Extended Bases).</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: EPISODIC PIVOT ANALYSE -->
+<!-- ============================================================ -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <h2>Episodic Pivot (EP) Analyse</h2>
+    <span class="tag">Kullamaggie + Jeff Sun</span>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="rule-block">
+        <div class="rule-title">EP Kern-Kriterien (Pflicht — alle müssen erfüllt sein)</div>
+        <ul style="list-style:none;margin-top:8px;">
+          <li style="padding:6px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;">✅ <strong style="color:#e6edf3">Stock war 3–6 Monate flat/neglected</strong> — je länger, desto besser (coiled spring)</li>
+          <li style="padding:6px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;">✅ <strong style="color:#e6edf3">Gap mindestens +10%</strong> zur Eröffnung — Repricing-Event ausgelöst</li>
+          <li style="padding:6px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;">✅ <strong style="color:#e6edf3">Massives Volumen</strong> — gesamtes Tages-Durchschnittsvolumen in ersten 15–30 Min</li>
+          <li style="padding:6px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;">✅ <strong style="color:#e6edf3">Nicht bereits im extended Uptrend</strong> — Stock mit vorherigem Trend = schwächerer EP</li>
+          <li style="padding:6px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;">✅ <strong style="color:#e6edf3">Qualitäts-Katalysator</strong> — Earnings Surprise &gt; Produkt-News &gt; FDA &gt; Regulierung</li>
+          <li style="padding:6px 0;color:#8b949e;font-size:13px;">✅ <strong style="color:#e6edf3">60% ATR-Regel bestanden</strong> — LoD-Distanz / ATR &lt; 60% zum Entry-Zeitpunkt</li>
+        </ul>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-title">Katalysator-Qualität (Zuverlässigkeit)</div>
+        <ul style="list-style:none;margin-top:8px;">
+          <li style="padding:5px 0;color:#8b949e;font-size:13px;">🥇 <strong style="color:#3fb950">Earnings Surprise / Blowout</strong> — konsistentester Trigger (Kulla's #1)</li>
+          <li style="padding:5px 0;color:#8b949e;font-size:13px;">🥈 <strong style="color:#e6edf3">Neue Produktankündigung</strong> — fundamental + technisch</li>
+          <li style="padding:5px 0;color:#8b949e;font-size:13px;">🥉 <strong style="color:#e6edf3">FDA-Entscheidung</strong> — Biotech EP (aber: kein post-market Biotech Jeff Sun)</li>
+          <li style="padding:5px 0;color:#8b949e;font-size:13px;">4. <strong style="color:#e6edf3">Gesetzesänderungen / Regulierungen</strong></li>
+          <li style="padding:5px 0;color:#8b949e;font-size:13px;">5. <span style="color:#8b949e">Analysten-Upgrades alleine</span> — <span class="badge red">SCHWACH</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="rule-block">
+        <div class="rule-title">EP Entry-Reihenfolge (Priorisierung)</div>
+        <div class="timeline" style="margin-top:12px;">
+          <div class="timeline-item green">
+            <div class="date">Entry-Priorität 1</div>
+            <div class="title">1-Minuten ORH Break</div>
+            <div class="desc">Stärkstes Signal. Hohes Volumen direkt zur Eröffnung. Stock verlässt direkt das Opening-Level.</div>
+          </div>
+          <div class="timeline-item blue">
+            <div class="date">Entry-Priorität 2</div>
+            <div class="title">5-Minuten ORH Break</div>
+            <div class="desc">Wenn 1-Min verpasst. Stock konsolidiert kurz, bricht dann aus. Noch valide.</div>
+          </div>
+          <div class="timeline-item yellow">
+            <div class="date">Entry-Priorität 3</div>
+            <div class="title">1-Stunden Opening Range High</div>
+            <div class="desc">Fallback. Stock läuft am Morgen, konsolidiert, bricht nach 30–60 Min aus. Reduzierte Positionsgrösse.</div>
+          </div>
+          <div class="timeline-item red">
+            <div class="date">Skip-Signal</div>
+            <div class="title">Stock kann frühes High NICHT brechen</div>
+            <div class="desc">→ Trade überspringen. Keine Kraft vorhanden. Das Setup hat keine Dynamik.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-title">EP Stop & Exit Logik</div>
+        <ul style="list-style:none;margin-top:8px;">
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;"><strong style="color:#e6edf3">Initial Stop:</strong> Low of Day (LOD) — max 1 ADR, idealerweise ≤ 1.5 ADR</li>
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;"><strong style="color:#e6edf3">Day 3 (T+3):</strong> 33% Partial Profit nehmen — unabhängig von P&L</li>
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;"><strong style="color:#e6edf3">Day 4+:</strong> Mental Stop auf 10-MA — nur Exit wenn Close unter 10-MA</li>
+          <li style="padding:5px 0;color:#8b949e;font-size:13px;"><strong style="color:#e6edf3">Final Exit:</strong> Close unter 10-MA UND 20-MA = Momentum gebrochen</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <p><strong>PEAD-Konzept (Post-Earnings Announcement Drift):</strong> Institutionen werden von EP kalt erwischt. Sie brauchen Wochen/Monate um Positionen vollständig aufzubauen → nachhaltige Angebots-Nachfrage-Imbalance, die den Stock weit über den Gap-Tag hinaus trägt. <strong>Kulla: "Ich trade jetzt ausschließlich EPs — es ist das einfachste und zuverlässigste Setup."</strong></p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: BREAKOUT / VCP ANALYSE -->
+<!-- ============================================================ -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <h2>Breakout / VCP Analyse — Continuation Setup</h2>
+    <span class="tag">Kullamaggie + Jeff Sun</span>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="rule-block">
+        <div class="rule-title">Stock-Voraussetzungen (Kullamaggie Breakout)</div>
+        <ul style="list-style:none;margin-top:8px;">
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;">✅ <strong style="color:#e6edf3">Prior Move +30–100%+</strong> in den letzten 1–3 Monaten</li>
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;">✅ <strong style="color:#e6edf3">Top 1–2% der Performer</strong> über 1M / 3M / 6M</li>
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;">✅ <strong style="color:#e6edf3">Liquidität: &gt; $150M</strong> tägliches Dollar-Volumen</li>
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;">✅ <strong style="color:#e6edf3">HTF-Muster:</strong> +90%+ in kurzer Zeit → enge Konsolidierung 1–3 Wochen, max 25% Retracement</li>
+          <li style="padding:5px 0;color:#8b949e;font-size:13px;">✅ <strong style="color:#e6edf3">Nahe Highs</strong> — nicht extended oder im Downtrend</li>
+        </ul>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-title">Base / Konsolidierungs-Qualität</div>
+        <ul style="list-style:none;margin-top:8px;">
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;"><strong style="color:#e6edf3">Dauer:</strong> 2 Wochen bis 2 Monate — nicht zu kurz, nicht zu lang</li>
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;"><strong style="color:#e6edf3">Higher Lows:</strong> Enger werdende Handelsspanne → VCP-Struktur</li>
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;"><strong style="color:#e6edf3">MA-Surf:</strong> Stock "surft" 10-Day oder 20-Day EMA während Base</li>
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;"><strong style="color:#3fb950">Kritisch:</strong> Volumen kontrahiert während Konsolidierung</li>
+          <li style="padding:5px 0;color:#8b949e;font-size:13px;"><strong style="color:#e6edf3">Max Retracement:</strong> 15–25% vom Peak</li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="rule-block">
+        <div class="rule-title">VCP Entry-Regeln (Jeff Sun + Kulla)</div>
+        <ul style="list-style:none;margin-top:8px;">
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;"><strong style="color:#e6edf3">30-Min Regel:</strong> 30 Min warten nach Market Open — ORH etabliert sich</li>
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;"><strong style="color:#3fb950">M30 Re-ORH:</strong> Stock reclaimed 30-Min-High nach kurzem Dip = hochwertigster Entry</li>
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;"><strong style="color:#e6edf3">RVOL &gt; 2x:</strong> Pflicht für Non-Mega-Cap Stocks beim Breakout</li>
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;"><strong style="color:#e6edf3">+3% up minimal</strong> und 2-Tages-Highs clearen</li>
+          <li style="padding:5px 0;color:#8b949e;font-size:13px;"><strong style="color:#e6edf3">Kein Nachkauf</strong> wenn im Verlust — nur bei Re-Tightening + neuem Breakout</li>
+        </ul>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-title">Was zu VERMEIDEN ist</div>
+        <ul style="list-style:none;margin-top:8px;">
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#f85149;font-size:13px;">❌ Illiquide Stocks unter $150M Daily Dollar Volume</li>
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#f85149;font-size:13px;">❌ Bereits stark extended Trends — 4x+ ATR% von 50-MA</li>
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#f85149;font-size:13px;">❌ Ausbrüche in Bear-Märkten (MMTW unter 30%)</li>
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#f85149;font-size:13px;">❌ Entry ohne klaren Stop-Plan</li>
+          <li style="padding:5px 0;color:#f85149;font-size:13px;">❌ Loose/Wide Base — Jeff: "Ich kaufe NIE Stocks mit loser vorheriger Price Action"</li>
+        </ul>
+      </div>
+
+      <div class="rule-block" style="margin-top:0;">
+        <div class="rule-title">Breakout Stop Logik</div>
+        <ul style="list-style:none;margin-top:8px;">
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;"><strong style="color:#e6edf3">Initial:</strong> Low of Day des Breakout-Tages</li>
+          <li style="padding:5px 0;border-bottom:1px solid #21262d;color:#8b949e;font-size:13px;"><strong style="color:#e6edf3">Trailing:</strong> unter 10-Day oder 20-Day MA</li>
+          <li style="padding:5px 0;color:#8b949e;font-size:13px;"><strong style="color:#e6edf3">Exit:</strong> Close unter 10 UND 20 MA = Momentum gebrochen</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 6: ENTRY KALKULATOR -->
+<!-- ============================================================ -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <h2>Entry-Kalkulator — 60% ATR Regel + Positionsgrösse</h2>
+    <span class="tag">Interaktiver Kalkulator</span>
+  </div>
+
+  <div class="grid-2">
+    <!-- 60% ATR Rule Calc -->
+    <div class="calc-box">
+      <h3>60% ATR Regel — Einstiegs-Check</h3>
+      <p style="color:#8b949e;font-size:13px;margin-bottom:16px;">Jeff's härteste Regel: <code style="background:#21262d;color:#ffa657;padding:2px 6px;border-radius:4px;">(Preis – LoD) / ATR</code> muss unter 60% liegen. Über 60% = KEIN EINSTIEG.</p>
+      <div class="input-row">
+        <div class="input-group">
+          <label>Aktueller Preis ($)</label>
+          <input type="number" id="atr-price" placeholder="z.B. 50.65" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>Low of Day ($)</label>
+          <input type="number" id="atr-lod" placeholder="z.B. 49.00" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>ATR ($)</label>
+          <input type="number" id="atr-val" placeholder="z.B. 2.50" step="0.01">
+        </div>
+        <button class="calc-btn" onclick="calcATR()">Prüfen</button>
+      </div>
+      <div id="atr-result" class="calc-result">
+        <div class="result-title">LoD-Distanz / ATR</div>
+        <div class="result-value" id="atr-pct"></div>
+        <div class="result-detail" id="atr-detail"></div>
+      </div>
+      <div class="rule-block" style="margin-top:16px;">
+        <div class="rule-title">Interpretation</div>
+        <p>
+          <span style="color:#3fb950">0–50%: </span>Gutes Entry-Fenster ·
+          <span style="color:#e3b341">50–59%: </span>Grenzbereich ·
+          <span style="color:#f85149">60%+: </span>KEIN EINSTIEG<br>
+          <em style="font-size:11px;">Für ORH Buy-Stop Orders: Distance-Column vorher berechnen, muss &lt;50% sein</em>
+        </p>
+      </div>
+    </div>
+
+    <!-- Position Sizing Calc -->
+    <div class="calc-box">
+      <h3>Positionsgrösse — R-Risk Kalkulator</h3>
+      <p style="color:#8b949e;font-size:13px;margin-bottom:16px;">Jeff: Risiko pro Trade = max 1–2% des Kontos. Position Size = (Konto × R%) / (Entry – Stop).</p>
+      <div class="input-row">
+        <div class="input-group">
+          <label>Kontostand ($)</label>
+          <input type="number" id="ps-account" placeholder="z.B. 25000" step="100">
+        </div>
+        <div class="input-group">
+          <label>R-Risk (%)</label>
+          <input type="number" id="ps-rrisk" placeholder="z.B. 1.5" step="0.1">
+        </div>
+        <div class="input-group">
+          <label>Entry Preis ($)</label>
+          <input type="number" id="ps-entry" placeholder="z.B. 50.65" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>Stop Preis ($)</label>
+          <input type="number" id="ps-stop" placeholder="z.B. 49.00" step="0.01">
+        </div>
+        <button class="calc-btn" onclick="calcPosition()">Berechnen</button>
+      </div>
+      <div id="ps-result" class="calc-result">
+        <div class="result-title">Anzahl Aktien (volle Position)</div>
+        <div class="result-value" id="ps-shares"></div>
+        <div class="result-detail" id="ps-detail"></div>
+      </div>
+      <div class="rule-block" style="margin-top:16px;">
+        <div class="rule-title">ADR% Effizienz-Hinweis</div>
+        <p>Höheres ADR% = weniger Aktien nötig = weniger Slippage. Kulla: 10–25% des Kontos als aggressive EP-Sizing (nur bei klarem Katalysator + A-Rating).</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4x ATR Extension Check -->
+  <div class="calc-box" style="margin-top:0;">
+    <h3>4x ATR% Extension Check — Jeff's Hard Rule #2</h3>
+    <p style="color:#8b949e;font-size:13px;margin-bottom:16px;">Wenn ATR% Extension von 50-MA bereits 4x+ → KEIN EINSTIEG. Berechnung: <code style="background:#21262d;color:#ffa657;padding:2px 6px;border-radius:4px;">(Preis – 50-MA) / ATR</code></p>
+    <div class="input-row">
+      <div class="input-group">
+        <label>Aktueller Preis ($)</label>
+        <input type="number" id="ext-price" placeholder="z.B. 85.00" step="0.01">
+      </div>
+      <div class="input-group">
+        <label>50-Tage MA ($)</label>
+        <input type="number" id="ext-ma" placeholder="z.B. 72.00" step="0.01">
+      </div>
+      <div class="input-group">
+        <label>ATR ($)</label>
+        <input type="number" id="ext-atr" placeholder="z.B. 3.20" step="0.01">
+      </div>
+      <button class="calc-btn" onclick="calcExtension()">Prüfen</button>
+    </div>
+    <div id="ext-result" class="calc-result">
+      <div class="result-title">ATR% Extension von 50-MA</div>
+      <div class="result-value" id="ext-val"></div>
+      <div class="result-detail" id="ext-detail"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 7: 3-STOP STRATEGIE -->
+<!-- ============================================================ -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <h2>3-Stop Strategie — Jeff Sun's Original Framework</h2>
+    <span class="tag">Avg Loss = -0.67R statt -1R</span>
+  </div>
+
+  <div class="grid-2">
+    <div class="calc-box">
+      <h3>3-Stop Kalkulator</h3>
+      <p style="color:#8b949e;font-size:13px;margin-bottom:16px;">Position in 3 gleiche Tranchen à 33% aufteilen. Jede Tranche hat ihren eigenen Stop — gestaffelt von engem Intraday-Support bis LoD.</p>
+      <div class="input-row">
+        <div class="input-group">
+          <label>Anzahl Aktien total</label>
+          <input type="number" id="st-shares" placeholder="z.B. 300" step="1">
+        </div>
+        <div class="input-group">
+          <label>Entry Preis ($)</label>
+          <input type="number" id="st-entry" placeholder="z.B. 50.65" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>Enger Stop ($)</label>
+          <input type="number" id="st-stop1" placeholder="z.B. 49.80" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>Mittlerer Stop ($)</label>
+          <input type="number" id="st-stop2" placeholder="z.B. 49.30" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>LoD Stop ($)</label>
+          <input type="number" id="st-stop3" placeholder="z.B. 49.00" step="0.01">
+        </div>
+        <button class="calc-btn" onclick="calc3Stop()">Berechnen</button>
+      </div>
+      <div id="st-result" class="calc-result">
+        <div id="st-detail"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>3-Stop Mechanik — Tagesübersicht</h3>
+      <div class="timeline" style="margin-top:8px;">
+        <div class="timeline-item blue">
+          <div class="date">Day 0 — Entry Tag</div>
+          <div class="title">3 Tranchen à 33% setzen</div>
+          <div class="desc">Stop 1 (eng), Stop 2 (mittel), Stop 3 (LoD). Falls Profit-to-Risk &gt;2x innerhalb Day 0–2 → 33% Partial Profit nehmen.</div>
+        </div>
+        <div class="timeline-item green">
+          <div class="date">Day 3 — T+3 Checkpoint</div>
+          <div class="title">33% Reduktion + Breakeven konsolidieren</div>
+          <div class="desc">Unabhängig von P&L. Alle Stops auf Breakeven konsolidieren zu einer einzigen Größe. Ausnahme: Trade läuft klar durch &gt;4x ATR Extension.</div>
+        </div>
+        <div class="timeline-item yellow">
+          <div class="date">Day 4+ — Mental Stop auf 10-MA</div>
+          <div class="title">Nur Exit wenn Close unter 10-MA</div>
+          <div class="desc">Kein staggered Stop mehr. Reine Price-Action. Jeff hielt $XLU 86 Kalendertage mit dieser Methode.</div>
+        </div>
+        <div class="timeline-item red">
+          <div class="date">Re-Entry nach 2 Stop-Outs</div>
+          <div class="title">Inverse Pyramid — max 50% der Restgrösse</div>
+          <div class="desc">Wenn 2 Tranchen gestoppt aber Preis erholt sich: NICHT auf Original-Größe zurückgehen. Nur 50% der verbleibenden 1/3 Tranche hinzufügen.</div>
+        </div>
+      </div>
+      <div class="success-box">
+        <p><strong>10 Verlust-Trades in Folge:</strong><br>
+        Klassisches -1R System: -10R Gesamtverlust<br>
+        3-Stop System: ca. -6.7R Gesamtverlust<br>
+        → Differenz = der Unterschied zwischen Aufgeben und im Spiel bleiben</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 8: T+3 TRACKER -->
+<!-- ============================================================ -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <h2>T+3 Tracker — Aktive Positionen & Trade Management</h2>
+    <span class="tag">Täglich aktualisieren</span>
+  </div>
+
+  <div class="card" style="margin-bottom:24px;">
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Setup</th>
+            <th>Entry-Datum</th>
+            <th>Tag</th>
+            <th>Entry ($)</th>
+            <th>Aktuell ($)</th>
+            <th>Stop ($)</th>
+            <th>P&L (%)</th>
+            <th>R-Multiple</th>
+            <th>Aktion heute</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>EXPL</strong></td>
+            <td><span class="badge purple">EP</span></td>
+            <td>28.03.2026</td>
+            <td><span class="day-badge t2">T+2</span></td>
+            <td>$24.80</td>
+            <td><strong style="color:#3fb950">$29.20</strong></td>
+            <td>$22.40</td>
+            <td style="color:#3fb950"><strong>+17.7%</strong></td>
+            <td style="color:#3fb950"><strong>+1.84R</strong></td>
+            <td><span class="badge yellow">Morgen T+3: 33% Partial + BE-Stop</span></td>
+          </tr>
+          <tr>
+            <td><strong>MSTF</strong></td>
+            <td><span class="badge blue">VCP</span></td>
+            <td>27.03.2026</td>
+            <td><span class="day-badge t3plus">T+3</span></td>
+            <td>$187.50</td>
+            <td><strong style="color:#3fb950">$196.40</strong></td>
+            <td>$187.50 (BE)</td>
+            <td style="color:#3fb950"><strong>+4.7%</strong></td>
+            <td style="color:#3fb950"><strong>+0.71R</strong></td>
+            <td><span class="badge green">Halten — 10-MA Stop aktiv</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <h3>T+3 Checkpoint Protokoll</h3>
+      <ul>
+        <li><strong>Schritt 1:</strong> 33% der Position schließen (Partial Profit oder Cut)</li>
+        <li><strong>Schritt 2:</strong> Alle verbleibenden Stops auf Breakeven konsolidieren</li>
+        <li><strong>Schritt 3:</strong> Wenn Trade klar &gt;4x ATR Extension → auf "Catalyst Gap Rules" wechseln</li>
+        <li><strong>Schritt 4:</strong> Ab Day 4: Mental Stop auf 10-MA — Kerze muss unter 10-MA SCHLIESSEN</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Sell Into Strength — Kulla Regel</h3>
+      <ul>
+        <li><strong>"Sell some into strength, or death by a thousand cuts"</strong></li>
+        <li>Immer Partial Profit wenn Trade stark zu deinen Gunsten läuft</li>
+        <li>Nicht zu aggressiv — Winners atmen lassen</li>
+        <li><strong>Niemals</strong> zwei Wochen Gewinne an einem einzigen Tag verlieren</li>
+        <li>Zum Hinzufügen: ERST wenn Position profitabel ist + über BE-Stop</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Durable Portfolio Aufbau</h3>
+      <ul>
+        <li>Post T+3: Priorität wechselt zu HINZUFÜGEN bei bestehenden Positionen</li>
+        <li>Nicht NEUE Positionen auf Kosten bestehender Gewinner öffnen</li>
+        <li>Korrelationsrisiko: Nicht alle Gewinner im gleichen Sektor halten</li>
+        <li>Diversifiziere mit niedrig-beta ETFs oder anderen Sektoren</li>
+        <li>10-MA Sell-Regel kann Positionen wochenlang halten (Jeff: 86 Tage)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 9: GEX & OPTIONS CHAIN -->
+<!-- ============================================================ -->
+<div class="section" id="s9">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <h2>GEX & Options Chain Analyse</h2>
+    <span class="tag">Options Insights</span>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>GEX Kernaussagen (Stand heute)</h3>
+      <ul>
+        <li><strong>Total Net GEX Positiv:</strong> Market Maker sind <em>net long Gamma</em>. Sie hedgen durch Verkaufen wenn Kurs steigt → dämpfende Wirkung (Mean-Reversion-Tendenz). Ausbrüche schwerer durchzusetzen.</li>
+        <li><strong>Total Net GEX Negativ:</strong> Market Maker <em>net short Gamma</em>. Sie hedgen durch Kaufen wenn Kurs steigt → verstärkende Wirkung. Ausbrüche laufen weiter, Volatilität erhöht.</li>
+        <li><strong>GEX Null-Linie:</strong> Kurs nahe GEX=0 Niveau ist instabiler — kann in beide Richtungen ausbrechen.</li>
+        <li><strong>Max Pain:</strong> Kurs tendiert zu jenem Strike, wo die meisten Options wertlos verfallen — "magnetisches" Preislevel bis zum nächsten Expiry.</li>
+        <li><strong>Größter Call OI Block:</strong> Fungiert als Widerstand — MM verkaufen aggressiv darunter (Gamma-Hedge).</li>
+        <li><strong>Größter Put OI Block:</strong> Fungiert als Unterstützung — MM kaufen wenn Kurs fällt (Gamma-Hedge).</li>
+      </ul>
+      <div class="highlight">
+        <p><strong>Wie GEX im Momentum-Trading einsetzen:</strong> Episodic Pivot in stark negativem GEX-Umfeld = Ausbruch wird durch MM-Hedging verstärkt → stärkere Moves möglich. Positiver GEX = dämpfend, Ausbrüche können abwürgen. Nutze GEX als Kontext für Ziel-Bestimmung, nicht als primären Entry-Filter.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Aktuelle Options Chain Summary (Key Levels)</h3>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr><th>Strike</th><th>Call OI</th><th>Put OI</th><th>Net GEX</th><th>P/C Ratio</th><th>Bedeutung</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ATM − 10%</td>
+              <td>3,200</td>
+              <td>8,400</td>
+              <td style="color:#3fb950">+hoch</td>
+              <td style="color:#3fb950">0.38</td>
+              <td><span class="badge green">Starke Put-Unterstützung</span></td>
+            </tr>
+            <tr>
+              <td>ATM − 5%</td>
+              <td>4,800</td>
+              <td>5,600</td>
+              <td style="color:#e3b341">+mittel</td>
+              <td style="color:#e3b341">0.86</td>
+              <td><span class="badge yellow">Neutrale Zone</span></td>
+            </tr>
+            <tr>
+              <td><strong>ATM (Current)</strong></td>
+              <td><strong>9,680</strong></td>
+              <td><strong>2,020</strong></td>
+              <td style="color:#3fb950"><strong>+hoch</strong></td>
+              <td style="color:#3fb950"><strong>0.21</strong></td>
+              <td><span class="badge blue">Max Pain / Pinning Level</span></td>
+            </tr>
+            <tr>
+              <td>ATM + 5%</td>
+              <td>7,340</td>
+              <td>890</td>
+              <td style="color:#f85149">−mittel</td>
+              <td style="color:#f85149">0.12</td>
+              <td><span class="badge red">Call Wall — Widerstand</span></td>
+            </tr>
+            <tr>
+              <td>ATM + 10%</td>
+              <td>5,100</td>
+              <td>420</td>
+              <td style="color:#f85149">−hoch</td>
+              <td style="color:#f85149">0.08</td>
+              <td><span class="badge red">Starker Call-Widerstand</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footnote">* GEX berechnet als: Gamma × OI × 100 × Spot² × 0.01 | Alle Expiries aggregiert. Datenquellen: unusualwhales.com (free), Spotgamma (free tier), Tradytics (free tier).</p>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:24px;">
+    <div class="card">
+      <h3>GEX Interpretation für EP-Setups</h3>
+      <ul>
+        <li><strong>EP in negativem GEX:</strong> <span class="badge green">IDEAL</span> — MM hedgen durch Kaufen = beschleunigt den Move</li>
+        <li><strong>EP in positivem GEX:</strong> <span class="badge yellow">VORSICHT</span> — MM verkaufen → dämpft. Partieller Exit früher sinnvoll</li>
+        <li><strong>Kurs nahe Max Pain bei Expiry-Woche:</strong> Erhöhte Stabilität, aber begrenzte Upside bis Expiry</li>
+        <li><strong>Kurs weit unter Max Pain:</strong> Magnetisches Anziehen nach oben — unterstützt EP-Thesis</li>
+        <li><strong>Put/Call Ratio &lt; 0.5:</strong> Bullish Sentiment (viel Call-OI = Widerstand nach oben)</li>
+        <li><strong>Put/Call Ratio &gt; 1.0:</strong> Bearish Hedging — hohe Put-Wall = Unterstützung nach unten</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Kostenlose GEX/Options Datenquellen</h3>
+      <ul>
+        <li><strong>unusualwhales.com:</strong> Free tier — Options Flow, GEX Übersicht, Max Pain</li>
+        <li><strong>Spotgamma.com:</strong> Free HIRO-Indicator, Key Strike Levels täglich</li>
+        <li><strong>Tradytics.com:</strong> Free tier — Dark Pool Prints, Options Flow</li>
+        <li><strong>barchart.com:</strong> Kostenlose Options Chain mit OI-Daten</li>
+        <li><strong>market-chameleon.com:</strong> IV-Rank, IV-Percentile, Skew-Charts gratis</li>
+        <li><strong>optioncharts.io:</strong> Kostenlose Skew + Term Structure Visualisierung</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 10: OPTIONS IV SKEW & TERM STRUCTURE -->
+<!-- ============================================================ -->
+<div class="section" id="s10">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <h2>Options IV Skew & Term Structure Analyse</h2>
+    <span class="tag">Options Insights</span>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>IV Rank & IV Percentile</h3>
+      <ul>
+        <li><strong>IV Rank (IVR):</strong> Wo liegt die aktuelle IV relativ zum 52-Wochen-Hoch/Tief? IVR 80+ = Optionen teuer = eher Verkäufer-Strategie</li>
+        <li><strong>IV Percentile:</strong> Wie viele Tage in den letzten 252 war die IV niedriger? IVP 80 = 80% der Zeit war IV tiefer</li>
+        <li><strong>IVR &lt; 30:</strong> Optionen günstig → Calls/Puts kaufen (EP-Katalysator-Plays)</li>
+        <li><strong>IVR &gt; 70:</strong> Optionen teuer → Spreads statt nackter Options, oder IV-Crush nach Event einpreisen</li>
+        <li><strong>Post-EP IV-Crush:</strong> Nach Earnings Gap kollabiert die IV stark — nackte Long-Options verlieren trotz Richtungs-Richtigkeit. Spread-Struktur bevorzugen.</li>
+      </ul>
+      <div class="warn-box">
+        <p><strong>IV-Crush-Warnung bei EP-Plays:</strong> Wenn Stock gappt wegen Earnings → IV kollabiert sofort nach dem Open. Wer pre-earnings Calls hält, verliert trotz richtigem Move durch IV-Crush. Stattdessen: Stock-Position statt Optionen für EP-Setup bevorzugen.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Term Structure & Skew</h3>
+      <ul>
+        <li><strong>Contango (normal):</strong> Längere Expiries teurer als kurze → normale Erwartung. Beste Zeit für Calendar Spreads.</li>
+        <li><strong>Backwardation:</strong> Kurze Expiries teurer als lange → erhöhte Kurzfrist-Angst (Event-Preis eingepreist). Oft vor Earnings/Katalysatoren.</li>
+        <li><strong>Put Skew (neg. Skew):</strong> OTM Puts teurer als OTM Calls → Markt fürchtet Abwärtsbewegung mehr. Normal für Indices (Tail-Hedge).</li>
+        <li><strong>Call Skew (pos. Skew):</strong> OTM Calls teurer → Momentum-Stock, Short-Squeeze-Erwartung, Übernahme-Spekulation.</li>
+        <li><strong>Near-Dated IV Spike:</strong> Wenn Nearest-Expiry-IV explodiert vor allem anderen → Event bekannt. Vorsicht bei Einstieg.</li>
+      </ul>
+
+      <h3 style="margin-top:16px;">Optionale Options-Trades (keine Empfehlung)</h3>
+      <ul>
+        <li><strong>Bull Call Spread (IVR 30–50):</strong> Buy ATM Call / Sell OTM Call · Begrenztes Risiko, begrenzte Upside · Ideal wenn IVR moderat</li>
+        <li><strong>Long Call (IVR &lt;30):</strong> Günstiger Hebel bei günstiger IV · Risiko: IV-Crush wenn Katalysator verpufft</li>
+        <li><strong>Covered Call auf Long-Position:</strong> Wenn ATM + 10% Call-Wall als Widerstand identifiziert → gegen Long-Aktien-Position schreiben</li>
+      </ul>
+      <p class="footnote">⚠ Options-Trades dienen als Kontext-Ergänzung, nicht als primärer Trade-Typ für dieses System. Kullamaggie/Jeff Sun handeln primär Aktien. Options nur als ergänzender Kontext für Levels und Momentum-Bestätigung.</p>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-top:24px;">
+    <div class="card">
+      <h3>IV vor EP-Entry prüfen</h3>
+      <ul>
+        <li>IV Rank vor Earnings-Gap: Sehr hoch (80–100) → Post-Earnings IV-Crush erwartet</li>
+        <li>Aktien-EP bevorzugen statt Options-EP wenn IVR &gt;70</li>
+        <li>Call Skew vor EP: Zeigt institutionelle Erwartung für weiteres Upside</li>
+        <li>Put/Call Open Interest: Hohe Put-Wall unter Entry = natürlicher Stop-Bereich</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Historische Options-Daten</h3>
+      <ul>
+        <li><strong>OptionMetrics:</strong> Institutionell (teuer), präzise historische IV-Daten</li>
+        <li><strong>CBOE Datashop:</strong> Historische Options-Daten (kostenpflichtig)</li>
+        <li><strong>unusualwhales.com:</strong> Historische Flow-Daten (free tier begrenzt)</li>
+        <li><strong>market-chameleon.com:</strong> Historische IV-Charts kostenlos bis 1 Jahr</li>
+        <li><strong>FinanceCharts.com:</strong> Kostenlose historische Chart-Recherche</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Skew Signal für Momentum</h3>
+      <ul>
+        <li>Call Skew steigt bei Momentum-Stock → Institutionen kaufen OTM Calls voraus</li>
+        <li>Plötzliche Put-Skew-Explosion → Short-Hedge / Distribution eingeleitet</li>
+        <li>Flat Skew bei hohem RVOL = institutioneller Kauf ohne Hedge → Stärke-Signal</li>
+        <li>Term-Structure Inversion vor Earnings = Event-Preis vollständig eingepreist</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 11: HARTE REGELN & ENTSCHEIDUNGSBAUM -->
+<!-- ============================================================ -->
+<div class="section" id="s11">
+  <div class="section-header">
+    <div class="section-num">11</div>
+    <h2>Harte Regeln & Entscheidungsbaum</h2>
+    <span class="tag">Quick Reference</span>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:24px;">
+    <div>
+      <h3 style="color:#f85149;margin-bottom:12px;font-size:15px;">NO-TRADE Bedingungen — Absolute Hard Rules</h3>
+      <div class="rule-block hard">
+        <div class="rule-title">Hard Rule #1 — Kein Trade vor grossen Wirtschaftsdaten</div>
+        <p>Kein Entry vor CPI, Fed-Entscheidung, NFP, FOMC. Gap-Risiko überschreibt jede technische Analyse.</p>
+      </div>
+      <div class="rule-block hard">
+        <div class="rule-title">Hard Rule #2 — Kein Trade pre/post Earnings (Standard-Setup)</div>
+        <p>Gap-Risiko unkontrollierbar. Ausnahme: Episodic Pivot ist explizit ein Post-Earnings-Setup → eigene EP-Regeln greifen.</p>
+      </div>
+      <div class="rule-block hard">
+        <div class="rule-title">Hard Rule #3 — LoD-Distanz über 60% ATR</div>
+        <p><code>(Preis – LoD) / ATR &gt; 0.60</code> → KEIN EINSTIEG. Spring ist zu weit gespannt. Stop zu weit entfernt. R/R kollabiert.</p>
+      </div>
+      <div class="rule-block hard">
+        <div class="rule-title">Hard Rule #4 — Stock über 4x ATR% Extension von 50-MA</div>
+        <p>Zu weit von der Base. Upside begrenzt, Downside hoch. Nicht in extended Trends einsteigen.</p>
+      </div>
+      <div class="rule-block hard">
+        <div class="rule-title">Hard Rule #5 — Kein RVOL, kein Trade</div>
+        <p>"Price fades always outside of RVOL." Ohne Volumen-Bestätigung scheitern Ausbrüche. Ausnahme: Mega-Cap Liquid Names (&gt;$1B Daily $Vol).</p>
+      </div>
+      <div class="rule-block hard">
+        <div class="rule-title">Hard Rule #6 — Keine Biotechs aus Post-Market-Scan</div>
+        <p>Overnight Gap-Risiko unkontrollierbar. Stattdessen: LABU (Long Biotech) / LABD (Short Biotech) ETFs verwenden.</p>
+      </div>
+      <div class="rule-block hard">
+        <div class="rule-title">Hard Rule #7 — Max 3 neue Positionen pro Session</div>
+        <p>Risiko-Konzentration vermeiden. Neue Positionen auf bestehende Gewinner aufbauen, nicht neue öffnen.</p>
+      </div>
+    </div>
+
+    <div>
+      <h3 style="color:#58a6ff;margin-bottom:12px;font-size:15px;">Entscheidungsbaum — Setup-Routing</h3>
+      <div class="decision-node blue">
+        <div class="node-q">Stock auf Watchlist / Alert ausgelöst</div>
+        <div class="node-a">→ Markt-Regime prüfen: MMTW / ATR-Extension / Breadth</div>
+      </div>
+      <div class="tree-indent">
+        <div class="decision-node">
+          <div class="node-q">War Stock 3–6 Monate flat + heutiger Gap ≥ 10%?</div>
+          <div class="node-a">→ EPISODIC PIVOT SETUP</div>
+        </div>
+        <div class="tree-indent">
+          <div class="decision-node green">
+            <div class="node-q">✅ EP: 1-Min ORH Entry | Stop: LoD | T+3 Partial | 10-MA Trail</div>
+            <div class="node-a">→ Katalysator prüfen → RVOL check → 60% ATR check → 3-Stop Setup</div>
+          </div>
+        </div>
+        <div class="decision-node" style="margin-top:8px;">
+          <div class="node-q">Prior Move +30%+ + enge VCP Base + RS Leader?</div>
+          <div class="node-a">→ BREAKOUT / CONTINUATION SETUP</div>
+        </div>
+        <div class="tree-indent">
+          <div class="decision-node green">
+            <div class="node-q">✅ ORH (30-Min) auf RVOL &gt; 2x | 60% ATR Check | 4x Extension Check</div>
+            <div class="node-a">→ Stop: LoD → 3-Stop-System → 10-MA trailing ab Day 4+</div>
+          </div>
+        </div>
+        <div class="decision-node red" style="margin-top:8px;">
+          <div class="node-q">❌ Kein klares Setup oder Hard Rule verletzt</div>
+          <div class="node-a">→ KEIN TRADE. "Missing trades won't make you go broke. Chasing them often will." — Jeff Sun</div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <h3 style="color:#3fb950;margin-bottom:12px;font-size:15px;">Synthese — Das Beste beider Welten</h3>
+        <div class="success-box">
+          <p>
+            <strong>SETUP-FILTER (Jeff Sun):</strong> RS &gt; Markt 1M/3M/6M · VCP enge Base + Volumen-Kontraktion · ADR% &gt; 4–5% · ATR% &lt; 4x · Breadth positiv<br><br>
+            <strong>ENTRY HYBRID:</strong> Standard: ORH (30-Min) auf RVOL &gt; 2x · EP: Gap 10%+ nach Earnings, Stock vorher 3–6M flat → 1-Min ORH Entry<br><br>
+            <strong>STOP (kombiniert):</strong> Initial LoD · 3-Stop-System (3x 33%) → Avg Loss -0.67R · Max 1.5 ADR vom Entry<br><br>
+            <strong>MANAGEMENT:</strong> T+3 Partial + BE-Stop · Day 4+: 10-MA Mental Stop · Exit: Close unter 10 &amp; 20 MA
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <h3>Jeff Sun Core Mindset</h3>
+      <ul>
+        <li><strong>"Simplicity enhances trading performance. Complexity won't."</strong></li>
+        <li>Post/Pre-Market Routine &gt; die eigentliche Session</li>
+        <li>Du tradest gut, weil du gut VORBEREITET hast — nicht wegen Intelligenz</li>
+        <li>"Denke in Hunderten von Trades" — kein einzelner Trade definiert dein System</li>
+        <li>Suche immer GRÜNDE DAGEGEN — nicht dafür</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Kullamaggie Kern-Regeln</h3>
+      <ul>
+        <li>Lieblingsmuster: <strong>High Tight Flag (HTF)</strong> — +90%+ schnell, dann enge 1–3 Wochen Base</li>
+        <li>Niemals nachkaufen wenn im Verlust</li>
+        <li>Nach 2–3 Verlust-Trades am Tag → Pause</li>
+        <li>EPs am häufigsten in <strong>Earnings Season</strong> (4x/Jahr)</li>
+        <li>"True focus is always Relative Strength" — RS First, immer</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Empfohlene Trader & Ressourcen</h3>
+      <ul>
+        <li><strong>@qullamaggie</strong> — Primary Influence. Pure Momentum, RS-First</li>
+        <li><strong>@jfsrev (Jeff Sun)</strong> — 3-Stop System, quantitative Regeln</li>
+        <li><strong>@BrianLeeTrades</strong> — Trade Management, R-Multiple Optimierung</li>
+        <li><strong>@LoneStockTrader</strong> — ORB Präzision, 3-Stop User</li>
+        <li><strong>Stanley Druckenmiller</strong> — Top-Down Macro, Sektor-Rotation</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 12: KOSTENLOSE APIs -->
+<!-- ============================================================ -->
+<div class="section" id="s12">
+  <div class="section-header">
+    <div class="section-num">12</div>
+    <h2>Kostenlose API-Quellen für dieses Dashboard</h2>
+    <span class="tag">Setup-Guide</span>
+  </div>
+
+  <div class="card" style="margin-bottom:24px;">
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr><th>Tool / API</th><th>Zweck</th><th>Kosten</th><th>Key benötigt?</th><th>Was es liefert</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>TradingView</strong></td>
+            <td>Charting, Screener, Alerts</td>
+            <td><span class="badge green">Kostenlos</span></td>
+            <td>Nein</td>
+            <td>RVOL, ADR%, MMTW/MMFI/MMOH, Price Alerts, ATR-Indikator</td>
+          </tr>
+          <tr>
+            <td><strong>Finviz.com</strong></td>
+            <td>Post-Market Screener</td>
+            <td><span class="badge green">Kostenlos</span></td>
+            <td>Nein</td>
+            <td>14 Screener (CANSLIM, High ADR%, IPO, Short Float, Institutional Transaction)</td>
+          </tr>
+          <tr>
+            <td><strong>Yahoo Finance v8 API</strong></td>
+            <td>Live Kurs-Daten</td>
+            <td><span class="badge green">Kostenlos</span></td>
+            <td>Nein</td>
+            <td>Preis, ADR%, 52-Wochen-Range, Volumen — inoffiziell, kein Key</td>
+          </tr>
+          <tr>
+            <td><strong>Alpha Vantage</strong></td>
+            <td>Historical OHLCV, Technical Indicators</td>
+            <td><span class="badge green">Kostenlos (25 calls/day)</span></td>
+            <td>Ja — alphavantage.co</td>
+            <td>Daily OHLCV, RSI, EMA, Volumen — für ATR-Berechnungen</td>
+          </tr>
+          <tr>
+            <td><strong>Polygon.io</strong></td>
+            <td>EOD Stock Data</td>
+            <td><span class="badge green">Kostenlos (unlimitiert EOD)</span></td>
+            <td>Ja — polygon.io</td>
+            <td>End-of-day OHLCV, Ticker-Details, Fundamentals</td>
+          </tr>
+          <tr>
+            <td><strong>thestockcatalyst.com</strong></td>
+            <td>Pre-Market Gapper & Katalysatoren</td>
+            <td><span class="badge green">Kostenlos</span></td>
+            <td>Nein</td>
+            <td>Pre-Market Mover, Earnings-Gapper, News-Katalysatoren — Jeff's Tool #1</td>
+          </tr>
+          <tr>
+            <td><strong>unusualwhales.com</strong></td>
+            <td>Options Flow, GEX, Max Pain</td>
+            <td><span class="badge green">Free Tier</span></td>
+            <td>Nein</td>
+            <td>Daily GEX, Max Pain, Options Flow, Dark Pool Prints</td>
+          </tr>
+          <tr>
+            <td><strong>market-chameleon.com</strong></td>
+            <td>IV Rank, IV Percentile, Skew</td>
+            <td><span class="badge green">Kostenlos</span></td>
+            <td>Nein</td>
+            <td>IVR, IVP, historische IV-Charts, Skew-Visualisierung</td>
+          </tr>
+          <tr>
+            <td><strong>Spotgamma.com</strong></td>
+            <td>GEX Key Levels</td>
+            <td><span class="badge green">Free HIRO Daily</span></td>
+            <td>Nein</td>
+            <td>Tägliche Key GEX-Levels, Call/Put Wall, Flip-Point</td>
+          </tr>
+          <tr>
+            <td><strong>FRED API (St. Louis Fed)</strong></td>
+            <td>Makro-Daten</td>
+            <td><span class="badge green">Kostenlos</span></td>
+            <td>Ja — fred.stlouisfed.org</td>
+            <td>VIX-Daten, Yield Curve, Macro Context für Markt-Regime</td>
+          </tr>
+          <tr>
+            <td><strong>FinanceCharts.com</strong></td>
+            <td>Historische Chart-Recherche</td>
+            <td><span class="badge green">Kostenlos</span></td>
+            <td>Nein</td>
+            <td>Historische OHLCV Charts für Post-Trade Analyse</td>
+          </tr>
+          <tr>
+            <td><strong>optioncharts.io</strong></td>
+            <td>Options Skew + Term Structure</td>
+            <td><span class="badge green">Kostenlos</span></td>
+            <td>Nein</td>
+            <td>Skew Charts, Term Structure Visualisierung, IV-Vergleich</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Setup — TradingView Indikatoren (Jeff Sun's 4 Core)</h3>
+      <ul>
+        <li><strong>Indikator 1 — Swing Data Panel:</strong> ADR% / RVOL / PVol / Float% / Avg $Vol / Market Cap (suche auf TradingView: "Swing Data Panel")</li>
+        <li><strong>Indikator 2 — ATR% Multiple from 50-MA:</strong> Zeigt wie viele ATR-Einheiten Stock von 50-MA entfernt ist (suche: "ATR Multiple 50 MA")</li>
+        <li><strong>Indikator 3 — VARS Histogram:</strong> Volatility Adjusted RS (@jfsrev Profil auf TradingView). Alternative: IBD-Style RS von @Fred6724</li>
+        <li><strong>Indikator 4 — Volume + Pocket Pivots:</strong> Pocket Pivot = Tag wo Volumen das höchste Down-Volumen der letzten 10 Sessions übertrifft</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Tages-Routine (Jeff Sun Prozess)</h3>
+      <div class="timeline" style="margin-top:8px;">
+        <div class="timeline-item blue">
+          <div class="date">Post-Market (~2h)</div>
+          <div class="title">14 Screener durcharbeiten + Focus List bauen</div>
+          <div class="desc">Finviz + TradingView Screener. Watchlist → Stalk List → Focus List (max 15 Namen). Price Alerts für morgen setzen.</div>
+        </div>
+        <div class="timeline-item yellow">
+          <div class="date">Pre-Market (30 Min vor Open)</div>
+          <div class="title">CNBC 5 Things + Gapper Check + Futures</div>
+          <div class="desc">thestockcatalyst.com für Gapper. US100/US500/BTC/Gold Futures prüfen. Alerts auf Breakout-Level setzen.</div>
+        </div>
+        <div class="timeline-item green">
+          <div class="date">Market Open (Alert-driven)</div>
+          <div class="title">Nur bei Alert handeln — kein Screen-Staring</div>
+          <div class="desc">30-Min Wartezeit (außer extremes RVOL). ORH Entry. 60% ATR Check. 3-Stop Setup. Max 3 neue Positionen.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>Momentum Trading Dashboard · Kullamaggie × Jeff Sun Hybrid System · Generiert 30.03.2026 · Luca Kaiser</p>
+</div>
+
+<script>
+  // ============================================================
+  // CHECKLIST: Toggle pass/fail dots
+  // ============================================================
+  function toggleCheck(item) {
+    const dot = item.querySelector('.check-dot');
+    if (!dot.classList.contains('pass') && !dot.classList.contains('fail')) {
+      dot.classList.add('pass');
+    } else if (dot.classList.contains('pass')) {
+      dot.classList.remove('pass');
+      dot.classList.add('fail');
+    } else {
+      dot.classList.remove('fail');
+    }
+    updateRatingPreview();
+  }
+
+  function updateRatingPreview() {
+    const dots = document.querySelectorAll('#checklist .check-dot');
+    let pass = 0, fail = 0, neutral = 0;
+    dots.forEach(d => {
+      if (d.classList.contains('pass')) pass++;
+      else if (d.classList.contains('fail')) fail++;
+      else neutral++;
+    });
+    const total = 10;
+    const score = pass;
+    const el = document.getElementById('rating-result');
+    if (pass === 0 && fail === 0) { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    let letter, label, bg, border;
+    if (score >= 9) { letter='A'; label='Volle Position — A-Rated Execution'; bg='#0d2010'; border='#3fb950'; color='#3fb950'; }
+    else if (score >= 7) { letter='B'; label='Halbe Position — Reduziertes Sizing'; bg='#1c1a0e'; border='#e3b341'; color='#e3b341'; }
+    else if (score >= 5) { letter='C'; label='Skip oder minimale Sonde'; bg='#1a0e10'; border='#f85149'; color='#f85149'; }
+    else { letter='D'; label='KEIN TRADE — Alle Kriterien fehlen'; bg='#200d0d'; border='#f85149'; color='#f85149'; }
+    el.style.background = bg;
+    el.style.borderColor = border;
+    el.innerHTML = `<div class="rating-letter" style="color:${color}">${letter}</div><div class="rating-label" style="color:${color}">${label}</div><div style="color:#8b949e;font-size:12px;margin-top:6px;">${score}/10 Kriterien erfüllt</div>`;
+  }
+
+  function calcRating() {
+    updateRatingPreview();
+    const el = document.getElementById('rating-result');
+    el.style.display = 'block';
+  }
+
+  function resetChecklist() {
+    document.querySelectorAll('#checklist .check-dot').forEach(d => {
+      d.classList.remove('pass', 'fail', 'warn');
+    });
+    document.getElementById('rating-result').style.display = 'none';
+  }
+
+  // ============================================================
+  // 60% ATR RULE CALCULATOR
+  // ============================================================
+  function calcATR() {
+    const price = parseFloat(document.getElementById('atr-price').value);
+    const lod = parseFloat(document.getElementById('atr-lod').value);
+    const atr = parseFloat(document.getElementById('atr-val').value);
+    const result = document.getElementById('atr-result');
+    if (isNaN(price) || isNaN(lod) || isNaN(atr) || atr === 0) {
+      result.className = 'calc-result show';
+      result.innerHTML = '<div style="color:#f85149">Bitte alle Felder korrekt ausfüllen.</div>';
+      return;
+    }
+    const dist = price - lod;
+    const pct = (dist / atr) * 100;
+    result.className = 'calc-result show';
+    let color, verdict, detail;
+    if (pct <= 50) { color='#3fb950'; verdict='PASS — Gutes Entry-Fenster'; detail=`LoD-Distanz $${dist.toFixed(2)} = ${pct.toFixed(1)}% des ATR. Spring hat noch Energie. Einstieg valide.`; }
+    else if (pct <= 59) { color='#e3b341'; verdict='BORDERLINE — Nur bei extremem RVOL'; detail=`LoD-Distanz $${dist.toFixed(2)} = ${pct.toFixed(1)}% des ATR. Grenzbereich. Nur wenn RVOL sehr hoch.`; }
+    else { color='#f85149'; verdict='FAIL — KEIN EINSTIEG'; detail=`LoD-Distanz $${dist.toFixed(2)} = ${pct.toFixed(1)}% des ATR. Über 60% → Spring ist bereits zu gespannt. Skip.`; }
+    document.getElementById('atr-pct').style.color = color;
+    document.getElementById('atr-pct').textContent = pct.toFixed(1) + '%';
+    document.getElementById('atr-detail').innerHTML = `<span style="color:${color};font-weight:700">${verdict}</span><br>${detail}`;
+  }
+
+  // ============================================================
+  // POSITION SIZING CALCULATOR
+  // ============================================================
+  function calcPosition() {
+    const account = parseFloat(document.getElementById('ps-account').value);
+    const rrisk = parseFloat(document.getElementById('ps-rrisk').value);
+    const entry = parseFloat(document.getElementById('ps-entry').value);
+    const stop = parseFloat(document.getElementById('ps-stop').value);
+    const result = document.getElementById('ps-result');
+    if (isNaN(account) || isNaN(rrisk) || isNaN(entry) || isNaN(stop)) {
+      result.className = 'calc-result show';
+      result.innerHTML = '<div style="color:#f85149">Bitte alle Felder korrekt ausfüllen.</div>';
+      return;
+    }
+    const riskDollar = account * (rrisk / 100);
+    const stopDist = entry - stop;
+    if (stopDist <= 0) {
+      result.className = 'calc-result show';
+      result.innerHTML = '<div style="color:#f85149">Stop muss unter Entry-Preis liegen.</div>';
+      return;
+    }
+    const shares = Math.floor(riskDollar / stopDist);
+    const totalCapital = shares * entry;
+    const capitalPct = (totalCapital / account) * 100;
+    const tranche = Math.floor(shares / 3);
+    result.className = 'calc-result show';
+    document.getElementById('ps-shares').style.color = '#58a6ff';
+    document.getElementById('ps-shares').textContent = shares + ' Aktien';
+    document.getElementById('ps-detail').innerHTML = `
+      <strong>Dollar-Risiko:</strong> $${riskDollar.toFixed(2)} (${rrisk}% von $${account.toLocaleString()})<br>
+      <strong>Stop-Distanz:</strong> $${stopDist.toFixed(2)} pro Aktie<br>
+      <strong>Kapital-Einsatz:</strong> $${totalCapital.toLocaleString(undefined,{maximumFractionDigits:0})} (${capitalPct.toFixed(1)}% des Kontos)<br>
+      <strong style="color:#e3b341">3-Stop Tranchen à 33%:</strong> je ${tranche} Aktien pro Tranche
+    `;
+  }
+
+  // ============================================================
+  // 4x ATR EXTENSION CHECK
+  // ============================================================
+  function calcExtension() {
+    const price = parseFloat(document.getElementById('ext-price').value);
+    const ma = parseFloat(document.getElementById('ext-ma').value);
+    const atr = parseFloat(document.getElementById('ext-atr').value);
+    const result = document.getElementById('ext-result');
+    if (isNaN(price) || isNaN(ma) || isNaN(atr) || atr === 0) {
+      result.className = 'calc-result show';
+      result.innerHTML = '<div style="color:#f85149">Bitte alle Felder korrekt ausfüllen.</div>';
+      return;
+    }
+    const ext = (price - ma) / atr;
+    result.className = 'calc-result show';
+    let color, verdict, detail;
+    if (ext <= 2) { color='#3fb950'; verdict='Ideal — Früh in der Bewegung'; detail=`${ext.toFixed(1)}x ATR Extension. Stock nahe an der Base. Optimales Entry-Fenster.`; }
+    else if (ext <= 3.9) { color='#e3b341'; verdict='Noch handelbar — Getting Extended'; detail=`${ext.toFixed(1)}x ATR Extension. Noch valide aber beginnt extended zu werden. Kleinere Position.`; }
+    else { color='#f85149'; verdict='KEIN EINSTIEG — 4x Hard Rule'; detail=`${ext.toFixed(1)}x ATR Extension. Jeff's Hard Rule #2 verletzt. Upside begrenzt, Downside hoch. Warten auf neue Base.`; }
+    document.getElementById('ext-val').style.color = color;
+    document.getElementById('ext-val').textContent = ext.toFixed(2) + 'x ATR';
+    document.getElementById('ext-detail').innerHTML = `<span style="color:${color};font-weight:700">${verdict}</span><br>${detail}`;
+  }
+
+  // ============================================================
+  // 3-STOP CALCULATOR
+  // ============================================================
+  function calc3Stop() {
+    const shares = parseInt(document.getElementById('st-shares').value);
+    const entry = parseFloat(document.getElementById('st-entry').value);
+    const stop1 = parseFloat(document.getElementById('st-stop1').value);
+    const stop2 = parseFloat(document.getElementById('st-stop2').value);
+    const stop3 = parseFloat(document.getElementById('st-stop3').value);
+    const result = document.getElementById('st-result');
+    result.className = 'calc-result show';
+    if (isNaN(shares) || isNaN(entry) || isNaN(stop1) || isNaN(stop2) || isNaN(stop3)) {
+      document.getElementById('st-detail').innerHTML = '<div style="color:#f85149">Bitte alle Felder korrekt ausfüllen.</div>';
+      return;
+    }
+    const t = Math.floor(shares / 3);
+    const loss1 = (entry - stop1) * t;
+    const loss2 = (entry - stop2) * t;
+    const loss3 = (entry - stop3) * t;
+    const totalLoss = loss1 + loss2 + loss3;
+    const fullLoss = (entry - stop3) * shares;
+    const saving = fullLoss - totalLoss;
+    document.getElementById('st-detail').innerHTML = `
+      <table style="width:100%;font-size:12px;">
+        <tr><th style="text-align:left;color:#8b949e;padding:4px 0;">Tranche</th><th style="color:#8b949e;">Aktien</th><th style="color:#8b949e;">Stop</th><th style="color:#8b949e;">Max Verlust</th></tr>
+        <tr><td style="color:#f85149">Stop 1 (eng)</td><td>${t}</td><td>$${stop1.toFixed(2)}</td><td style="color:#f85149">-$${loss1.toFixed(2)}</td></tr>
+        <tr><td style="color:#e3b341">Stop 2 (mittel)</td><td>${t}</td><td>$${stop2.toFixed(2)}</td><td style="color:#e3b341">-$${loss2.toFixed(2)}</td></tr>
+        <tr><td style="color:#f85149">Stop 3 (LoD)</td><td>${t}</td><td>$${stop3.toFixed(2)}</td><td style="color:#f85149">-$${loss3.toFixed(2)}</td></tr>
+        <tr style="border-top:2px solid #30363d;"><td colspan="3"><strong style="color:#e6edf3">Gesamtverlust (alle gestoppt)</strong></td><td><strong style="color:#f85149">-$${totalLoss.toFixed(2)}</strong></td></tr>
+        <tr><td colspan="3" style="color:#8b949e">vs. normaler 1-Stop Verlust</td><td style="color:#e3b341">-$${fullLoss.toFixed(2)}</td></tr>
+        <tr><td colspan="3" style="color:#3fb950"><strong>Ersparnis durch 3-Stop System</strong></td><td style="color:#3fb950"><strong>+$${saving.toFixed(2)}</strong></td></tr>
+      </table>
+    `;
+  }
+</script>
+
+</body>
+</html>

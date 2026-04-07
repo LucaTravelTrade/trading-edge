@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="de">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Ticker Scanner — Momentum · EP · GEX</title>
+  <title>Jeff Sun × Kullamaggie Scanner — EP · VCP · GEX · Options</title>
   <style>
     * {
       box-sizing: border-box;
@@ -1178,11 +1178,11 @@
 
   <div class="header">
     <div>
-      <h1>⚡ Ticker Scanner — EP · VCP · GEX · Options</h1>
+      <h1>⚡ Jeff Sun × Kullamaggie Scanner — EP · VCP · GEX · Options</h1>
       <div class="sub">Kullamaggie × Jeff Sun · Auto-Setup-Rating · Options Chain · Max Pain · Momentum Check</div>
     </div>
     <div class="search-wrap">
-      <input class="ticker-in" id="tin" type="text" placeholder="Ticker (z.B. NVDA)" maxlength="10"
+      <input class="ticker-in" id="tin" type="text" placeholder="Ticker (e.g. NVDA)" maxlength="10"
         autocomplete="off" />
       <button class="scan-btn" id="sbtn" onclick="runScan()">Scan ▶</button>
     </div>
@@ -1192,22 +1192,20 @@
     <div id="mc">
       <div class="empty">
         <div class="icon">📊</div>
-        <h2>Ticker eingeben und scannen</h2>
-        <p>Gibt einen US-Ticker ein (z.B. NVDA, TSLA, MSTR) — alle Momentum-Metriken, Options Chain, Max Pain und
-          Setup-Rating werden automatisch berechnet.</p>
-        <p style="margin-top:16px;font-size:12px;">GEX-Werte (SpotGamma) kannst du manuell eingeben. Alles andere kommt
-          automatisch.</p>
+        <h2>Enter Ticker &amp; Scan</h2>
+        <p>Enter a US ticker (e.g. NVDA, TSLA, MSTR) — all momentum metrics, options chain, Max Pain, and setup rating are calculated automatically.</p>
+        <p style="margin-top:16px;font-size:12px;">GEX values (SpotGamma) can be entered manually. Everything else loads automatically.</p>
       </div>
     </div>
   </div>
 
   <div class="footer">
-    Preis + ATR + Options via Yahoo Finance · Kein API-Key nötig · Nur für persönliche Analyse
+    Price + ATR + Options via Yahoo Finance · No API key required · For personal analysis only
   </div>
 
   <script>
     const PROXY = 'https://corsproxy.io/?';
-    const FINNHUB_KEY = 'd75toopr01qm4b7s6bkgd75toopr01qm4b7s6bl0'; // finnhub.io → kostenlos anmelden → API Key
+    const FINNHUB_KEY = 'd75toopr01qm4b7s6bkgd75toopr01qm4b7s6bl0'; // finnhub.io → sign up free → API Key
     let g = {}; // global data
 
     document.getElementById('tin').addEventListener('keydown', e => { if (e.key === 'Enter') runScan(); });
@@ -1219,14 +1217,14 @@
       if (!sym) return;
       const btn = document.getElementById('sbtn');
       btn.disabled = true; btn.textContent = '…';
-      setHTML('<div class="loading"><div class="spinner"></div><p>Lade Daten für <strong>' + sym + '</strong>…</p></div>');
+      setHTML('<div class="loading"><div class="spinner"></div><p>Loading data for <strong>' + sym + '</strong>…</p></div>');
       try {
         const price = await fetchPrice(sym);
         const [opts, enrich] = await Promise.all([fetchOptions(sym), fetchEnrichment(sym)]);
         g = { ...price, ...opts, ...enrich };
         renderAll(g);
       } catch (e) {
-        setHTML('<div class="err"><strong>Fehler: ' + e.message + '</strong><p>Bitte US-Ticker verwenden. Bei CORS-Fehlern: <code>python -m http.server 8080</code> → localhost:8080 öffnen.</p></div>');
+        setHTML('<div class="err"><strong>Error: ' + e.message + '</strong><p>Please use US tickers. For CORS errors: <code>python -m http.server 8080</code> → open localhost:8080.</p></div>');
       }
       btn.disabled = false; btn.textContent = 'Scan ▶';
     }
@@ -1244,7 +1242,7 @@
           fetchJ(PROXY + encodeURIComponent(intr))
         ]);
       }
-      if (!hd.chart?.result?.[0]) throw new Error(`"${sym}" nicht gefunden`);
+      if (!hd.chart?.result?.[0]) throw new Error(`"${sym}" not found`);
 
       const r = hd.chart.result[0];
       const q = r.indicators.quote[0];
@@ -1349,7 +1347,7 @@
         if (pain < minPain) { minPain = pain; maxPainStrike = s; }
       }
 
-      // Put/Call OI ratio
+      // Put/Call OI Ratio
       const totalCallOI = calls.reduce((a, c) => a + (c.openInterest || 0), 0);
       const totalPutOI = puts.reduce((a, p) => a + (p.openInterest || 0), 0);
       const pcRatio = totalCallOI > 0 ? totalPutOI / totalCallOI : 0;
@@ -1646,7 +1644,7 @@
         const above0 = v.rs > 0, aboveMA = v.rs > v.ma;
         if (above0 && aboveMA) return { cls: 'pass', badge: '✅ Stark — RS steigt', valStr: '+' + v.rs.toFixed(1), sub: `MA: ${v.ma.toFixed(1)}` };
         if (!above0 && aboveMA) return { cls: 'pass', badge: '✅ Erholung — gewinnt Kraft', valStr: v.rs.toFixed(1), sub: `MA: ${v.ma.toFixed(1)}` };
-        if (above0 && !aboveMA) return { cls: 'warn', badge: '⚠ Über Null — verliert Kraft', valStr: '+' + v.rs.toFixed(1), sub: `MA: ${v.ma.toFixed(1)}` };
+        if (above0 && !aboveMA) return { cls: 'warn', badge: '⚠ above Null — verliert Kraft', valStr: '+' + v.rs.toFixed(1), sub: `MA: ${v.ma.toFixed(1)}` };
         return { cls: 'fail', badge: '❌ Schwach — RS fällt', valStr: v.rs.toFixed(1), sub: `MA: ${v.ma.toFixed(1)}` };
       };
       const s1 = varsSignal(d.vars1m), sSector = varsSignal(d.varsSector);
@@ -1668,7 +1666,7 @@
 
       // News
       const CATALYST_RE = /earnings|beat|miss|guidance|fda|approv|upgrade|downgrade|surge|soar|jump|blowout/i;
-      let newsHtml = '<div style="color:#8b949e;font-size:13px;padding:8px 0;">Keine News geladen</div>';
+      let newsHtml = '<div style="color:#8b949e;font-size:13px;padding:8px 0;">No news loaded</div>';
       if (d.newsItems?.length) {
         newsHtml = d.newsItems.map(n => {
           const ago = n.time ? Math.round((Date.now() / 1000 - n.time) / 3600) : null;
@@ -1677,14 +1675,14 @@
           return `<div class="news-item${isCat ? ' news-catalyst' : ''}">
         <span class="news-time">${tStr}</span>
         <a class="news-title" href="${n.link}" target="_blank">${n.title}</a>
-        ${isCat ? '<span class="news-ep-tag">⚡ Katalysator</span>' : ''}
+        ${isCat ? '<span class="news-ep-tag">⚡ Catalyst</span>' : ''}
       </div>`;
         }).join('');
       }
 
       // Auto options data row (Yahoo Finance)
       const pcvColor = !d.pcVolRatio ? '#8b949e' : d.pcVolRatio > 1.2 ? '#f85149' : d.pcVolRatio > 0.8 ? '#e3b341' : '#3fb950';
-      const pcvLabel = !d.pcVolRatio ? '–' : d.pcVolRatio > 1.2 ? 'Bärisch' : d.pcVolRatio > 0.8 ? 'Neutral' : 'Bullisch';
+      const pcvLabel = !d.pcVolRatio ? '–' : d.pcVolRatio > 1.2 ? 'Bearish' : d.pcVolRatio > 0.8 ? 'Neutral' : 'Bullish';
       const aqRow = !d.optErr ? `
     <div style="background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:10px 16px;margin-bottom:14px;font-size:12px;display:flex;gap:24px;flex-wrap:wrap;align-items:center;">
       <span style="color:#58a6ff;font-weight:700;">📊 Options Auto (Yahoo)</span>
@@ -1710,20 +1708,20 @@
         <span class="mc-badge ${sSector.cls}">${sSector.badge}</span>
       </div>
       <div class="mc ${earnColor}">
-        <div class="mc-lbl">Nächste Earnings</div>
+        <div class="mc-lbl">Next Earnings</div>
         <div class="mc-val blue" style="font-size:${earnDate ? '18px' : '22px'};">${earnDate || '–'}</div>
-        <div class="mc-sub">${earnDays != null ? `in ${earnDays} Tagen` : 'Kein Datum verfügbar'}</div>
+        <div class="mc-sub">${earnDays != null ? `in ${earnDays} days` : 'No date available'}</div>
         <span class="mc-badge ${earnColor}">${earnBadge}</span>
       </div>
       <div class="mc ${shortColor}">
-        <div class="mc-lbl">Float & Short Float</div>
+        <div class="mc-lbl">Float &amp; Short Float</div>
         <div class="mc-val blue">${d.floatShares ? fK(d.floatShares) : '–'}</div>
         <div class="mc-sub">Short: ${shortPct} · VIX: <span style="color:${vixColor};font-weight:700;">${d.vix != null ? f(d.vix, 1) : '–'}${d.vix != null ? ' (' + vixLabel + ')' : ''}</span></div>
         <span class="mc-badge ${shortColor}">${d.shortPctFloat >= 0.25 ? '⚡ High Short Float' : d.shortPctFloat >= 0.10 ? '⚠ Elevated Short' : 'ℹ Normal'}</span>
       </div>
     </div>
     <div class="card" style="margin-bottom:24px;">
-      <h3>News & Katalysatoren — ${d.sym}</h3>
+      <h3>News &amp; Catalysts — ${d.sym}</h3>
       ${newsHtml}
     </div>`;
     }
@@ -1738,7 +1736,7 @@
       const score = pass + warn * 0.5;
       const total = allChks.length;
 
-      // Hard Rule: Unterhalb 50-MA = automatisch NO TRADE, kein Setup möglich
+      // Hard Rule: belowhalb 50-MA = automatisch NO TRADE, kein Setup möglich
       const belowMA50 = d.price < d.ma50;
       const rating = belowMA50 ? 'D' : score >= total * 0.85 ? 'A' : score >= total * 0.65 ? 'B' : score >= total * 0.45 ? 'C' : 'D';
 
@@ -1751,10 +1749,10 @@
       const rc = d.rvol >= 2 ? 'pass' : d.rvol >= 1 ? 'warn' : 'fail';
 
       const ratingDesc = {
-        A: 'GO — Volle Position, alle 3 Tranchen',
-        B: 'CONDITIONAL — Halbe Position, 1–2 Tranchen',
-        C: 'MARGINAL — Nur Sonde oder Skip',
-        D: belowMA50 ? 'NO TRADE — Unterhalb 50-MA (entscheidender Faktor, kein Setup möglich)' : 'NO TRADE — Kriterien nicht erfüllt'
+        A: 'GO — Full Position, all 3 tranches',
+        B: 'CONDITIONAL — Half Position, 1–2 tranches',
+        C: 'MARGINAL — Probe only or Skip',
+        D: belowMA50 ? 'NO TRADE — Below 50-MA (critical factor, no setup possible)' : 'NO TRADE — Criteria not met'
       };
 
       // Verdict tags
@@ -1768,7 +1766,7 @@
       const plan = buildPlan(d, rating);
 
       // Options section
-      const optHtml = d.optErr ? `<div class="no-opt"><strong>Options nicht verfügbar</strong> — Ticker hat möglicherweise keine US-Optionen oder Daten konnten nicht geladen werden.</div>` : buildOptionsHtml(d, f, fK);
+      const optHtml = d.optErr ? `<div class="no-opt"><strong>Options Not available</strong> — Ticker hat möglicherweise keine US-Optionen oder Daten konnten nicht geladen werden.</div>` : buildOptionsHtml(d, f, fK);
 
       const html = `
     <!-- TICKER HEADER -->
@@ -1779,7 +1777,7 @@
         <span class="t-price">$${f(d.price)}</span>
         <span class="t-chg ${d.chgPct >= 0 ? 'pos' : 'neg'}">${d.chgPct >= 0 ? '+' : ''}${f(d.chgPct, 2)}%</span>
       </div>
-      <div class="t-meta">Börse: ${d.exch}${d.sector ? ` · Sektor: <strong style="color:#e6edf3;">${d.sector}</strong>` : ''}${d.industry ? ` · ${d.industry}` : ''} · Vol heute: ${fK(d.todVol)} · Ø $-Vol (20d): <strong style="color:#e6edf3;">$${fK(d.avgDolVol)}</strong> · LoD: $${f(d.lod)} · 52w: $${f(d.lo52)}–$${f(d.hi52)}</div>
+      <div class="t-meta">Exchange: ${d.exch}${d.sector ? ` · Sector: <strong style="color:#e6edf3;">${d.sector}</strong>` : ''}${d.industry ? ` · ${d.industry}` : ''} · Vol today: ${fK(d.todVol)} · Avg $-Vol (20d): <strong style="color:#e6edf3;">$${fK(d.avgDolVol)}</strong> · LoD: $${f(d.lod)} · 52w: $${f(d.lo52)}–$${f(d.hi52)}</div>
       <div class="t-links">
         <a class="t-link" href="https://spotgamma.com/free-hiro-dashboard/" target="_blank">SpotGamma GEX ↗</a>
         <a class="t-link" href="https://marketchameleon.com/Overview/${d.sym}/IV/" target="_blank">Market Chameleon IV Rank ↗</a>
@@ -1806,11 +1804,11 @@
     </div>
 
     <!-- LIVE KONTEXT -->
-    <div class="sec-div"><div class="sec-num">1</div><h2>Live Kontext — VARS · Earnings · Float · News</h2><span class="tag">Auto · Yahoo Finance</span></div>
+    <div class="sec-div"><div class="sec-num">1</div><h2>Live Context — VARS · Earnings · Float · News</h2><span class="tag">Auto · Yahoo Finance</span></div>
     ${buildLiveKontext(d, f, fK)}
 
     <!-- MOMENTUM METRICS -->
-    <div class="sec-div"><div class="sec-num">2</div><h2>Momentum Metriken</h2><span class="tag">Auto-berechnet</span></div>
+    <div class="sec-div"><div class="sec-num">2</div><h2>Momentum Metrics</h2><span class="tag">Auto-calculated</span></div>
     <div class="m4">
       <div class="mc ${ec}">
         <div class="mc-lbl">ATR Extension (50-MA)</div>
@@ -1821,85 +1819,85 @@
         <div class="sbar-labels"><span>0x</span><span>4x LIMIT</span><span>7x</span></div>
       </div>
       <div class="mc ${lc}">
-        <div class="mc-lbl">60% ATR Regel (LoD-Distanz)</div>
+        <div class="mc-lbl">60% ATR Rule (LoD Distance)</div>
         <div class="mc-val ${lc}">${f(d.lodDist * 100, 1)}%</div>
         <div class="mc-sub">LoD: $${f(d.lod)} · (Preis–LoD)/ATR</div>
-        <span class="mc-badge ${lc}">${d.lodDist >= 0.6 ? '❌ FAIL kein Entry' : d.lodDist >= 0.5 ? '⚠ BORDER 50–59%' : '✅ PASS <50%'}</span>
+        <span class="mc-badge ${lc}">${d.lodDist >= 0.6 ? '❌ FAIL no Entry' : d.lodDist >= 0.5 ? '⚠ BORDER 50–59%' : '✅ PASS <50%'}</span>
         <div class="sbar"><div class="sfill" style="width:${Math.min(100, d.lodDist * 100)}%;background:${lc === 'pass' ? '#3fb950' : lc === 'warn' ? '#e3b341' : '#f85149'}"></div></div>
         <div class="sbar-labels"><span>0%</span><span>60% LIMIT</span><span>100%</span></div>
       </div>
       <div class="mc ${ac}">
         <div class="mc-lbl">ADR% (Avg Daily Range 20d)</div>
         <div class="mc-val ${ac}">${f(d.adr, 1)}%</div>
-        <div class="mc-sub">Mindest-Volatilität für Swing Trading</div>
-        <span class="mc-badge ${ac}">${d.adr >= 5 ? '✅ PASS Hohe Vol' : d.adr >= 4 ? '⚠ GRENZ 4–5%' : '❌ FAIL <4%'}</span>
+        <div class="mc-sub">Minimum volatility for swing trading</div>
+        <span class="mc-badge ${ac}">${d.adr >= 5 ? '✅ PASS High Vol' : d.adr >= 4 ? '⚠ BORDER 4–5%' : '❌ FAIL <4%'}</span>
         <div class="sbar"><div class="sfill" style="width:${Math.min(100, d.adr / 15 * 100)}%;background:${ac === 'pass' ? '#3fb950' : ac === 'warn' ? '#e3b341' : '#f85149'}"></div></div>
         <div class="sbar-labels"><span>0%</span><span>4% Min</span><span>15%</span></div>
       </div>
       <div class="mc ${rc}">
         <div class="mc-lbl">RVOL (Relative Volume)</div>
         <div class="mc-val ${rc}">${f(d.rvol, 2)}x</div>
-        <div class="mc-sub">Ø ${fK(d.avgVol)} · Heute ${fK(d.todVol)}</div>
-        <span class="mc-badge ${rc}">${d.rvol >= 2 ? '✅ PASS ≥2x' : d.rvol >= 1 ? '⚠ NORMAL 1–2x' : '❌ FAIL <1x'}</span>
+        <div class="mc-sub">Avg ${fK(d.avgVol)} · Today ${fK(d.todVol)}</div>
+        <span class="mc-badge ${rc}">${d.rvol >= 2 ? '✅ PASS ≥2x' : d.rvol >= 1 ? '⚠ Normal 1–2x' : '❌ FAIL <1x'}</span>
         <div class="sbar"><div class="sfill" style="width:${Math.min(100, d.rvol / 5 * 100)}%;background:${rc === 'pass' ? '#3fb950' : rc === 'warn' ? '#e3b341' : '#f85149'}"></div></div>
         <div class="sbar-labels"><span>0x</span><span>2x Min</span><span>5x</span></div>
       </div>
     </div>
 
     <!-- CHECKLISTS -->
-    <div class="sec-div"><div class="sec-num">3</div><h2>Kullamaggie × Jeff Sun — Kriterienkatalog</h2><span class="tag">Auto-bewertet</span></div>
+    <div class="sec-div"><div class="sec-num">3</div><h2>Kullamaggie × Jeff Sun — Criteria Checklist</h2><span class="tag">Auto-scored</span></div>
     <div class="g2">
       <div class="card">
         <h3>Kullamaggie Momentum Setup</h3>
         ${checks.filter(c => c.cat === 'kulla').map(chkRow).join('')}
       </div>
       <div class="card">
-        <h3>Jeff Sun Entry-Regeln</h3>
+        <h3>Jeff Sun Entry Rules</h3>
         ${checks.filter(c => c.cat === 'jeff').map(chkRow).join('')}
       </div>
     </div>
 
     <!-- OPTIONS -->
-    <div class="sec-div"><div class="sec-num">4</div><h2>Options Chain Analyse</h2><span class="tag">Yahoo Finance · ${d.optErr ? 'Nicht verfügbar' : ('Expiry: ' + d.expStr)}</span></div>
+    <div class="sec-div"><div class="sec-num">4</div><h2>Options Chain Analysis</h2><span class="tag">Yahoo Finance · ${d.optErr ? 'Not available' : ('Expiry: ' + d.expStr)}</span></div>
     ${optHtml}
 
     <!-- MANUAL GEX -->
-    <div class="sec-div"><div class="sec-num">5</div><h2>GEX & IV Rank — Manuell</h2><span class="tag">SpotGamma + Market Chameleon</span></div>
+    <div class="sec-div"><div class="sec-num">5</div><h2>GEX &amp; IV Rank — Manual</h2><span class="tag">SpotGamma + Market Chameleon</span></div>
     <div class="g2">
       <div class="gex-card">
         <h3>GEX — Gamma Exposure</h3>
         <div class="gex-hint">
-          Hole GEX-Werte von <a href="https://spotgamma.com/free-hiro-dashboard/" target="_blank">SpotGamma ↗</a> oder <a href="https://unusualwhales.com/gex" target="_blank">Unusual Whales ↗</a> und gib sie hier ein.
+          Get GEX values from <a href="https://spotgamma.com/free-hiro-dashboard/" target="_blank">SpotGamma ↗</a> oder <a href="https://unusualwhales.com/gex" target="_blank">Unusual Whales ↗</a> and enter them here.
           <br>GEX &gt; 0 = Stabilisierung (Dealer hedgen Long Gamma) · GEX &lt; 0 = Volatilität (Short Gamma, explosive Moves).
         </div>
         <div class="gex-inp-row">
           <div class="gex-inp-grp">
-            <label>GEX Wert ($M)</label>
-            <input type="number" id="gex-val" placeholder="z.B. -450" step="10">
+            <label>GEX Value ($M)</label>
+            <input type="number" id="gex-val" placeholder="e.g. -450" step="10">
           </div>
           <div class="gex-inp-grp">
             <label>GEX Flip Level ($)</label>
-            <input type="number" id="gex-flip" placeholder="z.B. 185.00" step="0.5">
+            <input type="number" id="gex-flip" placeholder="e.g. 185.00" step="0.5">
           </div>
           <div class="gex-inp-grp">
             <label>Call Wall ($)</label>
-            <input type="number" id="gex-cwall" value="${d.callWall || ''}" placeholder="aus Options" step="0.5">
+            <input type="number" id="gex-cwall" value="${d.callWall || ''}" placeholder="from options" step="0.5">
           </div>
           <div class="gex-inp-grp">
             <label>Put Wall ($)</label>
-            <input type="number" id="gex-pwall" value="${d.putWall || ''}" placeholder="aus Options" step="0.5">
+            <input type="number" id="gex-pwall" value="${d.putWall || ''}" placeholder="from options" step="0.5">
           </div>
-          <button class="gex-btn" onclick="evalGEX()">Auswerten</button>
+          <button class="gex-btn" onclick="evalGEX()">Evaluate</button>
         </div>
         <div id="gex-res" class="gex-result"></div>
       </div>
 
       <div class="gex-card">
-        <h3>IV Rank & IV Percentile</h3>
+        <h3>IV Rank &amp; IV Percentile</h3>
         <div class="gex-hint">
-          Hole IV Rank von <a href="https://marketchameleon.com/Overview/${d.sym}/IV/" target="_blank">Market Chameleon ↗</a>.
+          Get IV Rank from <a href="https://marketchameleon.com/Overview/${d.sym}/IV/" target="_blank">Market Chameleon ↗</a>.
           <br>IV Rank &lt;30 = günstige Options (Long Straddle / Calls) · IV Rank &gt;70 = teuer (besser directional oder Credit Spreads).
-          ${d.atmIV > 0 ? `<br><strong style="color:#e6edf3;">ATM IV aus Options-Chain: ${f(d.atmIV, 1)}%</strong>` : ''}
+          ${d.atmIV > 0 ? `<br><strong style="color:#e6edf3;">ATM IV from options-Chain: ${f(d.atmIV, 1)}%</strong>` : ''}
         </div>
         ${d.atmIV > 0 ? `<div style="background:#160d24;border:1px solid #bc8cff40;border-radius:6px;padding:9px 14px;margin-bottom:12px;font-size:12px;display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
           <span style="color:#bc8cff;font-weight:700;">📊 Auto (Yahoo Options)</span>
@@ -1909,67 +1907,67 @@
         <div class="gex-inp-row">
           <div class="gex-inp-grp">
             <label>IV Rank (%)</label>
-            <input type="number" id="ivr-val" placeholder="z.B. 45" min="0" max="100">
+            <input type="number" id="ivr-val" placeholder="e.g. 45" min="0" max="100">
           </div>
           <div class="gex-inp-grp">
             <label>IV Percentile (%)</label>
-            <input type="number" id="ivp-val" placeholder="z.B. 60" min="0" max="100">
+            <input type="number" id="ivp-val" placeholder="e.g. 60" min="0" max="100">
           </div>
           <div class="gex-inp-grp">
             <label>HV30 (%)</label>
-            <input type="number" id="hv-val" placeholder="z.B. 35" min="0">
+            <input type="number" id="hv-val" placeholder="e.g. 35" min="0">
           </div>
-          <button class="gex-btn" onclick="evalIV()">Auswerten</button>
+          <button class="gex-btn" onclick="evalIV()">Evaluate</button>
         </div>
         <div id="iv-res" class="gex-result"></div>
       </div>
     </div>
 
     <!-- CALCS -->
-    <div class="sec-div"><div class="sec-num">6</div><h2>Kalkulatoren</h2><span class="tag">Auto-befüllt</span></div>
+    <div class="sec-div"><div class="sec-num">6</div><h2>Calculators</h2><span class="tag">Auto-filled</span></div>
     <div class="g3">
       <div class="card">
-        <h3>60% ATR Regel</h3>
-        <div class="inp-g"><label>Preis ($)</label><input type="number" id="cp" value="${f(d.price)}" step="0.01" class="af"></div>
+        <h3>60% ATR Rule</h3>
+        <div class="inp-g"><label>Price ($)</label><input type="number" id="cp" value="${f(d.price)}" step="0.01" class="af"></div>
         <div class="inp-g"><label>Low of Day ($)</label><input type="number" id="cl" value="${f(d.lod)}" step="0.01" class="af"></div>
         <div class="inp-g"><label>ATR ($)</label><input type="number" id="ca" value="${f(d.atr)}" step="0.01" class="af"></div>
-        <button class="cbtn" onclick="c60()">Prüfen</button>
+        <button class="cbtn" onclick="c60()">Check</button>
         <div id="r60" class="cres"><div class="cres-main" id="r60v"></div><div class="cres-det" id="r60d"></div></div>
       </div>
       <div class="card">
         <h3>4x ATR Extension</h3>
-        <div class="inp-g"><label>Preis ($)</label><input type="number" id="ep2" value="${f(d.price)}" step="0.01" class="af"></div>
+        <div class="inp-g"><label>Price ($)</label><input type="number" id="ep2" value="${f(d.price)}" step="0.01" class="af"></div>
         <div class="inp-g"><label>50-MA ($)</label><input type="number" id="em2" value="${f(d.ma50)}" step="0.01" class="af"></div>
         <div class="inp-g"><label>ATR ($)</label><input type="number" id="ea2" value="${f(d.atr)}" step="0.01" class="af"></div>
-        <button class="cbtn" onclick="c4x()">Prüfen</button>
+        <button class="cbtn" onclick="c4x()">Check</button>
         <div id="r4x" class="cres"><div class="cres-main" id="r4xv"></div><div class="cres-det" id="r4xd"></div></div>
       </div>
       <div class="card">
-        <h3>Positionsgrösse</h3>
-        <div class="inp-g"><label>Konto ($)</label><input type="number" id="pk" placeholder="25000" step="100"></div>
+        <h3>Position Size</h3>
+        <div class="inp-g"><label>Account ($)</label><input type="number" id="pk" placeholder="25000" step="100"></div>
         <div class="inp-g"><label>R-Risk (%)</label><input type="number" id="pr" value="1.5" step="0.1"></div>
         <div class="inp-g"><label>Entry ($)</label><input type="number" id="pe" value="${f(d.price)}" step="0.01" class="af"></div>
         <div class="inp-g"><label>Stop / LoD ($)</label><input type="number" id="ps" value="${f(d.lod)}" step="0.01" class="af"></div>
-        <button class="cbtn" onclick="cPos()">Berechnen</button>
+        <button class="cbtn" onclick="cPos()">Calculate</button>
         <div id="rps" class="cres"><div class="cres-main" id="rpsv"></div><div class="cres-det" id="rpsd"></div></div>
       </div>
     </div>
 
     <!-- 52W RANGE -->
     <div class="card" style="margin-bottom:24px;">
-      <h3>52-Wochen Range Position</h3>
+      <h3>52-Week Range Position</h3>
       <div class="range-outer">
         <div class="range-inner" style="width:100%"></div>
         <div class="range-dot" style="left:${f(d.rangePos * 100, 1)}%"></div>
       </div>
       <div class="range-labs">
         <span>52w Low $${f(d.lo52)}</span>
-        <span style="color:#58a6ff;font-weight:700;">$${f(d.price)} = ${f(d.rangePos * 100, 0)}% der Range</span>
+        <span style="color:#58a6ff;font-weight:700;">$${f(d.price)} = ${f(d.rangePos * 100, 0)}% of Range</span>
         <span>52w High $${f(d.hi52)}</span>
       </div>
-      ${d.rangePos >= 0.7 ? `<div style="margin-top:10px;font-size:12px;color:#3fb950;">✅ Nahe Highs (${f(d.rangePos * 100, 0)}%) — Momentum-Position, kein Contrarian-Play</div>`
-          : d.rangePos >= 0.6 ? `<div style="margin-top:10px;font-size:12px;color:#e3b341;">⚠ Mid-Range (${f(d.rangePos * 100, 0)}%) — Noch nicht bei 70%, Setup noch nicht bestätigt</div>`
-            : `<div style="margin-top:10px;font-size:12px;color:#f85149;">❌ Tief in Range (${f(d.rangePos * 100, 0)}%) — Kein Momentum-Kandidat nach Kulla/Jeff System</div>`}
+      ${d.rangePos >= 0.7 ? `<div style="margin-top:10px;font-size:12px;color:#3fb950;">✅ Near Highs (${f(d.rangePos * 100, 0)}%) — Momentum position, no contrarian play</div>`
+          : d.rangePos >= 0.6 ? `<div style="margin-top:10px;font-size:12px;color:#e3b341;">⚠ Mid-Range (${f(d.rangePos * 100, 0)}%) — Not yet at 70%, setup not confirmed</div>`
+            : `<div style="margin-top:10px;font-size:12px;color:#f85149;">❌ Deep in Range (${f(d.rangePos * 100, 0)}%) — Not a momentum candidate per Kulla/Jeff system</div>`}
     </div>
   `;
 
@@ -1993,7 +1991,7 @@
           const isMaxPain = Math.abs(s.strike - d.maxPainStrike) < 0.01;
           const isCallWall = Math.abs(s.strike - (d.callWall || 0)) < 0.01;
           const isPutWall = Math.abs(s.strike - (d.putWall || 0)) < 0.01;
-          const label = isNear ? ' ← PREIS' : isMaxPain ? ' ← MAX PAIN' : isCallWall ? ' ← CALL WALL' : isPutWall ? ' ← PUT WALL' : '';
+          const label = isNear ? ' ← PREIS' : isMaxPain ? ' ← Max Pain' : isCallWall ? ' ← CALL WALL' : isPutWall ? ' ← PUT WALL' : '';
           const labelColor = isNear ? '#58a6ff' : isMaxPain ? '#bc8cff' : isCallWall ? '#3fb950' : '#f85149';
           return `<div class="strike-row">
         <div class="strike-lbl">$${s.strike}</div>
@@ -2015,38 +2013,38 @@
       <div class="opt-stat">
         <div class="lbl">Max Pain</div>
         <div class="val" style="color:${d.price > d.maxPainStrike ? '#3fb950' : '#e3b341'}">$${f(d.maxPainStrike)}</div>
-        <div class="sub">Preis ${d.price > d.maxPainStrike ? '+' + f(d.price - d.maxPainStrike, 2) + ' darüber' : f(d.maxPainStrike - d.price, 2) + ' darunter'}</div>
+        <div class="sub">Price ${d.price > d.maxPainStrike ? '+' + f(d.price - d.maxPainStrike, 2) + ' above' : f(d.maxPainStrike - d.price, 2) + ' below'}</div>
       </div>
       <div class="opt-stat">
         <div class="lbl">Put/Call OI Ratio</div>
         <div class="val" style="color:${pcColor === 'pass' ? '#3fb950' : pcColor === 'warn' ? '#e3b341' : '#f85149'}">${f(d.pcRatio, 2)}</div>
-        <div class="sub">${d.pcRatio > 1.5 ? 'Bärisch (Absicherung)' : d.pcRatio > 1 ? 'Neutral–Bärisch' : 'Bullisch positioniert'}</div>
+        <div class="sub">${d.pcRatio > 1.5 ? 'Bearish (Hedging)' : d.pcRatio > 1 ? 'Neutral–Bearish' : 'Bullish positioning'}</div>
       </div>
       <div class="opt-stat">
         <div class="lbl">ATM Implied Volatility</div>
         <div class="val" style="color:${ivColor === 'pass' ? '#3fb950' : ivColor === 'warn' ? '#e3b341' : '#f85149'}">${d.atmIV > 0 ? f(d.atmIV, 1) + '%' : '–'}</div>
-        <div class="sub">${d.atmIV > 60 ? 'Hoch — Options teuer' : d.atmIV > 30 ? 'Normal' : 'Niedrig — Ruhe vor Sturm'}</div>
+        <div class="sub">${d.atmIV > 60 ? 'High — Options expensive' : d.atmIV > 30 ? 'Normal' : 'Low — Calm before the storm'}</div>
       </div>
       <div class="opt-stat">
         <div class="lbl">Implied Move (Straddle)</div>
         <div class="val" style="color:#bc8cff">${d.impliedMove > 0 ? '±' + f(d.impliedMove, 1) + '%' : '–'}</div>
-        <div class="sub">Erwartete Bewegung bis Expiry ${d.expStr}</div>
+        <div class="sub">Expected move until Expiry ${d.expStr}</div>
       </div>
     </div>
 
     <div class="g2">
       <div class="card">
-        <h3>Key Strikes — Calls (grün) & Puts (rot) nach OI</h3>
+        <h3>Key Strikes — Calls (green) &amp; Puts (red) by OI</h3>
         <div style="display:flex;gap:16px;font-size:11px;color:#8b949e;margin-bottom:12px;">
           <span>🟢 Call OI</span><span>🔴 Put OI</span>
           <span style="color:#3fb950">Call Wall: $${d.callWall || '–'}</span>
           <span style="color:#f85149">Put Wall: $${d.putWall || '–'}</span>
           <span style="color:#bc8cff">Max Pain: $${f(d.maxPainStrike)}</span>
         </div>
-        ${strikesHtml || '<p style="color:#8b949e;font-size:13px;">Keine Strike-Daten verfügbar</p>'}
+        ${strikesHtml || '<p style="color:#8b949e;font-size:13px;">No strike data available</p>'}
       </div>
       <div class="card">
-        <h3>Options-Interpretation für ${d.sym}</h3>
+        <h3>Options Interpretation for ${d.sym}</h3>
         ${buildOptInterpretation(d, f)}
       </div>
     </div>
@@ -2056,24 +2054,24 @@
     function buildOptInterpretation(d, f) {
       const items = [];
       if (d.price > d.maxPainStrike)
-        items.push({ s: 'pass', t: 'Preis über Max Pain', desc: `$${f(d.price)} > $${f(d.maxPainStrike)} — bullisch für Options-Händler, weniger Druck Richtung Max Pain` });
+        items.push({ s: 'pass', t: 'Price above Max Pain', desc: `$${f(d.price)} > $${f(d.maxPainStrike)} — Bullish für Options-Händler, weniger Druck Richtung Max Pain` });
       else
-        items.push({ s: 'warn', t: 'Preis unter Max Pain', desc: `$${f(d.price)} < $${f(d.maxPainStrike)} — Pins-Druck zum Max Pain Level` });
+        items.push({ s: 'warn', t: 'Price below Max Pain', desc: `$${f(d.price)} < $${f(d.maxPainStrike)} — Pin pressure toward Max Pain level` });
 
       if (d.pcRatio < 1)
-        items.push({ s: 'pass', t: 'Bullische Positionierung', desc: `P/C Ratio ${f(d.pcRatio, 2)} — mehr Call-OI als Put-OI, Händler bullisch positioniert` });
+        items.push({ s: 'pass', t: 'Bullish Positioning', desc: `P/C Ratio ${f(d.pcRatio, 2)} — mehr Call-OI als Put-OI, Händler Bullish positioning` });
       else if (d.pcRatio > 1.5)
-        items.push({ s: 'fail', t: 'Starke Absicherung', desc: `P/C Ratio ${f(d.pcRatio, 2)} — überdurchschnittlich viele Puts, Hedging oder Short-Druck` });
+        items.push({ s: 'fail', t: 'Strong Hedging', desc: `P/C Ratio ${f(d.pcRatio, 2)} — abovedurchschnittlich viele Puts, Hedging oder Short-Druck` });
       else
-        items.push({ s: 'warn', t: 'Neutrale Positionierung', desc: `P/C Ratio ${f(d.pcRatio, 2)} — ausgeglichenes Options-Interesse` });
+        items.push({ s: 'warn', t: 'Neutral Positioning', desc: `P/C Ratio ${f(d.pcRatio, 2)} — balanced options interest` });
 
       if (d.callWall && d.price < d.callWall)
-        items.push({ s: 'pass', t: `Call Wall bei $${d.callWall}`, desc: `Nächstes Widerstandsniveau durch hohe Call-OI. Preis kann dort abprallen — oder bei Breakout explosiv weiter.` });
+        items.push({ s: 'pass', t: `Call Wall bei $${d.callWall}`, desc: `Nächstes Widerstandsniveau durch hohe Call-OI. Price kann dort abprallen — oder bei Breakout explosiv weiter.` });
       if (d.putWall && d.price > d.putWall)
-        items.push({ s: 'pass', t: `Put Wall Unterstützung $${d.putWall}`, desc: `Hohe Put-OI bildet Unterstützung — Dealer hedgen, Preis wird gehalten.` });
+        items.push({ s: 'pass', t: `Put Wall belowstützung $${d.putWall}`, desc: `Hohe Put-OI bildet belowstützung — Dealer hedgen, Price wird gehalten.` });
 
       if (d.atmIV > 0 && d.impliedMove > 0)
-        items.push({ s: 'blue', t: `Implied Move: ±${f(d.impliedMove, 1)}%`, desc: `Markt erwartet bis Expiry ${d.expStr} eine Bewegung von ±${f(d.impliedMove, 1)}%. ATM IV: ${f(d.atmIV, 1)}%` });
+        items.push({ s: 'blue', t: `Implied Move: ±${f(d.impliedMove, 1)}%`, desc: `Market expects until Expiry ${d.expStr} a move of ±${f(d.impliedMove, 1)}%. ATM IV: ${f(d.atmIV, 1)}%` });
 
       return items.map(it => `
     <div class="chk">
@@ -2090,50 +2088,50 @@
       return [
         {
           cat: 'kulla', s: d.atrExt < 3 ? 'pass' : d.atrExt < 4 ? 'warn' : 'fail',
-          short: 'ATR Ext', n: 'ATR Extension < 4x von 50-MA',
-          desc: `Aktuell ${d.atrExt.toFixed(2)}x — Kulla/Jeff Hard Rule: kein Entry über 4x`,
+          Short: 'ATR Ext', n: 'ATR Extension < 4x von 50-MA',
+          desc: `Aktuell ${d.atrExt.toFixed(2)}x — Kulla/Jeff Hard Rule: kein Entry above 4x`,
           v: d.atrExt.toFixed(2) + 'x'
         },
         {
           cat: 'kulla', s: d.rangePos >= 0.7 ? 'pass' : d.rangePos >= 0.6 ? 'warn' : 'fail',
-          short: 'Nahe Highs', n: 'Nahe 52-Wochen Highs (>70%)',
-          desc: `Position in 52w Range: ${(d.rangePos * 100).toFixed(0)}% — Momentum-Leader nahe Highs`,
+          Short: 'Near Highs', n: 'Nahe 52-Wochen Highs (>70%)',
+          desc: `52w Range position: ${(d.rangePos * 100).toFixed(0)}% — Momentum-Leader Near Highs`,
           v: (d.rangePos * 100).toFixed(0) + '%'
         },
         {
           cat: 'kulla', s: d.avgDolVol >= 30e6 ? 'pass' : d.avgDolVol >= 10e6 ? 'warn' : 'fail',
-          short: 'Liquidität', n: 'Liquidität > $30M Ø tägl. Dollar-Vol (20d)',
+          Short: 'Liquidität', n: 'Liquidität > $30M Ø tägl. Dollar-Vol (20d)',
           desc: `Ø $${(d.avgDolVol / 1e6).toFixed(1)}M/Tag (letzte 20 Handelstage) — min $30M für institutionelles Interesse`,
           v: 'Ø $' + (d.avgDolVol / 1e6).toFixed(1) + 'M'
         },
         {
           cat: 'kulla', s: d.adr >= 5 ? 'pass' : d.adr >= 4 ? 'warn' : 'fail',
-          short: 'ADR%', n: 'ADR% ≥ 4–5% (Swing-Volatilität)',
-          desc: `${d.adr.toFixed(1)}% tägliche Schwankung — für Swing Trades min 4–5% nötig`,
+          Short: 'ADR%', n: 'ADR% ≥ 4–5% (Swing-Volatilität)',
+          desc: `${d.adr.toFixed(1)}% daily range — min 4–5% needed for swing trades`,
           v: d.adr.toFixed(1) + '%'
         },
         {
           cat: 'kulla', s: d.price > d.ma50 * 1.02 ? 'pass' : d.price > d.ma50 ? 'warn' : 'fail',
-          short: 'Über MA50', n: 'Preis über 50-MA (Uptrend)',
-          desc: `$${d.price.toFixed(2)} vs MA50 $${d.ma50.toFixed(2)} — ${d.price > d.ma50 ? 'über' : 'unter'} 50-MA`,
+          Short: 'above MA50', n: 'Price above 50-MA (Uptrend)',
+          desc: `$${d.price.toFixed(2)} vs MA50 $${d.ma50.toFixed(2)} — ${d.price > d.ma50 ? 'above' : 'below'} 50-MA`,
           v: d.price > d.ma50 ? '+' + ((d.price / d.ma50 - 1) * 100).toFixed(1) + '%' : ((d.price / d.ma50 - 1) * 100).toFixed(1) + '%'
         },
         {
           cat: 'jeff', s: d.lodDist < 0.5 ? 'pass' : d.lodDist < 0.6 ? 'warn' : 'fail',
-          short: '60% Regel', n: '60% ATR Regel (LoD-Distanz)',
-          desc: `(Preis–LoD)/ATR = ${(d.lodDist * 100).toFixed(1)}% — Jeff Hard Rule: kein Entry über 60%`,
+          Short: '60% Regel', n: '60% ATR Rule (LoD Distance)',
+          desc: `(Preis–LoD)/ATR = ${(d.lodDist * 100).toFixed(1)}% — Jeff Hard Rule: kein Entry above 60%`,
           v: (d.lodDist * 100).toFixed(1) + '%'
         },
         {
           cat: 'jeff', s: d.rvol >= 2 ? 'pass' : d.rvol >= 1 ? 'warn' : 'fail',
-          short: 'RVOL', n: 'RVOL ≥ 2x bei Entry',
+          Short: 'RVOL', n: 'RVOL ≥ 2x bei Entry',
           desc: `${d.rvol.toFixed(2)}x — Jeff: "Price fades always outside of RVOL"`,
           v: d.rvol.toFixed(2) + 'x'
         },
         {
           cat: 'jeff', s: (d.atr / d.price) >= 0.025 ? 'pass' : (d.atr / d.price) >= 0.015 ? 'warn' : 'fail',
-          short: 'ATR/Price', n: 'ATR/Preis > 2% (Bewegungspotenzial)',
-          desc: `${(d.atr / d.price * 100).toFixed(1)}% — genug Range für profitable Swing-Trades`,
+          Short: 'ATR/Price', n: 'ATR/Price > 2% (Bewegungspotenzial)',
+          desc: `${(d.atr / d.price * 100).toFixed(1)}% — enough range for profitable swing trades`,
           v: (d.atr / d.price * 100).toFixed(1) + '%'
         },
         {
@@ -2142,11 +2140,11 @@
             (d.vars1m.rs > 0 && d.vars1m.rs > d.vars1m.ma) ? 'pass' :
               (d.vars1m.rs < 0 && d.vars1m.rs > d.vars1m.ma) ? 'pass' :
                 (d.vars1m.rs > 0 && d.vars1m.rs < d.vars1m.ma) ? 'warn' : 'fail',
-          short: 'VARS 1M',
+          Short: 'VARS 1M',
           n: 'VARS 1M — Vol. Adj. RS vs SPY',
           desc: d.vars1m
-            ? `RS: ${d.vars1m.rs > 0 ? '+' : ''}${d.vars1m.rs.toFixed(1)} · MA: ${d.vars1m.ma.toFixed(1)} — ${d.vars1m.rs > 0 ? 'über Null' : 'unter Null'}, ${d.vars1m.rs > d.vars1m.ma ? 'über MA (stärker werdend)' : 'unter MA (Kraft verlierend)'}`
-            : 'Laden… (SPY-Daten werden verarbeitet)',
+            ? `RS: ${d.vars1m.rs > 0 ? '+' : ''}${d.vars1m.rs.toFixed(1)} · MA: ${d.vars1m.ma.toFixed(1)} — ${d.vars1m.rs > 0 ? 'above Null' : 'below Null'}, ${d.vars1m.rs > d.vars1m.ma ? 'above MA (stärker werdend)' : 'below MA (Kraft verlierend)'}`
+            : 'Loading… (SPY data being processed)',
           v: d.vars1m ? (d.vars1m.rs > 0 ? '+' : '') + d.vars1m.rs.toFixed(1) : '–'
         },
       ];
@@ -2157,14 +2155,14 @@
       const items = [];
       items.push({
         cat: 'opt', s: d.price > d.maxPainStrike ? 'pass' : 'warn',
-        short: 'vs Max Pain', n: 'Preis über Max Pain',
-        desc: `Max Pain $${d.maxPainStrike?.toFixed(2)} — Preis ${d.price > d.maxPainStrike ? 'darüber (bullisch)' : 'darunter (Pin-Druck)'}`,
+        Short: 'vs Max Pain', n: 'Price above Max Pain',
+        desc: `Max Pain $${d.maxPainStrike?.toFixed(2)} — Price ${d.price > d.maxPainStrike ? 'above (Bullish)' : 'below (Pin-Druck)'}`,
         v: d.price > d.maxPainStrike ? '+' + ((d.price - d.maxPainStrike)).toFixed(2) : '-' + (d.maxPainStrike - d.price).toFixed(2)
       });
       items.push({
         cat: 'opt', s: d.pcRatio < 1 ? 'pass' : d.pcRatio < 1.5 ? 'warn' : 'fail',
-        short: 'P/C Ratio', n: 'Put/Call OI Ratio',
-        desc: `${d.pcRatio.toFixed(2)} — ${d.pcRatio < 1 ? 'Bullisch positioniert' : d.pcRatio < 1.5 ? 'Neutral' : 'Stark abgesichert'}`,
+        Short: 'P/C Ratio', n: 'Put/Call OI Ratio',
+        desc: `${d.pcRatio.toFixed(2)} — ${d.pcRatio < 1 ? 'Bullish positioning' : d.pcRatio < 1.5 ? 'Neutral' : 'Stark abgesichert'}`,
         v: d.pcRatio.toFixed(2)
       });
       return items;
@@ -2188,25 +2186,25 @@
       const t1 = d.price + d.atr * 2;
       const t2 = d.price + d.atr * 4;
 
-      if (rating === 'A') return `<strong>Setup A-Rated — Volle Position:</strong>
-    Entry ~$${f(d.price)} bei ORH-Break + RVOL ≥ 2x bestätigt.
-    Stop: LoD $${f(stopLevel)} (${f((d.price - stopLevel) / d.price * 100, 1)}% Risiko).
-    T+1 Ziel: $${f(t1)} (+2 ATR) · T+2: $${f(t2)} (+4 ATR).
-    T+3: 33% Partial Exit. Trailing Stop unter 10-MA.`;
-      if (rating === 'B') return `<strong>Setup B-Rated — Halbe Position:</strong>
-    ${d.atrExt >= 3 ? 'ATR Extension erhöht (' + f(d.atrExt, 1) + 'x) — ' : ''
-        }${d.rvol < 2 ? 'RVOL noch schwach (' + f(d.rvol, 2) + 'x) — ' : ''
-        }${d.adr < 4 ? 'ADR% grenzwertig (' + f(d.adr, 1) + '%) — ' : ''}
-    Entry nur bei Bestätigung (RVOL ≥ 2x, ORH-Break). Stop: $${f(stopLevel)}.
-    Reduzierte Positionsgrösse (0.5–1% R-Risk).`;
-      if (rating === 'C') return `<strong>Setup C-Rated — Skip empfohlen:</strong>
-    Mehrere Kriterien nicht erfüllt. Wenn überhaupt: minimale Sonde (&lt;0.5% R-Risk) nur bei klarem Katalysator.
-    Hauptgründe: ${[d.atrExt >= 4 ? 'ATR über 4x' : '', d.lodDist >= 0.6 ? 'LoD-Distanz über 60%' : '', d.rvol < 1 ? 'RVOL unter 1x' : '', d.adr < 4 ? 'ADR% unter 4%' : ''].filter(Boolean).join(' · ')}.`;
-      return `<strong>Setup D-Rated — KEIN TRADE:</strong>
-    Zu viele Kriterien verletzt. Hard Rules nach Jeff Sun: kein Entry.
-    ${d.atrExt >= 4 ? 'ATR Extension ' + f(d.atrExt, 1) + 'x (Hard Limit: 4x). ' : ''
-        }${d.lodDist >= 0.6 ? 'LoD-Distanz ' + f(d.lodDist * 100, 1) + '% (Hard Limit: 60%). ' : ''
-        }Ticker erneut prüfen wenn Bedingungen sich verbessern.`;
+      if (rating === 'A') return `<strong>A-Rated Setup — Full Position:</strong>
+    Entry ~$${f(d.price)} on ORH break + RVOL ≥ 2x confirmed.
+    Stop: LoD $${f(stopLevel)} (${f((d.price - stopLevel) / d.price * 100, 1)}% risk).
+    T+1 Target: $${f(t1)} (+2 ATR) · T+2: $${f(t2)} (+4 ATR).
+    T+3: 33% Partial Exit. Trailing Stop below 10-MA.`;
+      if (rating === 'B') return `<strong>B-Rated Setup — Half Position:</strong>
+    ${d.atrExt >= 3 ? 'ATR extension elevated (' + f(d.atrExt, 1) + 'x) — ' : ''
+        }${d.rvol < 2 ? 'RVOL still weak (' + f(d.rvol, 2) + 'x) — ' : ''
+        }${d.adr < 4 ? 'ADR% borderline (' + f(d.adr, 1) + '%) — ' : ''}
+    Entry only on confirmation (RVOL ≥ 2x, ORH break). Stop: $${f(stopLevel)}.
+    Reduzierte Position Size (0.5–1% R-Risk).`;
+      if (rating === 'C') return `<strong>C-Rated Setup — Skip recommended:</strong>
+    Mehrere Kriterien nicht erfüllt. Wenn abovehaupt: minimale Sonde (&lt;0.5% R-Risk) nur bei klarem Katalysator.
+    Main reasons: ${[d.atrExt >= 4 ? 'ATR above 4x' : '', d.lodDist >= 0.6 ? 'LoD-Distanz above 60%' : '', d.rvol < 1 ? 'RVOL below 1x' : '', d.adr < 4 ? 'ADR% below 4%' : ''].filter(Boolean).join(' · ')}.`;
+      return `<strong>D-Rated Setup — NO TRADE:</strong>
+    Too many criteria violated. Hard rules per Jeff Sun: no entry.
+    ${d.atrExt >= 4 ? 'ATR Extension ' + f(d.atrExt, 1) + 'x (Hard limit: 4x). ' : ''
+        }${d.lodDist >= 0.6 ? 'LoD-Distanz ' + f(d.lodDist * 100, 1) + '% (Hard limit: 60%). ' : ''
+        }Ticker erneut Check wenn Bedingungen sich verbessern.`;
     }
 
     // ── GEX EVAL ──────────────────────────────────────────────────────────────────
@@ -2221,15 +2219,15 @@
       let html = '';
       if (!isNaN(val)) {
         const c = val > 0 ? '#3fb950' : val > -500 ? '#e3b341' : '#f85149';
-        html += `<div style="font-size:18px;font-weight:700;color:${c};margin-bottom:6px;">GEX: $${val}M ${val > 0 ? '✅ Positiv (Stabilisierung)' : '❌ Negativ (Explosiv)'}</div>`;
-        html += `<div style="font-size:12px;color:#8b949e;">${val > 0 ? 'Dealer sind Long Gamma — kaufen Dips, verkaufen Rallies → dämpft Bewegung.' : 'Dealer sind Short Gamma — müssen Bewegungen verstärken → explosive Moves möglich. Ideal für EP-Entries.'}</div>`;
+        html += `<div style="font-size:18px;font-weight:700;color:${c};margin-bottom:6px;">GEX: $${val}M ${val > 0 ? '✅ Positive (Stabilizing)' : '❌ Negative (Explosive)'}</div>`;
+        html += `<div style="font-size:12px;color:#8b949e;">${val > 0 ? 'Dealers are long gamma — buying dips, selling rallies → dampens movement.' : 'Dealers are short gamma — must amplify moves → explosive moves possible. Ideal for EP entries.'}</div>`;
       }
       if (!isNaN(flip) && p > 0) {
-        html += `<div style="margin-top:8px;font-size:13px;">GEX Flip Level: <strong style="color:#bc8cff">$${flip.toFixed(2)}</strong> — Preis ${p > flip ? '<span style="color:#3fb950">darüber ✅ Bullischer Bereich</span>' : '<span style="color:#f85149">darunter ❌ Bärischer Bereich</span>'}</div>`;
+        html += `<div style="margin-top:8px;font-size:13px;">GEX Flip Level: <strong style="color:#bc8cff">$${flip.toFixed(2)}</strong> — Price ${p > flip ? '<span style="color:#3fb950">above ✅ Bullisher Bereich</span>' : '<span style="color:#f85149">below ❌ Bearisher Bereich</span>'}</div>`;
       }
-      if (!isNaN(cw)) html += `<div style="font-size:12px;color:#3fb950;margin-top:4px;">Call Wall: $${cw.toFixed(2)} — Widerstand bei hoher Call-OI</div>`;
-      if (!isNaN(pw)) html += `<div style="font-size:12px;color:#f85149;margin-top:4px;">Put Wall: $${pw.toFixed(2)} — Unterstützung bei hoher Put-OI</div>`;
-      el.innerHTML = html || '<span style="color:#8b949e">Keine Werte eingegeben</span>';
+      if (!isNaN(cw)) html += `<div style="font-size:12px;color:#3fb950;margin-top:4px;">Call Wall: $${cw.toFixed(2)} — Resistance at high Call-OI</div>`;
+      if (!isNaN(pw)) html += `<div style="font-size:12px;color:#f85149;margin-top:4px;">Put Wall: $${pw.toFixed(2)} — belowstützung bei hoher Put-OI</div>`;
+      el.innerHTML = html || '<span style="color:#8b949e">No values entered</span>';
     }
 
     function evalIV() {
@@ -2241,15 +2239,15 @@
       let html = '';
       if (!isNaN(ivr)) {
         const c = ivr < 30 ? '#3fb950' : ivr < 70 ? '#e3b341' : '#f85149';
-        html += `<div style="font-size:18px;font-weight:700;color:${c};margin-bottom:6px;">IV Rank: ${ivr}% ${ivr < 30 ? '✅ Niedrig — Options günstig' : ivr < 70 ? '⚠ Mittel' : '❌ Hoch — Options teuer'}</div>`;
-        html += `<div style="font-size:12px;color:#8b949e;">${ivr < 30 ? 'Guter Zeitpunkt für Long Options (Calls/Straddle) — IV kann expandieren beim Move.' : ivr < 70 ? 'Neutral. Directional Trades OK, aber Prämie nicht super günstig.' : 'IV bereits hoch — Vega-Risiko groß. Lieber Aktie statt Options kaufen.'}</div>`;
+        html += `<div style="font-size:18px;font-weight:700;color:${c};margin-bottom:6px;">IV Rank: ${ivr}% ${ivr < 30 ? '✅ Low — Options cheap' : ivr < 70 ? '⚠ Medium' : '❌ High — Options expensive'}</div>`;
+        html += `<div style="font-size:12px;color:#8b949e;">${ivr < 30 ? 'Good time for long options (calls/straddle) — IV can expand on a move.' : ivr < 70 ? 'Neutral. Directional trades OK, but premium not super cheap.' : 'IV already high — Vega risk significant. Better to buy stock instead of options.'}</div>`;
       }
-      if (!isNaN(ivp)) html += `<div style="margin-top:8px;font-size:13px;">IV Percentile: <strong>${ivp}%</strong> — IV höher als ${ivp}% aller Tage im letzten Jahr</div>`;
+      if (!isNaN(ivp)) html += `<div style="margin-top:8px;font-size:13px;">IV Percentile: <strong>${ivp}%</strong> — IV higher than ${ivp}% of all days in the past year</div>`;
       if (!isNaN(hv) && !isNaN(g.atmIV) && g.atmIV > 0) {
         const ratio = g.atmIV / hv;
-        html += `<div style="margin-top:6px;font-size:12px;color:${ratio > 1.2 ? '#f85149' : ratio < 0.9 ? '#3fb950' : '#e3b341'};">IV/HV Ratio: ${ratio.toFixed(2)}x — ${ratio > 1.2 ? 'Options teuer gegenüber realem Risiko' : ratio < 0.9 ? 'Options günstig' : 'Fair bewertet'}</div>`;
+        html += `<div style="margin-top:6px;font-size:12px;color:${ratio > 1.2 ? '#f85149' : ratio < 0.9 ? '#3fb950' : '#e3b341'};">IV/HV Ratio: ${ratio.toFixed(2)}x — ${ratio > 1.2 ? 'Options teuer gegenabove realem Risiko' : ratio < 0.9 ? 'Options cheap' : 'Fairly priced'}</div>`;
       }
-      el.innerHTML = html || '<span style="color:#8b949e">Keine Werte eingegeben</span>';
+      el.innerHTML = html || '<span style="color:#8b949e">No values entered</span>';
     }
 
     // ── INLINE CALCS ─────────────────────────────────────────────────────────────
@@ -2260,9 +2258,9 @@
       const el = document.getElementById('r60'); el.classList.add('show');
       const v = document.getElementById('r60v'), d2 = document.getElementById('r60d');
       v.textContent = pct.toFixed(1) + '%';
-      if (pct >= 60) { v.style.color = '#f85149'; d2.textContent = '❌ FAIL — Jeff Hard Rule verletzt. Kein Entry!'; }
-      else if (pct >= 50) { v.style.color = '#e3b341'; d2.textContent = '⚠ GRENZBEREICH — reduzierte Position erwägen'; }
-      else { v.style.color = '#3fb950'; d2.textContent = '✅ PASS — gutes Entry-Fenster'; }
+      if (pct >= 60) { v.style.color = '#f85149'; d2.textContent = '❌ FAIL — Jeff Hard Rule violated. No entry!'; }
+      else if (pct >= 50) { v.style.color = '#e3b341'; d2.textContent = '⚠ BORDER ZONE — consider reduced position'; }
+      else { v.style.color = '#3fb950'; d2.textContent = '✅ PASS — good entry window'; }
     }
     function c4x() {
       const p = parseFloat(document.getElementById('ep2')?.value), m = parseFloat(document.getElementById('em2')?.value), a = parseFloat(document.getElementById('ea2')?.value);
@@ -2271,18 +2269,18 @@
       const el = document.getElementById('r4x'); el.classList.add('show');
       const v = document.getElementById('r4xv'), d2 = document.getElementById('r4xd');
       v.textContent = ext.toFixed(2) + 'x ATR';
-      if (ext >= 4) { v.style.color = '#f85149'; d2.textContent = '❌ FAIL — 4x+ Extension. Kein Long! (Jeff Hard Rule #2)'; }
-      else if (ext >= 3) { v.style.color = '#e3b341'; d2.textContent = '⚠ WARN — 3–4x, Vorsicht. Enges Stop nötig.'; }
-      else { v.style.color = '#3fb950'; d2.textContent = '✅ PASS — unter 3x, gutes Einstiegsfenster.'; }
+      if (ext >= 4) { v.style.color = '#f85149'; d2.textContent = '❌ FAIL — 4x+ Extension. No long! (Jeff Hard Rule #2)'; }
+      else if (ext >= 3) { v.style.color = '#e3b341'; d2.textContent = '⚠ WARN — 3–4x, caution. Tight stop required.'; }
+      else { v.style.color = '#3fb950'; d2.textContent = '✅ PASS — below 3x, gutes Einstiegsfenster.'; }
     }
     function cPos() {
       const k = parseFloat(document.getElementById('pk')?.value), r = parseFloat(document.getElementById('pr')?.value), e = parseFloat(document.getElementById('pe')?.value), s = parseFloat(document.getElementById('ps')?.value);
       if (!k || !r || !e || !s || e <= s) return;
       const risk = k * (r / 100), dist = e - s, shares = Math.floor(risk / dist), total = shares * e;
       const el = document.getElementById('rps'); el.classList.add('show');
-      document.getElementById('rpsv').textContent = shares.toLocaleString() + ' Aktien';
+      document.getElementById('rpsv').textContent = shares.toLocaleString() + ' Shares';
       document.getElementById('rpsv').style.color = '#58a6ff';
-      document.getElementById('rpsd').textContent = `Risiko: $${risk.toFixed(0)} (${r}R) · Stop-Dist: $${dist.toFixed(2)} · Positionswert: $${total.toFixed(0)}`;
+      document.getElementById('rpsd').textContent = `Risk: $${risk.toFixed(0)} (${r}R) · Stop-Dist: $${dist.toFixed(2)} · Position Value: $${total.toFixed(0)}`;
     }
 
     function setHTML(h) { document.getElementById('mc').innerHTML = h; }
