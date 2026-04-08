@@ -2295,9 +2295,9 @@
 
       section.innerHTML = `
         <div class="tv-section-title">
-          <div class="sec-num" style="background:#238636;color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;">◉</div>
-          <h2>TradingView Chart — ${sym} · Daily</h2>
-          <span class="tag">SMA 10 · 20 · 50 · 100 · 200</span>
+          <div class="sec-num" style="background:#238636;color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;">&#9711;</div>
+          <h2>TradingView Chart &#8212; ${sym} &middot; Daily</h2>
+          <span class="tag">SMA 10 &middot; 20 &middot; 50 &middot; 100 &middot; 200</span>
         </div>
         <div class="tv-chart-wrap">
           <div id="${uid}" style="height:100%;width:100%"></div>
@@ -2310,6 +2310,14 @@
           <span><span class="dot" style="background:#ef4444;height:4px"></span>SMA 200</span>
         </div>
       `;
+
+      const SMA_COLORS = [
+        { length: 10,  color: '#22c55e', width: 1 },
+        { length: 20,  color: '#3b82f6', width: 1 },
+        { length: 50,  color: '#f97316', width: 2 },
+        { length: 100, color: '#a855f7', width: 1 },
+        { length: 200, color: '#ef4444', width: 2 }
+      ];
 
       function createWidget() {
         if (window._tvWidget) {
@@ -2329,14 +2337,19 @@
           enable_publishing: false,
           allow_symbol_change: false,
           save_image: true,
-          hide_side_toolbar: false,
-          studies: [
-            { id: 'MASimple@tv-scriptstd', inputs: { length: 10 } },
-            { id: 'MASimple@tv-scriptstd', inputs: { length: 20 } },
-            { id: 'MASimple@tv-scriptstd', inputs: { length: 50 } },
-            { id: 'MASimple@tv-scriptstd', inputs: { length: 100 } },
-            { id: 'MASimple@tv-scriptstd', inputs: { length: 200 } }
-          ]
+          hide_side_toolbar: false
+        });
+
+        window._tvWidget.onChartReady(function() {
+          const chart = window._tvWidget.activeChart();
+          SMA_COLORS.forEach(function(sma) {
+            try {
+              chart.createStudy('Moving Average', false, false, [sma.length], {
+                'Plot.color': sma.color,
+                'Plot.linewidth': sma.width
+              });
+            } catch(e) { console.warn('SMA', sma.length, 'error:', e.message); }
+          });
         });
       }
 
