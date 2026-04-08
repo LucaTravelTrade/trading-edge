@@ -1640,12 +1640,12 @@
     function buildLiveKontext(d, f, fK) {
       // VARS signal: rs vs 0  +  rs vs MA  →  4 states (Pine Script logic)
       const varsSignal = v => {
-        if (!v) return { cls: 'blue', badge: 'ℹ Keine Daten', valStr: '–', sub: 'SPY-Daten laden…' };
+        if (!v) return { cls: 'blue', badge: 'ℹ No Data', valStr: '–', sub: 'Loading SPY data…' };
         const above0 = v.rs > 0, aboveMA = v.rs > v.ma;
-        if (above0 && aboveMA) return { cls: 'pass', badge: '✅ Stark — RS steigt', valStr: '+' + v.rs.toFixed(1), sub: `MA: ${v.ma.toFixed(1)}` };
-        if (!above0 && aboveMA) return { cls: 'pass', badge: '✅ Erholung — gewinnt Kraft', valStr: v.rs.toFixed(1), sub: `MA: ${v.ma.toFixed(1)}` };
-        if (above0 && !aboveMA) return { cls: 'warn', badge: '⚠ above Null — verliert Kraft', valStr: '+' + v.rs.toFixed(1), sub: `MA: ${v.ma.toFixed(1)}` };
-        return { cls: 'fail', badge: '❌ Schwach — RS fällt', valStr: v.rs.toFixed(1), sub: `MA: ${v.ma.toFixed(1)}` };
+        if (above0 && aboveMA) return { cls: 'pass', badge: '✅ Strong — RS rising', valStr: '+' + v.rs.toFixed(1), sub: `MA: ${v.ma.toFixed(1)}` };
+        if (!above0 && aboveMA) return { cls: 'pass', badge: '✅ Recovery — gaining strength', valStr: v.rs.toFixed(1), sub: `MA: ${v.ma.toFixed(1)}` };
+        if (above0 && !aboveMA) return { cls: 'warn', badge: '⚠ Above Zero — losing momentum', valStr: '+' + v.rs.toFixed(1), sub: `MA: ${v.ma.toFixed(1)}` };
+        return { cls: 'fail', badge: '❌ Weak — RS falling', valStr: v.rs.toFixed(1), sub: `MA: ${v.ma.toFixed(1)}` };
       };
       const s1 = varsSignal(d.vars1m), sSector = varsSignal(d.varsSector);
 
@@ -1656,7 +1656,7 @@
       const earnDate = earningsTs ? new Date(earningsTs).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : null;
       const isEPWindow = earnDays != null && earnDays <= 14 && earnDays >= 0;
       const earnColor = isEPWindow ? 'warn' : 'blue';
-      const earnBadge = isEPWindow ? `⚡ EP-Watch! (${earnDays}d)` : earnDays != null ? `ℹ in ${earnDays}d` : 'ℹ Kein Datum';
+      const earnBadge = isEPWindow ? `⚡ EP-Watch! (${earnDays}d)` : earnDays != null ? `ℹ in ${earnDays}d` : 'ℹ No Date';
 
       // Float & Short
       const shortPct = d.shortPctFloat != null ? (d.shortPctFloat * 100).toFixed(1) + '%' : '–';
@@ -1787,9 +1787,6 @@
       </div>
     </div>
 
-    <!-- TRADINGVIEW CHART PLACEHOLDER (filled by renderTradingViewChart) -->
-    <div id="tv-chart-section" class="tv-section"></div>
-
     <!-- VERDICT -->
     <div class="verdict ${rating}">
       <div class="verdict-grade">
@@ -1802,6 +1799,9 @@
         <div class="verdict-plan">${plan}</div>
       </div>
     </div>
+
+    <!-- TRADINGVIEW CHART (below verdict, above live context) -->
+    <div id="tv-chart-section" class="tv-section"></div>
 
     <!-- LIVE KONTEXT -->
     <div class="sec-div"><div class="sec-num">1</div><h2>Live Context — VARS · Earnings · Float · News</h2><span class="tag">Auto · Yahoo Finance</span></div>
@@ -2118,7 +2118,7 @@
         },
         {
           cat: 'jeff', s: d.lodDist < 0.5 ? 'pass' : d.lodDist < 0.6 ? 'warn' : 'fail',
-          short: '60% Regel', n: '60% ATR Rule (LoD Distance)',
+          short: '60% ATR Rule', n: '60% ATR Rule (LoD Distance)',
           desc: `(Preis–LoD)/ATR = ${(d.lodDist * 100).toFixed(1)}% — Jeff Hard Rule: kein Entry above 60%`,
           v: (d.lodDist * 100).toFixed(1) + '%'
         },
@@ -2196,15 +2196,15 @@
         }${d.rvol < 2 ? 'RVOL still weak (' + f(d.rvol, 2) + 'x) — ' : ''
         }${d.adr < 4 ? 'ADR% borderline (' + f(d.adr, 1) + '%) — ' : ''}
     Entry only on confirmation (RVOL ≥ 2x, ORH break). Stop: $${f(stopLevel)}.
-    Reduzierte Position Size (0.5–1% R-Risk).`;
+    Reduced position size (0.5–1% R-risk).`;
       if (rating === 'C') return `<strong>C-Rated Setup — Skip recommended:</strong>
-    Mehrere Kriterien nicht erfüllt. Wenn abovehaupt: minimale Sonde (&lt;0.5% R-Risk) nur bei klarem Katalysator.
-    Main reasons: ${[d.atrExt >= 4 ? 'ATR above 4x' : '', d.lodDist >= 0.6 ? 'LoD-Distanz above 60%' : '', d.rvol < 1 ? 'RVOL below 1x' : '', d.adr < 4 ? 'ADR% below 4%' : ''].filter(Boolean).join(' · ')}.`;
+    Multiple criteria not met. If anything: minimal probe (&lt;0.5% R-risk) on clear catalyst only.
+    Main reasons: ${[d.atrExt >= 4 ? 'ATR above 4x' : '', d.lodDist >= 0.6 ? 'LoD distance above 60%' : '', d.rvol < 1 ? 'RVOL below 1x' : '', d.adr < 4 ? 'ADR% below 4%' : ''].filter(Boolean).join(' · ')}.`;
       return `<strong>D-Rated Setup — NO TRADE:</strong>
     Too many criteria violated. Hard rules per Jeff Sun: no entry.
     ${d.atrExt >= 4 ? 'ATR Extension ' + f(d.atrExt, 1) + 'x (Hard limit: 4x). ' : ''
-        }${d.lodDist >= 0.6 ? 'LoD-Distanz ' + f(d.lodDist * 100, 1) + '% (Hard limit: 60%). ' : ''
-        }Ticker erneut Check wenn Bedingungen sich verbessern.`;
+        }${d.lodDist >= 0.6 ? 'LoD distance ' + f(d.lodDist * 100, 1) + '% (Hard limit: 60%). ' : ''
+        }Re-check ticker when conditions improve.`;
     }
 
     // ── GEX EVAL ──────────────────────────────────────────────────────────────────
@@ -2223,10 +2223,10 @@
         html += `<div style="font-size:12px;color:#8b949e;">${val > 0 ? 'Dealers are long gamma — buying dips, selling rallies → dampens movement.' : 'Dealers are short gamma — must amplify moves → explosive moves possible. Ideal for EP entries.'}</div>`;
       }
       if (!isNaN(flip) && p > 0) {
-        html += `<div style="margin-top:8px;font-size:13px;">GEX Flip Level: <strong style="color:#bc8cff">$${flip.toFixed(2)}</strong> — Price ${p > flip ? '<span style="color:#3fb950">above ✅ Bullisher Bereich</span>' : '<span style="color:#f85149">below ❌ Bearisher Bereich</span>'}</div>`;
+        html += `<div style="margin-top:8px;font-size:13px;">GEX Flip Level: <strong style="color:#bc8cff">$${flip.toFixed(2)}</strong> — Price ${p > flip ? '<span style="color:#3fb950">above ✅ Bullish Zone</span>' : '<span style="color:#f85149">below ❌ Bearish Zone</span>'}</div>`;
       }
       if (!isNaN(cw)) html += `<div style="font-size:12px;color:#3fb950;margin-top:4px;">Call Wall: $${cw.toFixed(2)} — Resistance at high Call-OI</div>`;
-      if (!isNaN(pw)) html += `<div style="font-size:12px;color:#f85149;margin-top:4px;">Put Wall: $${pw.toFixed(2)} — belowstützung bei hoher Put-OI</div>`;
+      if (!isNaN(pw)) html += `<div style="font-size:12px;color:#f85149;margin-top:4px;">Put Wall: $${pw.toFixed(2)} — Support at high Put-OI</div>`;
       el.innerHTML = html || '<span style="color:#8b949e">No values entered</span>';
     }
 
@@ -2245,7 +2245,7 @@
       if (!isNaN(ivp)) html += `<div style="margin-top:8px;font-size:13px;">IV Percentile: <strong>${ivp}%</strong> — IV higher than ${ivp}% of all days in the past year</div>`;
       if (!isNaN(hv) && !isNaN(g.atmIV) && g.atmIV > 0) {
         const ratio = g.atmIV / hv;
-        html += `<div style="margin-top:6px;font-size:12px;color:${ratio > 1.2 ? '#f85149' : ratio < 0.9 ? '#3fb950' : '#e3b341'};">IV/HV Ratio: ${ratio.toFixed(2)}x — ${ratio > 1.2 ? 'Options teuer gegenabove realem Risiko' : ratio < 0.9 ? 'Options cheap' : 'Fairly priced'}</div>`;
+        html += `<div style="margin-top:6px;font-size:12px;color:${ratio > 1.2 ? '#f85149' : ratio < 0.9 ? '#3fb950' : '#e3b341'};">IV/HV Ratio: ${ratio.toFixed(2)}x — ${ratio > 1.2 ? 'Options expensive vs real risk' : ratio < 0.9 ? 'Options cheap' : 'Fairly priced'}</div>`;
       }
       el.innerHTML = html || '<span style="color:#8b949e">No values entered</span>';
     }
@@ -2329,11 +2329,11 @@
           save_image: true,
           hide_side_toolbar: false,
           studies: [
-            { id: 'MASimple@tv-scriptstd', inputs: { length: 10 } },
-            { id: 'MASimple@tv-scriptstd', inputs: { length: 20 } },
-            { id: 'MASimple@tv-scriptstd', inputs: { length: 50 } },
-            { id: 'MASimple@tv-scriptstd', inputs: { length: 100 } },
-            { id: 'MASimple@tv-scriptstd', inputs: { length: 200 } }
+            { id: 'MASimple@tv-basicstudies', inputs: { length: 10 } },
+            { id: 'MASimple@tv-basicstudies', inputs: { length: 20 } },
+            { id: 'MASimple@tv-basicstudies', inputs: { length: 50 } },
+            { id: 'MASimple@tv-basicstudies', inputs: { length: 100 } },
+            { id: 'MASimple@tv-basicstudies', inputs: { length: 200 } }
           ]
         });
       }
