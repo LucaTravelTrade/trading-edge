@@ -2301,11 +2301,11 @@
           <div id="${uid}" style="height:100%;width:100%"></div>
         </div>
         <div class="tv-sma-legend">
-          <span><span class="dot" style="background:#2196f3"></span>SMA 10</span>
-          <span><span class="dot" style="background:#e91e63"></span>SMA 20</span>
-          <span><span class="dot" style="background:#ff9800;height:4px"></span>SMA 50</span>
-          <span><span class="dot" style="background:#9c27b0"></span>SMA 100</span>
-          <span><span class="dot" style="background:#f44336;height:4px"></span>SMA 200</span>
+          <span><span class="dot" style="background:#22c55e"></span>SMA 10</span>
+          <span><span class="dot" style="background:#3b82f6"></span>SMA 20</span>
+          <span><span class="dot" style="background:#f97316;height:4px"></span>SMA 50</span>
+          <span><span class="dot" style="background:#a855f7"></span>SMA 100</span>
+          <span><span class="dot" style="background:#ef4444;height:4px"></span>SMA 200</span>
         </div>
       `;
 
@@ -2329,11 +2329,11 @@
           save_image: true,
           hide_side_toolbar: false,
           studies: [
-            { id: 'MASimple@tv-basicstudies', inputs: { length: 10 } },
-            { id: 'MASimple@tv-basicstudies', inputs: { length: 20 } },
-            { id: 'MASimple@tv-basicstudies', inputs: { length: 50 } },
-            { id: 'MASimple@tv-basicstudies', inputs: { length: 100 } },
-            { id: 'MASimple@tv-basicstudies', inputs: { length: 200 } }
+            { id: 'MASimple@tv-basicstudies', inputs: { length: 10 },  overrides: { 'plot.color': '#22c55e', 'plot.linewidth': 1 } },
+            { id: 'MASimple@tv-basicstudies', inputs: { length: 20 },  overrides: { 'plot.color': '#3b82f6', 'plot.linewidth': 1 } },
+            { id: 'MASimple@tv-basicstudies', inputs: { length: 50 },  overrides: { 'plot.color': '#f97316', 'plot.linewidth': 2 } },
+            { id: 'MASimple@tv-basicstudies', inputs: { length: 100 }, overrides: { 'plot.color': '#a855f7', 'plot.linewidth': 1 } },
+            { id: 'MASimple@tv-basicstudies', inputs: { length: 200 }, overrides: { 'plot.color': '#ef4444', 'plot.linewidth': 2 } }
           ]
         });
       }
