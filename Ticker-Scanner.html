@@ -2311,14 +2311,6 @@
         </div>
       `;
 
-      const SMA_COLORS = [
-        { length: 10,  color: '#22c55e', width: 1 },
-        { length: 20,  color: '#3b82f6', width: 1 },
-        { length: 50,  color: '#f97316', width: 2 },
-        { length: 100, color: '#a855f7', width: 1 },
-        { length: 200, color: '#ef4444', width: 2 }
-      ];
-
       function createWidget() {
         if (window._tvWidget) {
           try { window._tvWidget.remove(); } catch(e) {}
@@ -2337,19 +2329,31 @@
           enable_publishing: false,
           allow_symbol_change: false,
           save_image: true,
-          hide_side_toolbar: false
-        });
-
-        window._tvWidget.onChartReady(function() {
-          const chart = window._tvWidget.activeChart();
-          SMA_COLORS.forEach(function(sma) {
-            try {
-              chart.createStudy('Moving Average', false, false, [sma.length], {
-                'Plot.color': sma.color,
-                'Plot.linewidth': sma.width
-              });
-            } catch(e) { console.warn('SMA', sma.length, 'error:', e.message); }
-          });
+          hide_side_toolbar: false,
+          studies: [
+            'MASimple@tv-basicstudies',
+            'MASimple@tv-basicstudies',
+            'MASimple@tv-basicstudies',
+            'MASimple@tv-basicstudies',
+            'MASimple@tv-basicstudies'
+          ],
+          studies_overrides: {
+            'moving average.simple moving average.1.length': 10,
+            'moving average.simple moving average.1.plot.color': '#22c55e',
+            'moving average.simple moving average.1.plot.linewidth': 1,
+            'moving average.simple moving average.2.length': 20,
+            'moving average.simple moving average.2.plot.color': '#3b82f6',
+            'moving average.simple moving average.2.plot.linewidth': 1,
+            'moving average.simple moving average.3.length': 50,
+            'moving average.simple moving average.3.plot.color': '#f97316',
+            'moving average.simple moving average.3.plot.linewidth': 2,
+            'moving average.simple moving average.4.length': 100,
+            'moving average.simple moving average.4.plot.color': '#a855f7',
+            'moving average.simple moving average.4.plot.linewidth': 1,
+            'moving average.simple moving average.5.length': 200,
+            'moving average.simple moving average.5.plot.color': '#ef4444',
+            'moving average.simple moving average.5.plot.linewidth': 2
+          }
         });
       }
 
