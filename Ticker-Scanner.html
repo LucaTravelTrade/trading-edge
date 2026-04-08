@@ -1202,7 +1202,7 @@
   </div>
 
   <div class="footer">
-    Preis + ATR + Options via Yahoo Finance · Kein API-Key nötig · Nur für persönliche Analyse
+    Preis + ATR + Options via Yahoo Finance · Kein API-Key nötig · Nur für persönliche Analyse · © LucaTravelTrade
   </div>
 
   <script>
@@ -1781,7 +1781,6 @@
       </div>
       <div class="t-meta">Börse: ${d.exch}${d.sector ? ` · Sektor: <strong style="color:#e6edf3;">${d.sector}</strong>` : ''}${d.industry ? ` · ${d.industry}` : ''} · Vol heute: ${fK(d.todVol)} · Ø $-Vol (20d): <strong style="color:#e6edf3;">$${fK(d.avgDolVol)}</strong> · LoD: $${f(d.lod)} · 52w: $${f(d.lo52)}–$${f(d.hi52)}</div>
       <div class="t-links">
-        <a class="t-link" href="https://spotgamma.com/free-hiro-dashboard/" target="_blank">SpotGamma GEX ↗</a>
         <a class="t-link" href="https://marketchameleon.com/Overview/${d.sym}/IV/" target="_blank">Market Chameleon IV Rank ↗</a>
         <a class="t-link" href="https://unusualwhales.com/stocks/${d.sym}" target="_blank">Unusual Whales Flow ↗</a>
         <a class="t-link" href="https://finviz.com/quote.ashx?t=${d.sym}" target="_blank">Finviz Chart ↗</a>
@@ -2301,13 +2300,6 @@
         </div>
         <div class="tv-chart-wrap">
           <div id="${uid}" style="height:100%;width:100%"></div>
-        </div>
-        <div class="tv-sma-legend">
-          <span><span class="dot" style="background:#22c55e"></span>EMA 10</span>
-          <span><span class="dot" style="background:#22c55e"></span>EMA 20</span>
-          <span><span class="dot" style="background:#f97316;height:4px"></span>SMA 50</span>
-          <span><span class="dot" style="background:#f97316;height:4px"></span>SMA 100</span>
-          <span><span class="dot" style="background:#f97316;height:4px"></span>SMA 200</span>
         </div>
       `;
 
