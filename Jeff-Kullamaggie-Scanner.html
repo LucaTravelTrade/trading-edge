@@ -2621,24 +2621,24 @@
       const s2    = price - dist * 2 / 3;
       const s3    = lod;
       const msg   = [
-        `🚨 *${sym}* — A\\-Setup Alert\\!`,
+        `🚨 *${sym}* — A-Setup Alert!`,
         `💰 Price: $${f(price)} | Rating: ${from}`,
         ``,
-        `📋 *Trade Plan — 3 Stops \\(Jeff Sun\\)*`,
-        `▶️ Entry: ~$${f(price)} \\(ORB Break \\+ RVOL ≥ 2x\\)`,
+        `📋 *Trade Plan — 3 Stops (Jeff Sun)*`,
+        `▶️ Entry: ~$${f(price)} (ORB Break + RVOL ≥ 2x)`,
         ``,
-        `🛑 Stop 1 \\(33%\\): $${f(s1)} \\(\\-${f(dist/3,2)} / \\-${f(dist/3/price*100,1)}%\\)`,
-        `🛑 Stop 2 \\(33%\\): $${f(s2)} \\(\\-${f(dist*2/3,2)} / \\-${f(dist*2/3/price*100,1)}%\\)`,
-        `🛑 Stop 3 \\(33%\\): $${f(s3)} \\(LoD \\-${riskPct}%\\)`,
+        `🛑 Stop 1 (33%): $${f(s1)} (-${f(dist/3,2)} / -${f(dist/3/price*100,1)}%)`,
+        `🛑 Stop 2 (33%): $${f(s2)} (-${f(dist*2/3,2)} / -${f(dist*2/3/price*100,1)}%)`,
+        `🛑 Stop 3 (33%): $${f(s3)} (LoD -${riskPct}%)`,
         ``,
         `⚡ Jeff Sun × Kullamaggie Scanner`,
-        `_Not investment advice\\. For informational purposes only\\._`
+        `_Not investment advice. For informational purposes only._`
       ].join('\n');
       try {
         await fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: cfg.chat, text: msg, parse_mode: 'MarkdownV2' })
+          body: JSON.stringify({ chat_id: cfg.chat, text: msg, parse_mode: 'Markdown' })
         });
       } catch (_) {}
     }
