@@ -2585,7 +2585,7 @@
         wlPrices[sym]  = data.price;
         wlTimes[sym]   = Date.now();
         if (alertOnA && rating === 'A' && oldRating !== 'A') {
-          sendTelegramAlert(sym, oldRating, rating, data.price);
+          sendTelegramAlert(sym, oldRating, rating, data);
         }
       } catch (_) {}
       if (wlOpen) renderWLRows();
@@ -2605,16 +2605,36 @@
       if (wlOpen) renderWLRows();
     }
 
-    async function sendTelegramAlert(sym, oldRating, newRating, price) {
+    async function sendTelegramAlert(sym, oldRating, newRating, data) {
       const cfg = JSON.parse(localStorage.getItem('tg_config') || '{}');
       if (!cfg.token || !cfg.chat) return;
-      const from = oldRating ? `${oldRating} → ${newRating}` : `New: ${newRating}`;
-      const msg  = `🚨 *${sym}* — A-Setup!\n💰 Price: $${price.toFixed(2)}\n📊 Rating: ${from}\n\n⚡ Jeff Sun × Kullamaggie Scanner`;
+      const price = typeof data === 'number' ? data : data.price;
+      const atr   = typeof data === 'object' ? (data.atr || 0) : 0;
+      const lod   = typeof data === 'object' ? (data.lod || price) : price;
+      const f     = (n, dec = 2) => n != null ? n.toFixed(dec) : '–';
+      const t1    = price + atr * 2;
+      const t2    = price + atr * 4;
+      const riskPct = price > lod ? ((price - lod) / price * 100).toFixed(1) : '–';
+      const from  = oldRating ? `${oldRating} → ${newRating}` : `First scan: ${newRating}`;
+      const msg   = [
+        `🚨 *${sym}* — A\\-Setup Alert!`,
+        `💰 Price: $${f(price)} | Rating: ${from}`,
+        ``,
+        `📋 *Trade Plan (Kullamaggie / Jeff Sun)*`,
+        `▶️ Entry: ~$${f(price)} on ORH break \\+ RVOL ≥ 2x`,
+        `🛑 Stop 1: $${f(lod)} \\(LoD — ${riskPct}% risk\\)`,
+        `🎯 Target 1: $${f(t1)} \\(\\+2 ATR — 33% partial\\)`,
+        `🎯 Target 2: $${f(t2)} \\(\\+4 ATR — 33% partial\\)`,
+        `🎯 Target 3: Trail stop below 10\\-MA \\(last 33%\\)`,
+        ``,
+        `⚡ Jeff Sun × Kullamaggie Scanner`,
+        `_Not investment advice\\. For informational purposes only\\._`
+      ].join('\n');
       try {
         await fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: cfg.chat, text: msg, parse_mode: 'Markdown' })
+          body: JSON.stringify({ chat_id: cfg.chat, text: msg, parse_mode: 'MarkdownV2' })
         });
       } catch (_) {}
     }
