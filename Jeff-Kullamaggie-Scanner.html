@@ -1171,6 +1171,161 @@
       padding: 2px 8px;
       white-space: nowrap;
     }
+
+    /* WATCHLIST PANEL */
+    .wl-panel {
+      background: #080c10;
+      border-bottom: 1px solid #30363d;
+      padding: 0 40px;
+    }
+    .wl-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .wl-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+    }
+    .wl-count {
+      background: #21262d;
+      color: #58a6ff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      min-width: 22px;
+      text-align: center;
+    }
+    .wl-chevron { color: #8b949e; font-size: 11px; }
+    .wl-status { font-size: 11px; color: #8b949e; margin-left: auto; }
+    .wl-body { padding-bottom: 14px; }
+    .wl-add-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .wl-inp {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 6px 12px;
+      color: #e6edf3;
+      font-size: 13px;
+      font-weight: 700;
+      width: 110px;
+      text-transform: uppercase;
+      outline: none;
+      letter-spacing: 1px;
+    }
+    .wl-inp:focus { border-color: #58a6ff; }
+    .wl-add-btn {
+      background: #238636;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .wl-add-btn:hover { background: #2ea043; }
+    .wl-tg-toggle {
+      background: none;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 5px 12px;
+      color: #8b949e;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .wl-tg-toggle:hover { color: #e6edf3; border-color: #58a6ff; }
+    .wl-tg-row {
+      display: none;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      padding: 10px 14px;
+      background: #161b22;
+      border-radius: 8px;
+      border: 1px solid #30363d;
+    }
+    .wl-tg-row.show { display: flex; }
+    .wl-tg-row label { font-size: 11px; color: #8b949e; }
+    .wl-tg-row input {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 5px;
+      padding: 5px 10px;
+      color: #e6edf3;
+      font-size: 12px;
+      outline: none;
+    }
+    .wl-tg-row input:focus { border-color: #58a6ff; }
+    .wl-tg-save {
+      background: #6e40c9;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 14px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .wl-tg-save:hover { background: #8957e5; }
+    .wl-rows {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .wl-row {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      min-width: 190px;
+    }
+    .wl-row:hover { border-color: #58a6ff; }
+    .wl-row.A { border-color: #3fb950; background: #040d06; }
+    .wl-row.B { border-color: #e3b341; background: #0c0b04; }
+    .wl-sym { font-size: 14px; font-weight: 800; color: #e6edf3; }
+    .wl-price { font-size: 12px; color: #58a6ff; font-weight: 600; }
+    .wl-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 8px;
+    }
+    .wl-badge.A { background: #0d2010; color: #3fb950; }
+    .wl-badge.B { background: #1a1400; color: #e3b341; }
+    .wl-badge.C { background: #200d0d; color: #f85149; }
+    .wl-badge.D { background: #200d0d; color: #f85149; }
+    .wl-badge.scan { background: #21262d; color: #8b949e; }
+    .wl-age { font-size: 10px; color: #8b949e; white-space: nowrap; }
+    .wl-rm {
+      background: none;
+      border: none;
+      color: #484f58;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 0;
+      margin-left: auto;
+      line-height: 1;
+    }
+    .wl-rm:hover { color: #f85149; }
   </style>
 </head>
 
@@ -1185,6 +1340,35 @@
       <input class="ticker-in" id="tin" type="text" placeholder="Ticker (e.g. NVDA)" maxlength="10"
         autocomplete="off" />
       <button class="scan-btn" id="sbtn" onclick="runScan()">Scan ▶</button>
+    </div>
+  </div>
+
+  <!-- WATCHLIST PANEL -->
+  <div class="wl-panel">
+    <div class="wl-header" onclick="toggleWL()">
+      <span class="wl-title">Watchlist</span>
+      <span class="wl-count" id="wl-count">0</span>
+      <span class="wl-chevron" id="wl-chevron">▼</span>
+      <span class="wl-status" id="wl-status"></span>
+    </div>
+    <div class="wl-body" id="wl-body" style="display:none;">
+      <div class="wl-add-row">
+        <input class="wl-inp" id="wl-inp" type="text" placeholder="TICKER" maxlength="10" autocomplete="off" />
+        <button class="wl-add-btn" onclick="wlAdd()">+ Add</button>
+        <button class="wl-tg-toggle" onclick="toggleTG()">📨 Telegram</button>
+      </div>
+      <div class="wl-tg-row" id="wl-tg-row">
+        <label>Bot Token:</label>
+        <input id="tg-token" type="password" placeholder="123456789:ABC-xyz..." style="width:220px;" />
+        <label>Chat ID:</label>
+        <input id="tg-chat" type="text" placeholder="-100123456789" style="width:150px;" />
+        <button class="wl-tg-save" onclick="saveTG()">Save</button>
+        <span id="tg-status" style="font-size:11px;color:#8b949e;"></span>
+        <span style="font-size:10px;color:#484f58;margin-left:auto;">Alert when any ticker upgrades to A-Setup</span>
+      </div>
+      <div class="wl-rows" id="wl-rows">
+        <div style="color:#8b949e;font-size:12px;padding:4px 0;">Add tickers above to start monitoring.</div>
+      </div>
     </div>
   </div>
 
@@ -2283,6 +2467,166 @@
     }
 
     function setHTML(h) { document.getElementById('mc').innerHTML = h; }
+
+    // ── WATCHLIST ─────────────────────────────────────────────────────────────
+    let wlList    = JSON.parse(localStorage.getItem('wl_tickers') || '[]');
+    let wlRatings = {};   // sym -> 'A'/'B'/'C'/'D' | null
+    let wlPrices  = {};
+    let wlTimes   = {};
+    let wlOpen    = false;
+    let wlFirstScanDone = false;
+
+    function toggleWL() {
+      wlOpen = !wlOpen;
+      document.getElementById('wl-body').style.display = wlOpen ? '' : 'none';
+      document.getElementById('wl-chevron').textContent = wlOpen ? '▲' : '▼';
+      if (wlOpen) renderWLRows();
+    }
+
+    function toggleTG() {
+      const el = document.getElementById('wl-tg-row');
+      el.classList.toggle('show');
+      const cfg = JSON.parse(localStorage.getItem('tg_config') || '{}');
+      if (cfg.token) document.getElementById('tg-token').value = cfg.token;
+      if (cfg.chat)  document.getElementById('tg-chat').value  = cfg.chat;
+    }
+
+    function saveTG() {
+      const token = document.getElementById('tg-token').value.trim();
+      const chat  = document.getElementById('tg-chat').value.trim();
+      if (!token || !chat) { document.getElementById('tg-status').textContent = 'Enter both fields!'; return; }
+      localStorage.setItem('tg_config', JSON.stringify({ token, chat }));
+      const st = document.getElementById('tg-status');
+      st.style.color = '#3fb950';
+      st.textContent = 'Saved!';
+      setTimeout(() => { st.textContent = ''; st.style.color = '#8b949e'; }, 2500);
+    }
+
+    function wlAdd() {
+      const inp = document.getElementById('wl-inp');
+      const sym = inp.value.trim().toUpperCase();
+      if (!sym || wlList.includes(sym)) { inp.value = ''; return; }
+      wlList.push(sym);
+      localStorage.setItem('wl_tickers', JSON.stringify(wlList));
+      inp.value = '';
+      updateWLCount();
+      renderWLRows();
+      // Immediately silent-scan the new ticker (baseline, no alert)
+      silentScanOne(sym, false);
+    }
+
+    function wlRemove(sym) {
+      wlList = wlList.filter(s => s !== sym);
+      localStorage.setItem('wl_tickers', JSON.stringify(wlList));
+      delete wlRatings[sym];
+      delete wlPrices[sym];
+      delete wlTimes[sym];
+      updateWLCount();
+      renderWLRows();
+    }
+
+    function updateWLCount() {
+      document.getElementById('wl-count').textContent = wlList.length;
+    }
+
+    function renderWLRows() {
+      const el = document.getElementById('wl-rows');
+      if (!el) return;
+      if (wlList.length === 0) {
+        el.innerHTML = '<div style="color:#8b949e;font-size:12px;padding:4px 0;">Add tickers above to start monitoring.</div>';
+        return;
+      }
+      el.innerHTML = wlList.map(sym => {
+        const r     = wlRatings[sym];
+        const price = wlPrices[sym];
+        const ts    = wlTimes[sym];
+        const age   = ts ? Math.round((Date.now() - ts) / 1000) : null;
+        const ageStr = age == null ? '' : age < 60 ? age + 's ago' : Math.round(age / 60) + 'm ago';
+        const badge  = r ? r + ' Setup' : '…';
+        const cls    = r || 'scan';
+        return `<div class="wl-row ${r || ''}" onclick="wlOpenScan('${sym}')">
+          <span class="wl-sym">${sym}</span>
+          ${price != null ? `<span class="wl-price">$${price.toFixed(2)}</span>` : ''}
+          <span class="wl-badge ${cls}">${badge}</span>
+          ${ageStr ? `<span class="wl-age">${ageStr}</span>` : ''}
+          <button class="wl-rm" onclick="event.stopPropagation();wlRemove('${sym}')" title="Remove">✕</button>
+        </div>`;
+      }).join('');
+    }
+
+    function wlOpenScan(sym) {
+      document.getElementById('tin').value = sym;
+      runScan();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Compute rating from price data (no options — uses getChecks only)
+    function computeRatingFast(d) {
+      const checks = getChecks(d);
+      const pass  = checks.filter(c => c.s === 'pass').length;
+      const warn  = checks.filter(c => c.s === 'warn').length;
+      const score = pass + warn * 0.5;
+      const total = checks.length;
+      const belowMA50 = d.price < d.ma50;
+      return belowMA50 ? 'D'
+        : score >= total * 0.85 ? 'A'
+        : score >= total * 0.65 ? 'B'
+        : score >= total * 0.45 ? 'C' : 'D';
+    }
+
+    async function silentScanOne(sym, alertOnA) {
+      try {
+        const data = await fetchPrice(sym);
+        // Try enrichment for VARS (non-blocking, best-effort)
+        try { const enr = await fetchEnrichment(sym); Object.assign(data, enr); } catch (_) {}
+        const rating   = computeRatingFast(data);
+        const oldRating = wlRatings[sym];
+        wlRatings[sym] = rating;
+        wlPrices[sym]  = data.price;
+        wlTimes[sym]   = Date.now();
+        if (alertOnA && rating === 'A' && oldRating !== 'A') {
+          sendTelegramAlert(sym, oldRating, rating, data.price);
+        }
+      } catch (_) {}
+      if (wlOpen) renderWLRows();
+    }
+
+    async function refreshWatchlist() {
+      if (wlList.length === 0) return;
+      const st = document.getElementById('wl-status');
+      st.textContent = 'Refreshing…';
+      // Scan all sequentially to avoid rate limits
+      for (const sym of wlList) {
+        await silentScanOne(sym, wlFirstScanDone);
+      }
+      wlFirstScanDone = true;
+      const t = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+      st.textContent = 'Updated ' + t;
+      if (wlOpen) renderWLRows();
+    }
+
+    async function sendTelegramAlert(sym, oldRating, newRating, price) {
+      const cfg = JSON.parse(localStorage.getItem('tg_config') || '{}');
+      if (!cfg.token || !cfg.chat) return;
+      const from = oldRating ? `${oldRating} → ${newRating}` : `New: ${newRating}`;
+      const msg  = `🚨 *${sym}* — A-Setup!\n💰 Price: $${price.toFixed(2)}\n📊 Rating: ${from}\n\n⚡ Jeff Sun × Kullamaggie Scanner`;
+      try {
+        await fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: cfg.chat, text: msg, parse_mode: 'Markdown' })
+        });
+      } catch (_) {}
+    }
+
+    // ── WATCHLIST INIT ────────────────────────────────────────────────────────
+    updateWLCount();
+    document.getElementById('wl-inp').addEventListener('keydown', e => { if (e.key === 'Enter') wlAdd(); });
+    document.getElementById('wl-inp').addEventListener('input',   e => { e.target.value = e.target.value.toUpperCase(); });
+    // Auto-refresh every 60s
+    setInterval(refreshWatchlist, 60000);
+    // Initial baseline scan on page load (no alerts — just establish ratings)
+    if (wlList.length > 0) setTimeout(() => refreshWatchlist(), 1000);
 
     function renderTradingViewChart(sym) {
       const section = document.getElementById('tv-chart-section');
