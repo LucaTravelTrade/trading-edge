@@ -1926,9 +1926,9 @@
       const score = pass + warn * 0.5;
       const total = allChks.length;
 
-      // Hard Rule: belowhalb 50-MA = automatisch NO TRADE, kein Setup möglich
+      // Hard Rules: below 50-MA oder Setup burned = automatisch NO TRADE
       const belowMA50 = d.price < d.ma50;
-      const rating = belowMA50 ? 'D' : score >= total * 0.85 ? 'A' : score >= total * 0.65 ? 'B' : score >= total * 0.45 ? 'C' : 'D';
+      const rating = (belowMA50 || d.setupBurned) ? 'D' : score >= total * 0.85 ? 'A' : score >= total * 0.65 ? 'B' : score >= total * 0.45 ? 'C' : 'D';
 
       const f = (n, d = 2) => n != null ? n.toFixed(d) : '–';
       const fK = v => v > 1e6 ? (v / 1e6).toFixed(1) + 'M' : v > 1e3 ? (v / 1e3).toFixed(0) + 'K' : v.toFixed(0);
@@ -2574,8 +2574,8 @@
       const score = pass + warn * 0.5;
       const total = checks.length;
       const belowMA50 = d.price < d.ma50;
-      return belowMA50 ? 'D'
-        : score >= total * 0.85 ? 'A'
+      if (belowMA50 || d.setupBurned) return 'D';
+      return score >= total * 0.85 ? 'A'
         : score >= total * 0.65 ? 'B'
         : score >= total * 0.45 ? 'C' : 'D';
     }
