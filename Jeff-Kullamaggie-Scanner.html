@@ -350,6 +350,51 @@
       border-radius: 20px;
       font-size: 12px;
       font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .v-tag-help {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      font-size: 9px;
+      font-weight: 800;
+      cursor: default;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .v-tag-help::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1c2128;
+      color: #e6edf3;
+      border: 1px solid #444c56;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      width: 240px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 999;
+    }
+
+    .v-tag-help:hover::after {
+      opacity: 1;
     }
 
     .v-tag.ok {
@@ -1949,7 +1994,8 @@
       const tags = allChks.map(c => {
         const cl = c.s === 'pass' ? 'ok' : c.s === 'warn' ? 'warn' : 'bad';
         const ic = c.s === 'pass' ? '✅' : c.s === 'warn' ? '⚠' : '❌';
-        return `<span class="v-tag ${cl}">${ic} ${c.short}</span>`;
+        const tip = (c.tip || c.desc || '').replace(/"/g, '&quot;');
+        return `<span class="v-tag ${cl}">${ic} ${c.short}<span class="v-tag-help" data-tip="${tip}">?</span></span>`;
       }).join('');
 
       // Trade plan
@@ -2277,49 +2323,57 @@
       return [
         {
           cat: 'kulla', s: d.atrExt < 3 ? 'pass' : d.atrExt < 4 ? 'warn' : 'fail',
-          short: 'ATR Ext', n: 'ATR Extension < 4x von 50-MA',
-          desc: `Aktuell ${d.atrExt.toFixed(2)}x — Kulla/Jeff Hard Rule: kein Entry above 4x`,
+          short: 'ATR Ext', n: 'ATR Extension < 4x from 50-MA',
+          tip: 'ATR Extension measures how far price is from its 50-day MA in units of ATR.\nPass: <3x | Warn: 3–4x | Fail: ≥4x\nKullamaggie/Jeff hard rule: no entry if extended >4x ATR above 50-MA — too far from base, risk/reward breaks down.',
+          desc: `Currently ${d.atrExt.toFixed(2)}x — Hard Rule: no entry above 4x`,
           v: d.atrExt.toFixed(2) + 'x'
         },
         {
           cat: 'kulla', s: d.rangePos >= 0.7 ? 'pass' : d.rangePos >= 0.6 ? 'warn' : 'fail',
-          short: 'Near Highs', n: 'Nahe 52-Wochen Highs (>70%)',
-          desc: `52w Range position: ${(d.rangePos * 100).toFixed(0)}% — Momentum-Leader Near Highs`,
+          short: 'Near Highs', n: 'Near 52-Week Highs (>70%)',
+          tip: 'Where is price in its 52-week range?\nPass: ≥70% | Warn: 60–70% | Fail: <60%\nMomentum leaders trade near highs. Kullamaggie only buys stocks at or near all-time highs — not laggards.',
+          desc: `52w range position: ${(d.rangePos * 100).toFixed(0)}% — Momentum leaders trade near highs`,
           v: (d.rangePos * 100).toFixed(0) + '%'
         },
         {
           cat: 'kulla', s: d.avgDolVol >= 30e6 ? 'pass' : d.avgDolVol >= 10e6 ? 'warn' : 'fail',
-          short: 'Liquidity', n: 'Liquidity > $30M Ø tägl. Dollar-Vol (20d)',
-          desc: `Ø $${(d.avgDolVol / 1e6).toFixed(1)}M/Tag (letzte 20 Handelstage) — min $30M für institutionelles Interesse`,
-          v: 'Ø $' + (d.avgDolVol / 1e6).toFixed(1) + 'M'
+          short: 'Liquidity', n: 'Liquidity > $30M avg daily dollar vol (20d)',
+          tip: 'Average daily dollar volume over the last 20 trading days.\nPass: ≥$30M | Warn: $10–30M | Fail: <$10M\nMinimum liquidity required for institutional interest and clean fills. Illiquid stocks are harder to size into and exit.',
+          desc: `Avg $${(d.avgDolVol / 1e6).toFixed(1)}M/day (last 20 sessions) — min $30M for institutional interest`,
+          v: 'Avg $' + (d.avgDolVol / 1e6).toFixed(1) + 'M'
         },
         {
           cat: 'kulla', s: d.adr >= 5 ? 'pass' : d.adr >= 4 ? 'warn' : 'fail',
-          short: 'ADR%', n: 'ADR% ≥ 4–5% (Swing-Volatilität)',
-          desc: `${d.adr.toFixed(1)}% daily range — min 4–5% needed for swing trades`,
+          short: 'ADR%', n: 'ADR% ≥ 4–5% (Daily Swing Range)',
+          tip: 'Average Daily Range % = avg (High–Low)/Close over last 20 days.\nPass: ≥5% | Warn: 4–5% | Fail: <4%\nNeeds enough daily movement for profitable swing trades. Below 4% ADR the stop is too tight relative to the target.',
+          desc: `${d.adr.toFixed(1)}% avg daily range — min 4–5% for swing trades`,
           v: d.adr.toFixed(1) + '%'
         },
         {
           cat: 'kulla', s: d.price > d.ma50 * 1.02 ? 'pass' : d.price > d.ma50 ? 'warn' : 'fail',
-          short: 'above MA50', n: 'Price above 50-MA (Uptrend)',
+          short: 'Above MA50', n: 'Price above 50-MA (Uptrend)',
+          tip: 'Is price above the 50-day moving average?\nPass: >2% above | Warn: 0–2% above | Fail: below\nHard rule: no long setups below the 50-MA. The 50-MA defines the primary uptrend — below it, the stock is a laggard.',
           desc: `$${d.price.toFixed(2)} vs MA50 $${d.ma50.toFixed(2)} — ${d.price > d.ma50 ? 'above' : 'below'} 50-MA`,
           v: d.price > d.ma50 ? '+' + ((d.price / d.ma50 - 1) * 100).toFixed(1) + '%' : ((d.price / d.ma50 - 1) * 100).toFixed(1) + '%'
         },
         {
           cat: 'jeff', s: d.setupBurned ? 'fail' : d.lodDist < 0.5 ? 'pass' : d.lodDist < 0.6 ? 'warn' : 'fail',
           short: '60% ATR Rule', n: '60% ATR Rule (LoD Distance)',
-          desc: d.setupBurned ? `Setup BURNED — DayHigh ${(d.intradayHighDist * 100).toFixed(1)}% vom LoD (war bereits über 50% ATR)` : `(Preis–LoD)/ATR = ${(d.lodDist * 100).toFixed(1)}% — Jeff Hard Rule: kein Entry above 60%`,
+          tip: 'How far is current price from the day\'s low, measured in ATR?\nPass: <50% ATR from LoD | Warn: 50–59% | Fail: ≥60% or BURNED\nJeff Sun rule: entry only close to the low of day. BURNED = the intraday high already exceeded 50% ATR from LoD earlier today, meaning the setup has played out — no re-entry.',
+          desc: d.setupBurned ? `Setup BURNED — DayHigh was ${(d.intradayHighDist * 100).toFixed(1)}% from LoD (already exceeded 50% ATR)` : `(Price–LoD)/ATR = ${(d.lodDist * 100).toFixed(1)}% — Jeff hard rule: no entry above 60%`,
           v: (d.lodDist * 100).toFixed(1) + '%'
         },
         {
           cat: 'jeff', s: d.rvol >= 2 ? 'pass' : d.rvol >= 1 ? 'warn' : 'fail',
-          short: 'RVOL', n: 'RVOL ≥ 2x bei Entry',
-          desc: `${d.rvol.toFixed(2)}x — Jeff: "Price fades always outside of RVOL"`,
+          short: 'RVOL', n: 'Relative Volume ≥ 2x at entry',
+          tip: 'Relative Volume = today\'s volume vs 20-day average volume.\nPass: ≥2x | Warn: 1–2x | Fail: <1x\nJeff Sun: "Price fades always happen outside of RVOL." High RVOL confirms institutional participation. Low RVOL = no conviction, fades more likely.',
+          desc: `${d.rvol.toFixed(2)}x relative volume — Jeff: "Price fades always outside of RVOL"`,
           v: d.rvol.toFixed(2) + 'x'
         },
         {
           cat: 'jeff', s: (d.atr / d.price) >= 0.025 ? 'pass' : (d.atr / d.price) >= 0.015 ? 'warn' : 'fail',
-          short: 'ATR/Price', n: 'ATR/Price > 2% (Bewegungspotenzial)',
+          short: 'ATR/Price', n: 'ATR/Price > 2% (Move Potential)',
+          tip: 'ATR as a percentage of price (14-day ATR).\nPass: ≥2.5% | Warn: 1.5–2.5% | Fail: <1.5%\nSimilar to ADR% but uses ATR (includes gaps). Measures if there is enough daily move potential for profitable swing trades with proper stop placement.',
           desc: `${(d.atr / d.price * 100).toFixed(1)}% — enough range for profitable swing trades`,
           v: (d.atr / d.price * 100).toFixed(1) + '%'
         },
@@ -2330,9 +2384,10 @@
               (d.vars1m.rs < 0 && d.vars1m.rs > d.vars1m.ma) ? 'pass' :
                 (d.vars1m.rs > 0 && d.vars1m.rs < d.vars1m.ma) ? 'warn' : 'fail',
           short: 'VARS 1M',
-          n: 'VARS 1M — Vol. Adj. RS vs SPY',
+          n: 'VARS 1M — Vol. Adjusted Relative Strength vs SPY',
+          tip: 'Volume-Adjusted Relative Strength vs SPY over 1 month.\nPass: RS > 0 and RS > its MA (accelerating) | Warn: RS > 0 but weakening | Fail: RS < 0 and below MA\nMeasures if the stock is outperforming SPY on high-volume days. Strong stocks go up more than SPY when volume is high.',
           desc: d.vars1m
-            ? `RS: ${d.vars1m.rs > 0 ? '+' : ''}${d.vars1m.rs.toFixed(1)} · MA: ${d.vars1m.ma.toFixed(1)} — ${d.vars1m.rs > 0 ? 'above Null' : 'below Null'}, ${d.vars1m.rs > d.vars1m.ma ? 'above MA (stärker werdend)' : 'below MA (Kraft verlierend)'}`
+            ? `RS: ${d.vars1m.rs > 0 ? '+' : ''}${d.vars1m.rs.toFixed(1)} · MA: ${d.vars1m.ma.toFixed(1)} — ${d.vars1m.rs > 0 ? 'above zero' : 'below zero'}, ${d.vars1m.rs > d.vars1m.ma ? 'above MA (strengthening)' : 'below MA (weakening)'}`
             : 'Loading… (SPY data being processed)',
           v: d.vars1m ? (d.vars1m.rs > 0 ? '+' : '') + d.vars1m.rs.toFixed(1) : '–'
         },
@@ -2344,14 +2399,16 @@
       const items = [];
       items.push({
         cat: 'opt', s: d.price > d.maxPainStrike ? 'pass' : 'warn',
-        short: 'vs Max Pain', n: 'Price above Max Pain',
-        desc: `Max Pain $${d.maxPainStrike?.toFixed(2)} — Price ${d.price > d.maxPainStrike ? 'above (Bullish)' : 'below (Pin-Druck)'}`,
+        short: 'vs Max Pain', n: 'Price vs Max Pain',
+        tip: 'Max Pain = the strike price where the most options expire worthless (max loss for option buyers).\nPass: price above Max Pain | Warn: price below\nMarket makers hedge positions in a way that often pins price near Max Pain at expiration. Price above Max Pain is bullish.',
+        desc: `Max Pain $${d.maxPainStrike?.toFixed(2)} — price ${d.price > d.maxPainStrike ? 'above (bullish)' : 'below (pin pressure)'}`,
         v: d.price > d.maxPainStrike ? '+' + ((d.price - d.maxPainStrike)).toFixed(2) : '-' + (d.maxPainStrike - d.price).toFixed(2)
       });
       items.push({
         cat: 'opt', s: d.pcRatio < 1 ? 'pass' : d.pcRatio < 1.5 ? 'warn' : 'fail',
         short: 'P/C Ratio', n: 'Put/Call OI Ratio',
-        desc: `${d.pcRatio.toFixed(2)} — ${d.pcRatio < 1 ? 'Bullish positioning' : d.pcRatio < 1.5 ? 'Neutral' : 'Stark abgesichert'}`,
+        tip: 'Put/Call Open Interest Ratio = total put OI / total call OI.\nPass: <1.0 (more calls = bullish) | Warn: 1.0–1.5 (neutral) | Fail: >1.5 (heavy put hedging)\nA low P/C ratio signals bullish options positioning. A very high ratio can indicate heavy hedging or bearish bets.',
+        desc: `${d.pcRatio.toFixed(2)} — ${d.pcRatio < 1 ? 'bullish positioning (more calls)' : d.pcRatio < 1.5 ? 'neutral' : 'heavy hedging (put heavy)'}`,
         v: d.pcRatio.toFixed(2)
       });
       return items;
