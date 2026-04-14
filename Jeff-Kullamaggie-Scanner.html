@@ -1475,23 +1475,29 @@
 
       // Intraday
       let lod = lows[n - 1] ?? price * 0.98, todVol = 0;
+      let intradayHigh = price;
       if (id?.chart?.result?.[0]) {
         const iq = id.chart.result[0].indicators.quote[0];
         const il = (iq.low || []).filter(v => v != null && v > 0);
+        const ih = (iq.high || []).filter(v => v != null && v > 0);
         const iv = (iq.volume || []).filter(v => v != null && v >= 0);
         if (il.length > 0) lod = Math.min(...il);
+        if (ih.length > 0) intradayHigh = Math.max(...ih);
         todVol = iv.reduce((a, b) => a + b, 0);
       }
       const rvol = avgVol > 0 ? todVol / avgVol : 0;
       const atrExt = atr > 0 ? (price - ma50) / atr : 0;
       const lodDist = atr > 0 ? (price - lod) / atr : 0;
+      // Setup is "burned" if the intraday high already exceeded 50% ATR from LOD
+      const intradayHighDist = atr > 0 ? (intradayHigh - lod) / atr : 0;
+      const setupBurned = intradayHighDist >= 0.5;
       const dolVol = todVol * price;
 
       return {
         sym, price, prev, chgPct,
         ma50, atr, adr, avgVol, todVol, rvol,
-        lod, hi52, lo52, rangePos,
-        atrExt, lodDist, dolVol, avgDolVol,
+        lod, intradayHigh, hi52, lo52, rangePos,
+        atrExt, lodDist, intradayHighDist, setupBurned, dolVol, avgDolVol,
         name: m.longName || m.shortName || sym,
         exch: m.exchangeName || '',
         earningsTs: (() => {
@@ -1928,7 +1934,7 @@
       const fK = v => v > 1e6 ? (v / 1e6).toFixed(1) + 'M' : v > 1e3 ? (v / 1e3).toFixed(0) + 'K' : v.toFixed(0);
 
       const ec = d.atrExt >= 4 ? 'fail' : d.atrExt >= 3 ? 'warn' : 'pass';
-      const lc = d.lodDist >= 0.6 ? 'fail' : d.lodDist >= 0.5 ? 'warn' : 'pass';
+      const lc = d.setupBurned ? 'fail' : d.lodDist >= 0.6 ? 'fail' : d.lodDist >= 0.5 ? 'warn' : 'pass';
       const ac = d.adr >= 5 ? 'pass' : d.adr >= 4 ? 'warn' : 'fail';
       const rc = d.rvol >= 2 ? 'pass' : d.rvol >= 1 ? 'warn' : 'fail';
 
@@ -2004,8 +2010,8 @@
       <div class="mc ${lc}">
         <div class="mc-lbl">60% ATR Rule (LoD Distance)</div>
         <div class="mc-val ${lc}">${f(d.lodDist * 100, 1)}%</div>
-        <div class="mc-sub">LoD: $${f(d.lod)} · (Preis–LoD)/ATR</div>
-        <span class="mc-badge ${lc}">${d.lodDist >= 0.6 ? '❌ FAIL no Entry' : d.lodDist >= 0.5 ? '⚠ BORDER 50–59%' : '✅ PASS <50%'}</span>
+        <div class="mc-sub">LoD: $${f(d.lod)} · DayHigh: $${f(d.intradayHigh)} · (Preis–LoD)/ATR</div>
+        <span class="mc-badge ${lc}">${d.setupBurned ? `❌ BURNED — DayHigh war ${f(d.intradayHighDist * 100, 1)}% vom LoD (Setup verbrannt)` : d.lodDist >= 0.6 ? '❌ FAIL no Entry' : d.lodDist >= 0.5 ? '⚠ BORDER 50–59%' : '✅ PASS <50%'}</span>
         <div class="sbar"><div class="sfill" style="width:${Math.min(100, d.lodDist * 100)}%;background:${lc === 'pass' ? '#3fb950' : lc === 'warn' ? '#e3b341' : '#f85149'}"></div></div>
         <div class="sbar-labels"><span>0%</span><span>60% LIMIT</span><span>100%</span></div>
       </div>
@@ -2300,9 +2306,9 @@
           v: d.price > d.ma50 ? '+' + ((d.price / d.ma50 - 1) * 100).toFixed(1) + '%' : ((d.price / d.ma50 - 1) * 100).toFixed(1) + '%'
         },
         {
-          cat: 'jeff', s: d.lodDist < 0.5 ? 'pass' : d.lodDist < 0.6 ? 'warn' : 'fail',
+          cat: 'jeff', s: d.setupBurned ? 'fail' : d.lodDist < 0.5 ? 'pass' : d.lodDist < 0.6 ? 'warn' : 'fail',
           short: '60% ATR Rule', n: '60% ATR Rule (LoD Distance)',
-          desc: `(Preis–LoD)/ATR = ${(d.lodDist * 100).toFixed(1)}% — Jeff Hard Rule: kein Entry above 60%`,
+          desc: d.setupBurned ? `Setup BURNED — DayHigh ${(d.intradayHighDist * 100).toFixed(1)}% vom LoD (war bereits über 50% ATR)` : `(Preis–LoD)/ATR = ${(d.lodDist * 100).toFixed(1)}% — Jeff Hard Rule: kein Entry above 60%`,
           v: (d.lodDist * 100).toFixed(1) + '%'
         },
         {
@@ -2382,11 +2388,11 @@
     Reduced position size (0.5–1% R-risk).`;
       if (rating === 'C') return `<strong>C-Rated Setup — Skip recommended:</strong>
     Multiple criteria not met. If anything: minimal probe (&lt;0.5% R-risk) on clear catalyst only.
-    Main reasons: ${[d.atrExt >= 4 ? 'ATR above 4x' : '', d.lodDist >= 0.6 ? 'LoD distance above 60%' : '', d.rvol < 1 ? 'RVOL below 1x' : '', d.adr < 4 ? 'ADR% below 4%' : ''].filter(Boolean).join(' · ')}.`;
+    Main reasons: ${[d.atrExt >= 4 ? 'ATR above 4x' : '', d.setupBurned ? `Setup burned (DayHigh ${(d.intradayHighDist * 100).toFixed(1)}% vom LoD)` : d.lodDist >= 0.6 ? 'LoD distance above 60%' : '', d.rvol < 1 ? 'RVOL below 1x' : '', d.adr < 4 ? 'ADR% below 4%' : ''].filter(Boolean).join(' · ')}.`;
       return `<strong>D-Rated Setup — NO TRADE:</strong>
     Too many criteria violated. Hard rules per Jeff Sun: no entry.
     ${d.atrExt >= 4 ? 'ATR Extension ' + f(d.atrExt, 1) + 'x (Hard limit: 4x). ' : ''
-        }${d.lodDist >= 0.6 ? 'LoD distance ' + f(d.lodDist * 100, 1) + '% (Hard limit: 60%). ' : ''
+        }${d.setupBurned ? 'Setup burned — DayHigh war ' + f(d.intradayHighDist * 100, 1) + '% vom LoD (über 50% ATR). ' : d.lodDist >= 0.6 ? 'LoD distance ' + f(d.lodDist * 100, 1) + '% (Hard limit: 60%). ' : ''
         }Re-check ticker when conditions improve.`;
     }
 
@@ -2638,7 +2644,7 @@
         await fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: cfg.chat, text: msg, parse_mode: 'Markdown' })
+          body: JSON.stringify({ chat_id: cfg.chat, text: msg })
         });
       } catch (_) {}
     }
