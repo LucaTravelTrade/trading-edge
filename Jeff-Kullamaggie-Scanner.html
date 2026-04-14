@@ -1461,15 +1461,11 @@
     // ── FETCH PRICE DATA ──────────────────────────────────────────────────────────
     async function fetchPrice(sym) {
       const hist = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=4mo`;
-      const intr = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=5m&range=1d`;
-      let hd, id;
+      let hd;
       try {
-        [hd, id] = await Promise.all([fetchJ(hist), fetchJ(intr)]);
+        hd = await fetchJ(hist);
       } catch (_) {
-        [hd, id] = await Promise.all([
-          fetchJ(PROXY + encodeURIComponent(hist)),
-          fetchJ(PROXY + encodeURIComponent(intr))
-        ]);
+        hd = await fetchJ(PROXY + encodeURIComponent(hist));
       }
       if (!hd.chart?.result?.[0]) throw new Error(`"${sym}" not found`);
 
@@ -1518,18 +1514,10 @@
       const lo52 = Math.min(...lows.slice(-lb).filter(v => v > 0));
       const rangePos = hi52 > lo52 ? (price - lo52) / (hi52 - lo52) : 0.5;
 
-      // Intraday
-      let lod = lows[n - 1] ?? price * 0.98, todVol = 0;
-      let intradayHigh = price;
-      if (id?.chart?.result?.[0]) {
-        const iq = id.chart.result[0].indicators.quote[0];
-        const il = (iq.low || []).filter(v => v != null && v > 0);
-        const ih = (iq.high || []).filter(v => v != null && v > 0);
-        const iv = (iq.volume || []).filter(v => v != null && v >= 0);
-        if (il.length > 0) lod = Math.min(...il);
-        if (ih.length > 0) intradayHigh = Math.max(...ih);
-        todVol = iv.reduce((a, b) => a + b, 0);
-      }
+      // Intraday — real-time from meta fields (not delayed like 5m candles)
+      const lod = m.regularMarketDayLow ?? lows[n - 1] ?? price * 0.98;
+      const intradayHigh = m.regularMarketDayHigh ?? price;
+      const todVol = m.regularMarketVolume ?? 0;
       const rvol = avgVol > 0 ? todVol / avgVol : 0;
       const atrExt = atr > 0 ? (price - ma50) / atr : 0;
       const lodDist = atr > 0 ? (price - lod) / atr : 0;
