@@ -1462,18 +1462,22 @@
     async function fetchPrice(sym) {
       const hist = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=4mo`;
       const PROXY2 = 'https://api.allorigins.win/raw?url=';
-      let hd = null;
-      for (const url of [
-        hist,
-        PROXY  + encodeURIComponent(hist),
-        PROXY2 + encodeURIComponent(hist),
-      ]) {
-        try {
-          const d = await fetchJ(url);
-          if (d?.chart?.result?.[0]) { hd = d; break; }
-        } catch (_) {}
+      // race all 3 sources in parallel — take first valid result
+      const tryUrl = async url => {
+        const d = await fetchJ(url);
+        if (!d?.chart?.result?.[0]) throw new Error('no result');
+        return d;
+      };
+      let hd;
+      try {
+        hd = await Promise.any([
+          tryUrl(hist),
+          tryUrl(PROXY  + encodeURIComponent(hist)),
+          tryUrl(PROXY2 + encodeURIComponent(hist)),
+        ]);
+      } catch (_) {
+        throw new Error(`"${sym}" nicht gefunden — Ticker prüfen oder nochmal versuchen`);
       }
-      if (!hd?.chart?.result?.[0]) throw new Error(`"${sym}" nicht gefunden — Ticker prüfen oder nochmal versuchen`);
 
       const r = hd.chart.result[0];
       const q = r.indicators.quote[0];
@@ -1649,9 +1653,15 @@
     // ── FETCH ENRICHMENT (VARS · Float · News · VIX · AlphaQuery) ────────────────
     async function fetchEnrichment(sym) {
       const out = {};
+      const PROXY2 = 'https://api.allorigins.win/raw?url=';
       const safe = async url => {
-        try { return await fetchJ(url); }
-        catch (_) { try { return await fetchJ(PROXY + encodeURIComponent(url)); } catch (__) { return null; } }
+        try {
+          return await Promise.any([
+            fetchJ(url),
+            fetchJ(PROXY  + encodeURIComponent(url)),
+            fetchJ(PROXY2 + encodeURIComponent(url)),
+          ]);
+        } catch (_) { return null; }
       };
       const safeText = async url => {
         try {
