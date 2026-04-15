@@ -1660,7 +1660,6 @@
       };
 
       // quoteSummary: try direct first, then corsproxy.io, then allorigins.win
-      const PROXY2 = 'https://api.allorigins.win/raw?url=';
       const safeProxy = async url => {
         try { return await fetchJ(url); } catch (_) { }
         try { return await fetchJ(PROXY + encodeURIComponent(url)); } catch (_) { }
