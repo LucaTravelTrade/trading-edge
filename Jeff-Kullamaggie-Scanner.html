@@ -1461,13 +1461,19 @@
     // ── FETCH PRICE DATA ──────────────────────────────────────────────────────────
     async function fetchPrice(sym) {
       const hist = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=4mo`;
-      let hd;
-      try {
-        hd = await fetchJ(hist);
-      } catch (_) {
-        hd = await fetchJ(PROXY + encodeURIComponent(hist));
+      const PROXY2 = 'https://api.allorigins.win/raw?url=';
+      let hd = null;
+      for (const url of [
+        hist,
+        PROXY  + encodeURIComponent(hist),
+        PROXY2 + encodeURIComponent(hist),
+      ]) {
+        try {
+          const d = await fetchJ(url);
+          if (d?.chart?.result?.[0]) { hd = d; break; }
+        } catch (_) {}
       }
-      if (!hd.chart?.result?.[0]) throw new Error(`"${sym}" not found`);
+      if (!hd?.chart?.result?.[0]) throw new Error(`"${sym}" nicht gefunden — Ticker prüfen oder nochmal versuchen`);
 
       const r = hd.chart.result[0];
       const q = r.indicators.quote[0];
@@ -1629,9 +1635,15 @@
     }
 
     async function fetchJ(url) {
-      const r = await fetch(url, { mode: 'cors' });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 9000);
+      try {
+        const r = await fetch(url, { mode: 'cors', signal: ctrl.signal });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      } finally {
+        clearTimeout(tid);
+      }
     }
 
     // ── FETCH ENRICHMENT (VARS · Float · News · VIX · AlphaQuery) ────────────────
