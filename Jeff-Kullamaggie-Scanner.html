@@ -1434,8 +1434,33 @@
 
   <script>
     const PROXY = 'https://corsproxy.io/?';
+    const PROXY2 = 'https://api.allorigins.win/raw?url=';
     const FINNHUB_KEY = 'd75toopr01qm4b7s6bkgd75toopr01qm4b7s6bl0'; // finnhub.io → sign up free → API Key
     let g = {}; // global data
+
+    // ── YAHOO CRUMB (fetched once per session, improves hit rate) ────────────────
+    let _crumb = null;
+    async function getYahooCrumb() {
+      if (_crumb !== null) return _crumb;
+      const url = 'https://query2.finance.yahoo.com/v1/test/getcrumb';
+      for (const base of [PROXY, PROXY2]) {
+        try {
+          const ctrl = new AbortController();
+          const tid = setTimeout(() => ctrl.abort(), 4000);
+          const r = await fetch(base + encodeURIComponent(url), { signal: ctrl.signal });
+          clearTimeout(tid);
+          if (r.ok) {
+            const t = await r.text();
+            if (t && t.length < 80 && !t.startsWith('<') && !t.startsWith('{')) {
+              _crumb = encodeURIComponent(t.trim());
+              return _crumb;
+            }
+          }
+        } catch(_) {}
+      }
+      _crumb = ''; // tried, failed — proceed without
+      return '';
+    }
 
     document.getElementById('tin').addEventListener('keydown', e => { if (e.key === 'Enter') runScan(); });
     document.getElementById('tin').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase(); });
@@ -1460,10 +1485,12 @@
 
     // ── FETCH PRICE DATA ─────────────────────────────────────────────────────────
     // Finnhub /quote  → real-time price, LOD, HOD, prevClose (free, no CORS issue)
-    // Yahoo chart     → historical daily OHLCV for MA50/ATR/ADR/52w (3-way parallel race)
+    // Yahoo chart     → historical daily OHLCV for MA50/ATR/ADR/52w (6-way parallel race)
     async function fetchPrice(sym) {
-      const P2  = 'https://api.allorigins.win/raw?url=';
-      const hist = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=14mo`;
+      const crumb = await getYahooCrumb();
+      const cp = crumb ? `&crumb=${crumb}` : '';
+      const h1 = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=14mo${cp}`;
+      const h2 = `https://query2.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=14mo${cp}`;
 
       const tryY = async url => {
         const d = await fetchJ(url);
@@ -1475,9 +1502,12 @@
         fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`)
           .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
         Promise.any([
-          tryY(hist),
-          tryY(PROXY + encodeURIComponent(hist)),
-          tryY(P2    + encodeURIComponent(hist)),
+          tryY(h1),
+          tryY(h2),
+          tryY(PROXY  + encodeURIComponent(h1)),
+          tryY(PROXY  + encodeURIComponent(h2)),
+          tryY(PROXY2 + encodeURIComponent(h1)),
+          tryY(PROXY2 + encodeURIComponent(h2)),
         ]),
       ]);
 
