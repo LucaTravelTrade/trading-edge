@@ -1458,39 +1458,36 @@
       btn.disabled = false; btn.textContent = 'Scan ▶';
     }
 
-    // ── FETCH PRICE DATA ──────────────────────────────────────────────────────────
+    // ── FETCH PRICE DATA (Finnhub — no proxy needed, real-time) ──────────────────
     async function fetchPrice(sym) {
-      const hist = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=4mo`;
-      const PROXY2 = 'https://api.allorigins.win/raw?url=';
-      // race all 3 sources in parallel — take first valid result
-      const tryUrl = async url => {
-        const d = await fetchJ(url);
-        if (!d?.chart?.result?.[0]) throw new Error('no result');
-        return d;
-      };
-      let hd;
-      try {
-        hd = await Promise.any([
-          tryUrl(hist),
-          tryUrl(PROXY  + encodeURIComponent(hist)),
-          tryUrl(PROXY2 + encodeURIComponent(hist)),
-        ]);
-      } catch (_) {
-        throw new Error(`"${sym}" nicht gefunden — Ticker prüfen oder nochmal versuchen`);
-      }
+      const B = 'https://finnhub.io/api/v1';
+      const K = FINNHUB_KEY;
+      const to   = Math.floor(Date.now() / 1000);
+      const from = to - 400 * 86400; // 400 days → enough for 52w + ATR + ADR
 
-      const r = hd.chart.result[0];
-      const q = r.indicators.quote[0];
-      const m = r.meta;
-      const closes = q.close, highs = q.high, lows = q.low, vols = q.volume;
+      const fj = url => fetch(url).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+
+      const [quote, candles] = await Promise.all([
+        fj(`${B}/quote?symbol=${sym}&token=${K}`),
+        fj(`${B}/stock/candle?symbol=${sym}&resolution=D&from=${from}&to=${to}&token=${K}`),
+      ]);
+
+      if (!quote?.c || quote.c === 0) throw new Error(`"${sym}" nicht gefunden — US-Ticker prüfen`);
+      if (candles?.s !== 'ok') throw new Error(`Keine historischen Daten für "${sym}"`);
+
+      const closes = candles.c, highs = candles.h, lows = candles.l, vols = candles.v;
       const n = closes.length;
 
-      const price = m.regularMarketPrice ?? closes[n - 1];
-      const prev = closes[n - 2] ?? closes[n - 1];
+      const price  = quote.c;
+      const prev   = quote.pc;
       const chgPct = (price - prev) / prev * 100;
 
+      // Real-time intraday fields from Finnhub quote
+      const lod          = quote.l;   // low of day (real-time)
+      const intradayHigh = quote.h;   // high of day (real-time)
+
       // 50MA
-      const c50 = closes.slice(-50).filter(v => v > 0);
+      const c50  = closes.slice(-50).filter(v => v > 0);
       const ma50 = c50.reduce((a, b) => a + b, 0) / c50.length;
 
       // 14-ATR
@@ -1508,47 +1505,38 @@
       }
       const adr = adrC > 0 ? adrS / adrC : 0;
 
-      // Avg vol 20
+      // Avg Vol 20
       const avgVol = vols.slice(-20).filter(v => v > 0).reduce((a, b) => a + b, 0) / 20;
 
-      // Avg Dollar Volume 20d (Ø der letzten 20 Handelstage)
+      // Today's volume from last daily candle (Finnhub updates intraday)
+      const todVol = vols[n - 1] || 0;
+      const rvol   = avgVol > 0 ? todVol / avgVol : 0;
+
+      // Avg Dollar Volume 20d
       let avgDolVolSum = 0, advC = 0;
       for (let i = n - 20; i < n; i++) {
         if (closes[i] > 0 && vols[i] > 0) { avgDolVolSum += closes[i] * vols[i]; advC++; }
       }
       const avgDolVol = advC > 0 ? avgDolVolSum / advC : 0;
 
-      // 52w
-      const lb = Math.min(252, n);
+      // 52w hi/lo
+      const lb   = Math.min(252, n);
       const hi52 = Math.max(...highs.slice(-lb).filter(v => v > 0));
       const lo52 = Math.min(...lows.slice(-lb).filter(v => v > 0));
       const rangePos = hi52 > lo52 ? (price - lo52) / (hi52 - lo52) : 0.5;
 
-      // Intraday — real-time from meta fields (not delayed like 5m candles)
-      const lod = m.regularMarketDayLow ?? lows[n - 1] ?? price * 0.98;
-      const intradayHigh = m.regularMarketDayHigh ?? price;
-      const todVol = m.regularMarketVolume ?? 0;
-      const rvol = avgVol > 0 ? todVol / avgVol : 0;
-      const atrExt = atr > 0 ? (price - ma50) / atr : 0;
-      const lodDist = atr > 0 ? (price - lod) / atr : 0;
-      // Setup is "burned" if the intraday high already exceeded 50% ATR from LOD
+      const atrExt         = atr > 0 ? (price - ma50) / atr : 0;
+      const lodDist        = atr > 0 ? (price - lod) / atr : 0;
       const intradayHighDist = atr > 0 ? (intradayHigh - lod) / atr : 0;
-      const setupBurned = intradayHighDist >= 0.5;
-      const dolVol = todVol * price;
+      const setupBurned    = intradayHighDist >= 0.5;
+      const dolVol         = todVol * price;
 
       return {
         sym, price, prev, chgPct,
         ma50, atr, adr, avgVol, todVol, rvol,
         lod, intradayHigh, hi52, lo52, rangePos,
         atrExt, lodDist, intradayHighDist, setupBurned, dolVol, avgDolVol,
-        name: m.longName || m.shortName || sym,
-        exch: m.exchangeName || '',
-        earningsTs: (() => {
-          const nowS = Date.now() / 1000;
-          // prefer End of earnings window (most reliable "next" date), fall back to Start
-          const ts = m.earningsTimestampEnd || m.earningsTimestampStart || m.earningsTimestamp;
-          return (ts && ts > nowS) ? ts * 1000 : null;
-        })()
+        name: sym, exch: '', earningsTs: null, // enrichment fills name/exch/earningsTs
       };
     }
 
