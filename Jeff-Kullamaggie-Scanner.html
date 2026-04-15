@@ -1458,33 +1458,46 @@
       btn.disabled = false; btn.textContent = 'Scan ▶';
     }
 
-    // ── FETCH PRICE DATA (Finnhub — no proxy needed, real-time) ──────────────────
+    // ── FETCH PRICE DATA ─────────────────────────────────────────────────────────
+    // Finnhub /quote  → real-time price, LOD, HOD, prevClose (free, no CORS issue)
+    // Yahoo chart     → historical daily OHLCV for MA50/ATR/ADR/52w (3-way parallel race)
     async function fetchPrice(sym) {
-      const B = 'https://finnhub.io/api/v1';
-      const K = FINNHUB_KEY;
-      const to   = Math.floor(Date.now() / 1000);
-      const from = to - 400 * 86400; // 400 days → enough for 52w + ATR + ADR
+      const P2  = 'https://api.allorigins.win/raw?url=';
+      const hist = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=14mo`;
 
-      const fj = url => fetch(url).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+      const tryY = async url => {
+        const d = await fetchJ(url);
+        if (!d?.chart?.result?.[0]) throw new Error('empty');
+        return d;
+      };
 
-      const [quote, candles] = await Promise.all([
-        fj(`${B}/quote?symbol=${sym}&token=${K}`),
-        fj(`${B}/stock/candle?symbol=${sym}&resolution=D&from=${from}&to=${to}&token=${K}`),
+      const [quote, hd] = await Promise.all([
+        fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`)
+          .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
+        Promise.any([
+          tryY(hist),
+          tryY(PROXY + encodeURIComponent(hist)),
+          tryY(P2    + encodeURIComponent(hist)),
+        ]),
       ]);
 
       if (!quote?.c || quote.c === 0) throw new Error(`"${sym}" nicht gefunden — US-Ticker prüfen`);
-      if (candles?.s !== 'ok') throw new Error(`Keine historischen Daten für "${sym}"`);
+      if (!hd?.chart?.result?.[0]) throw new Error(`Keine historischen Daten für "${sym}"`);
 
-      const closes = candles.c, highs = candles.h, lows = candles.l, vols = candles.v;
+      const r = hd.chart.result[0];
+      const q = r.indicators.quote[0];
+      const m = r.meta;
+      const closes = q.close, highs = q.high, lows = q.low, vols = q.volume;
       const n = closes.length;
 
       const price  = quote.c;
       const prev   = quote.pc;
       const chgPct = (price - prev) / prev * 100;
 
-      // Real-time intraday fields from Finnhub quote
-      const lod          = quote.l;   // low of day (real-time)
-      const intradayHigh = quote.h;   // high of day (real-time)
+      // Real-time intraday from Finnhub quote
+      const lod          = quote.l;
+      const intradayHigh = quote.h;
+      const todVol       = m.regularMarketVolume ?? vols[n - 1] ?? 0;
 
       // 50MA
       const c50  = closes.slice(-50).filter(v => v > 0);
@@ -1507,9 +1520,6 @@
 
       // Avg Vol 20
       const avgVol = vols.slice(-20).filter(v => v > 0).reduce((a, b) => a + b, 0) / 20;
-
-      // Today's volume from last daily candle (Finnhub updates intraday)
-      const todVol = vols[n - 1] || 0;
       const rvol   = avgVol > 0 ? todVol / avgVol : 0;
 
       // Avg Dollar Volume 20d
