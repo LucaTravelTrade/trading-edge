@@ -2684,7 +2684,7 @@
         wlRatings[sym] = rating;
         wlPrices[sym]  = data.price;
         wlTimes[sym]   = Date.now();
-        if (alertOnA && rating === 'A' && oldRating !== 'A') {
+        if (alertOnA && rating === 'A' && oldRating !== 'A' && isASignalAllowed(data)) {
           sendTelegramAlert(sym, oldRating, rating, data);
         }
       } catch (_) {}
@@ -2703,6 +2703,27 @@
       const t = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
       st.textContent = 'Updated ' + t;
       if (wlOpen) renderWLRows();
+    }
+
+    // Returns true if an A-signal is allowed to fire right now.
+    // Gate: first 30 min after open (9:30–10:00 ET) → only if todVol ≥ 30% of avgVol.
+    // After 10:00 ET → always allowed. Before 9:30 ET → never.
+    function isASignalAllowed(data) {
+      const now = new Date();
+      const etStr = now.toLocaleString('en-US', {
+        timeZone: 'America/New_York',
+        hour: '2-digit', minute: '2-digit', hour12: false
+      });
+      const [etHour, etMin] = etStr.split(':').map(Number);
+      const etTotalMin = etHour * 60 + etMin;
+      const marketOpen   = 9 * 60 + 30;  // 570 min
+      const thirtyMinMark = 10 * 60;      // 600 min
+
+      if (etTotalMin < marketOpen)    return false; // pre-market
+      if (etTotalMin >= thirtyMinMark) return true;  // after first 30 min → normal
+
+      // First 30 min: require early RVOL (todVol ≥ 30% of avgVol)
+      return data.avgVol > 0 && data.todVol >= data.avgVol * 0.30;
     }
 
     async function sendTelegramAlert(sym, oldRating, newRating, data) {
