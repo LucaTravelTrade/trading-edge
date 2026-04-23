@@ -279,11 +279,6 @@
       border-color: #f85149;
     }
 
-    .verdict.D {
-      background: #0f0606;
-      border-color: #f85149;
-    }
-
     .verdict-grade {
       flex-shrink: 0;
       text-align: center;
@@ -303,8 +298,7 @@
       color: #e3b341;
     }
 
-    .verdict.C .verdict-letter,
-    .verdict.D .verdict-letter {
+    .verdict.C .verdict-letter {
       color: #f85149;
     }
 
@@ -322,8 +316,7 @@
       color: #e3b341;
     }
 
-    .verdict.C .verdict-label,
-    .verdict.D .verdict-label {
+    .verdict.C .verdict-label {
       color: #f85149;
     }
 
@@ -1217,58 +1210,107 @@
       white-space: nowrap;
     }
 
-    /* WATCHLIST PANEL */
-    .wl-panel {
-      background: #080c10;
-      border-bottom: 1px solid #30363d;
-      padding: 0 40px;
-    }
-    .wl-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 0;
+    /* SIDEBAR WATCHLIST */
+    .wl-toggle-tab {
+      position: fixed;
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-right: none;
+      border-radius: 8px 0 0 8px;
+      padding: 14px 8px;
       cursor: pointer;
-      user-select: none;
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transition: right .25s ease, border-color .2s;
     }
-    .wl-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: #8b949e;
-      text-transform: uppercase;
-      letter-spacing: .6px;
-    }
+    .wl-toggle-tab:hover { border-color: #58a6ff; }
+    .wl-tab-icon { font-size: 15px; }
     .wl-count {
       background: #21262d;
       color: #58a6ff;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 10px;
-      min-width: 22px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      min-width: 18px;
       text-align: center;
     }
-    .wl-chevron { color: #8b949e; font-size: 11px; }
-    .wl-status { font-size: 11px; color: #8b949e; margin-left: auto; }
-    .wl-body { padding-bottom: 14px; }
+    .wl-tab-arrow { font-size: 9px; color: #8b949e; }
+
+    .wl-sidebar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100vh;
+      width: 300px;
+      background: #0d1117;
+      border-left: 1px solid #30363d;
+      z-index: 200;
+      transform: translateX(100%);
+      transition: transform .25s ease;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .wl-sidebar.open { transform: translateX(0); }
+
+    .wl-sidebar-top {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 12px 14px 10px;
+      flex-shrink: 0;
+    }
+    .wl-sidebar-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .wl-sidebar-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #e6edf3;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+    }
+    .wl-close-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: #8b949e;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+    .wl-close-btn:hover { color: #e6edf3; }
+    .wl-status { font-size: 10px; color: #8b949e; }
+
     .wl-add-row {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 7px;
     }
     .wl-inp {
       background: #21262d;
       border: 1px solid #30363d;
       border-radius: 6px;
-      padding: 6px 12px;
+      padding: 5px 9px;
       color: #e6edf3;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
-      width: 110px;
+      width: 80px;
       text-transform: uppercase;
       outline: none;
       letter-spacing: 1px;
+      flex-shrink: 0;
     }
     .wl-inp:focus { border-color: #58a6ff; }
     .wl-add-btn {
@@ -1276,43 +1318,57 @@
       color: #fff;
       border: none;
       border-radius: 6px;
-      padding: 6px 14px;
+      padding: 5px 10px;
       cursor: pointer;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
+      white-space: nowrap;
     }
     .wl-add-btn:hover { background: #2ea043; }
+    .wl-add-pos-btn {
+      background: #0d2010;
+      color: #3fb950;
+      border: 1px solid #238636;
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .wl-add-pos-btn:hover { background: #0f2a18; }
     .wl-tg-toggle {
       background: none;
       border: 1px solid #30363d;
       border-radius: 6px;
-      padding: 5px 12px;
+      padding: 4px 8px;
       color: #8b949e;
-      font-size: 11px;
+      font-size: 10px;
       cursor: pointer;
+      white-space: nowrap;
     }
     .wl-tg-toggle:hover { color: #e6edf3; border-color: #58a6ff; }
     .wl-tg-row {
       display: none;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-      padding: 10px 14px;
-      background: #161b22;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      background: #0d1117;
       border-radius: 8px;
       border: 1px solid #30363d;
     }
     .wl-tg-row.show { display: flex; }
-    .wl-tg-row label { font-size: 11px; color: #8b949e; }
+    .wl-tg-row label { font-size: 10px; color: #8b949e; }
     .wl-tg-row input {
       background: #21262d;
       border: 1px solid #30363d;
       border-radius: 5px;
-      padding: 5px 10px;
+      padding: 4px 8px;
       color: #e6edf3;
-      font-size: 12px;
+      font-size: 11px;
       outline: none;
+      width: 100%;
     }
     .wl-tg-row input:focus { border-color: #58a6ff; }
     .wl-tg-save {
@@ -1320,57 +1376,96 @@
       color: #fff;
       border: none;
       border-radius: 5px;
-      padding: 5px 14px;
+      padding: 4px 12px;
       cursor: pointer;
       font-size: 11px;
       font-weight: 700;
+      align-self: flex-start;
     }
     .wl-tg-save:hover { background: #8957e5; }
-    .wl-rows {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+
+    .wl-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 12px 16px;
     }
+    .wl-scroll::-webkit-scrollbar { width: 4px; }
+    .wl-scroll::-webkit-scrollbar-track { background: transparent; }
+    .wl-scroll::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+
+    .wl-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #484f58;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin: 10px 0 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #21262d;
+    }
+
     .wl-row {
       background: #161b22;
       border: 1px solid #30363d;
+      border-left: 3px solid #30363d;
       border-radius: 8px;
-      padding: 8px 14px;
+      padding: 7px 10px 7px 9px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 7px;
       cursor: pointer;
       transition: border-color .2s, background .2s;
-      min-width: 190px;
+      margin-bottom: 5px;
+      user-select: none;
     }
-    .wl-row:hover { border-color: #58a6ff; }
-    .wl-row.A { border-color: #3fb950; background: #040d06; }
-    .wl-row.B { border-color: #e3b341; background: #0c0b04; }
-    .wl-sym { font-size: 14px; font-weight: 800; color: #e6edf3; }
-    .wl-price { font-size: 12px; color: #58a6ff; font-weight: 600; }
-    .wl-badge {
+    .wl-row:last-child { margin-bottom: 0; }
+    .wl-row:hover { border-color: #58a6ff; border-left-color: #58a6ff; }
+    .wl-row.A { border-left-color: #3fb950; }
+    .wl-row.B { border-left-color: #e3b341; }
+    .wl-row.C { border-left-color: #f85149; }
+    .wl-row.position-row { border-left-color: #3fb950; background: #040e06; }
+    .wl-row.dragging { opacity: .35; }
+    .wl-row.drag-over { border-color: #58a6ff !important; background: #131d28; }
+
+    .wl-drag-handle {
+      color: #333d48;
+      cursor: grab;
       font-size: 11px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .wl-drag-handle:hover { color: #8b949e; }
+    .wl-drag-handle:active { cursor: grabbing; }
+
+    .wl-sym-wrap { flex: 1; min-width: 0; overflow: hidden; }
+    .wl-sym { font-size: 13px; font-weight: 800; color: #e6edf3; display: block; white-space: nowrap; }
+    .wl-industry { font-size: 9px; color: #484f58; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; margin-top: 1px; }
+    .wl-price { font-size: 11px; color: #58a6ff; font-weight: 600; flex-shrink: 0; }
+    .wl-badge {
+      font-size: 10px;
       font-weight: 700;
-      padding: 2px 9px;
-      border-radius: 8px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      white-space: nowrap;
     }
     .wl-badge.A { background: #0d2010; color: #3fb950; }
     .wl-badge.B { background: #1a1400; color: #e3b341; }
     .wl-badge.C { background: #200d0d; color: #f85149; }
-    .wl-badge.D { background: #200d0d; color: #f85149; }
     .wl-badge.scan { background: #21262d; color: #8b949e; }
-    .wl-age { font-size: 10px; color: #8b949e; white-space: nowrap; }
+    .wl-age { font-size: 9px; color: #333d48; white-space: nowrap; flex-shrink: 0; }
     .wl-rm {
       background: none;
       border: none;
-      color: #484f58;
+      color: #333d48;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 12px;
       padding: 0;
-      margin-left: auto;
       line-height: 1;
+      flex-shrink: 0;
     }
     .wl-rm:hover { color: #f85149; }
+    .wl-empty { color: #333d48; font-size: 11px; padding: 6px 0; }
   </style>
 </head>
 
@@ -1388,33 +1483,48 @@
     </div>
   </div>
 
-  <!-- WATCHLIST PANEL -->
-  <div class="wl-panel">
-    <div class="wl-header" onclick="toggleWL()">
-      <span class="wl-title">Watchlist</span>
-      <span class="wl-count" id="wl-count">0</span>
-      <span class="wl-chevron" id="wl-chevron">▼</span>
-      <span class="wl-status" id="wl-status"></span>
-    </div>
-    <div class="wl-body" id="wl-body" style="display:none;">
+  <!-- SIDEBAR WATCHLIST TOGGLE TAB -->
+  <div class="wl-toggle-tab" id="wl-toggle-tab" onclick="toggleWL()">
+    <span class="wl-tab-icon">📋</span>
+    <span class="wl-count" id="wl-count">0</span>
+    <span class="wl-tab-arrow" id="wl-tab-arrow">◀</span>
+  </div>
+
+  <!-- SIDEBAR WATCHLIST PANEL -->
+  <div class="wl-sidebar" id="wl-sidebar">
+    <div class="wl-sidebar-top">
+      <div class="wl-sidebar-title-row">
+        <span class="wl-sidebar-title">Watchlist</span>
+        <span class="wl-status" id="wl-status"></span>
+        <button class="wl-close-btn" onclick="toggleWL()">✕</button>
+      </div>
+
+      <!-- Watchlist Add Row -->
       <div class="wl-add-row">
         <input class="wl-inp" id="wl-inp" type="text" placeholder="TICKER" maxlength="10" autocomplete="off" />
-        <button class="wl-add-btn" onclick="wlAdd()">+ Add</button>
+        <button class="wl-add-btn" onclick="wlAdd('watch')">+ Watch</button>
+        <button class="wl-add-pos-btn" onclick="wlAdd('position')">+ Pos</button>
+      </div>
+
+      <!-- Telegram Config -->
+      <div class="wl-add-row" style="margin-bottom:0;">
         <button class="wl-tg-toggle" onclick="toggleTG()">📨 Telegram</button>
+        <span style="font-size:9px;color:#333d48;margin-left:4px;">Alert on A-Setup</span>
       </div>
       <div class="wl-tg-row" id="wl-tg-row">
         <label>Bot Token:</label>
-        <input id="tg-token" type="password" placeholder="123456789:ABC-xyz..." style="width:220px;" />
+        <input id="tg-token" type="password" placeholder="123456789:ABC-xyz..." />
         <label>Chat ID:</label>
-        <input id="tg-chat" type="text" placeholder="-100123456789" style="width:150px;" />
-        <button class="wl-tg-save" onclick="saveTG()">Save</button>
-        <span id="tg-status" style="font-size:11px;color:#8b949e;"></span>
-        <span style="font-size:10px;color:#484f58;margin-left:auto;">Alert when any ticker upgrades to A-Setup</span>
-      </div>
-      <div class="wl-rows" id="wl-rows">
-        <div style="color:#8b949e;font-size:12px;padding:4px 0;">Add tickers above to start monitoring.</div>
+        <input id="tg-chat" type="text" placeholder="-100123456789" />
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="wl-tg-save" onclick="saveTG()">Save</button>
+          <span id="tg-status" style="font-size:10px;color:#8b949e;"></span>
+        </div>
       </div>
     </div>
+
+    <!-- Scrollable list -->
+    <div class="wl-scroll" id="wl-rows"></div>
   </div>
 
   <div class="container">
@@ -2010,7 +2120,7 @@
 
       // Hard Rules: below 50-MA oder Setup burned = automatisch NO TRADE
       const belowMA50 = d.price < d.ma50;
-      const rating = (belowMA50 || d.setupBurned) ? 'D' : score >= total * 0.85 ? 'A' : score >= total * 0.65 ? 'B' : score >= total * 0.45 ? 'C' : 'D';
+      const rating = (belowMA50 || d.setupBurned) ? 'C' : score >= total * 0.85 ? 'A' : score >= total * 0.65 ? 'B' : 'C';
 
       const f = (n, d = 2) => n != null ? n.toFixed(d) : '–';
       const fK = v => v > 1e6 ? (v / 1e6).toFixed(1) + 'M' : v > 1e3 ? (v / 1e3).toFixed(0) + 'K' : v.toFixed(0);
@@ -2023,8 +2133,7 @@
       const ratingDesc = {
         A: 'GO — Full Position, all 3 tranches',
         B: 'CONDITIONAL — Half Position, 1–2 tranches',
-        C: 'MARGINAL — Probe only or Skip',
-        D: belowMA50 ? 'NO TRADE — Below 50-MA (critical factor, no setup possible)' : 'NO TRADE — Criteria not met'
+        C: belowMA50 ? 'NO TRADE — Below 50-MA (critical factor, no setup possible)' : d.setupBurned ? 'NO TRADE — Setup burned' : 'NO TRADE — Criteria not met'
       };
 
       // Verdict tags
@@ -2480,13 +2589,11 @@
         }${d.adr < 4 ? 'ADR% borderline (' + f(d.adr, 1) + '%) — ' : ''}
     Entry only on confirmation (RVOL ≥ 2x, ORH break). Stop: $${f(stopLevel)}.
     Reduced position size (0.5–1% R-risk).`;
-      if (rating === 'C') return `<strong>C-Rated Setup — Skip recommended:</strong>
-    Multiple criteria not met. If anything: minimal probe (&lt;0.5% R-risk) on clear catalyst only.
-    Main reasons: ${[d.atrExt >= 4 ? 'ATR above 4x' : '', d.setupBurned ? `Setup burned (DayHigh ${(d.intradayHighDist * 100).toFixed(1)}% vom LoD)` : d.lodDist >= 0.6 ? 'LoD distance above 60%' : '', d.rvol < 1 ? 'RVOL below 1x' : '', d.adr < 4 ? 'ADR% below 4%' : ''].filter(Boolean).join(' · ')}.`;
-      return `<strong>D-Rated Setup — NO TRADE:</strong>
-    Too many criteria violated. Hard rules per Jeff Sun: no entry.
+      return `<strong>C-Rated Setup — NO TRADE:</strong>
+    Hard rules per Jeff Sun violated — no entry.
     ${d.atrExt >= 4 ? 'ATR Extension ' + f(d.atrExt, 1) + 'x (Hard limit: 4x). ' : ''
         }${d.setupBurned ? 'Setup burned — DayHigh war ' + f(d.intradayHighDist * 100, 1) + '% vom LoD (über 50% ATR). ' : d.lodDist >= 0.6 ? 'LoD distance ' + f(d.lodDist * 100, 1) + '% (Hard limit: 60%). ' : ''
+        }${d.price < d.ma50 ? 'Price below 50-MA. ' : ''
         }Re-check ticker when conditions improve.`;
     }
 
@@ -2569,17 +2676,23 @@
     function setHTML(h) { document.getElementById('mc').innerHTML = h; }
 
     // ── WATCHLIST ─────────────────────────────────────────────────────────────
-    let wlList    = JSON.parse(localStorage.getItem('wl_tickers') || '[]');
-    let wlRatings = {};   // sym -> 'A'/'B'/'C'/'D' | null
-    let wlPrices  = {};
-    let wlTimes   = {};
-    let wlOpen    = false;
+    let wlList       = JSON.parse(localStorage.getItem('wl_tickers')   || '[]');
+    let wlPositions  = JSON.parse(localStorage.getItem('wl_positions') || '[]');
+    let wlRatings    = {};
+    let wlPrices     = {};
+    let wlTimes      = {};
+    let wlIndustry   = {};
+    let wlAlertedA   = new Set(JSON.parse(localStorage.getItem('wl_alerted_a') || '[]'));
+    let wlOpen       = false;
     let wlFirstScanDone = false;
+    let _dragSym     = null;
+    let _dragSection = null;
 
     function toggleWL() {
       wlOpen = !wlOpen;
-      document.getElementById('wl-body').style.display = wlOpen ? '' : 'none';
-      document.getElementById('wl-chevron').textContent = wlOpen ? '▲' : '▼';
+      document.getElementById('wl-sidebar').classList.toggle('open', wlOpen);
+      document.getElementById('wl-toggle-tab').style.right = wlOpen ? '300px' : '0';
+      document.getElementById('wl-tab-arrow').textContent = wlOpen ? '▶' : '◀';
       if (wlOpen) renderWLRows();
     }
 
@@ -2602,56 +2715,121 @@
       setTimeout(() => { st.textContent = ''; st.style.color = '#8b949e'; }, 2500);
     }
 
-    function wlAdd() {
+    function wlAdd(section = 'watch') {
       const inp = document.getElementById('wl-inp');
       const sym = inp.value.trim().toUpperCase();
-      if (!sym || wlList.includes(sym)) { inp.value = ''; return; }
-      wlList.push(sym);
-      localStorage.setItem('wl_tickers', JSON.stringify(wlList));
+      if (!sym) { inp.value = ''; return; }
+      if (section === 'position') {
+        if (wlPositions.includes(sym)) { inp.value = ''; return; }
+        wlList = wlList.filter(s => s !== sym);
+        localStorage.setItem('wl_tickers', JSON.stringify(wlList));
+        wlPositions.push(sym);
+        localStorage.setItem('wl_positions', JSON.stringify(wlPositions));
+      } else {
+        if (wlList.includes(sym) || wlPositions.includes(sym)) { inp.value = ''; return; }
+        wlList.push(sym);
+        localStorage.setItem('wl_tickers', JSON.stringify(wlList));
+      }
       inp.value = '';
       updateWLCount();
       renderWLRows();
-      // Immediately silent-scan the new ticker (baseline, no alert)
       silentScanOne(sym, false);
     }
 
-    function wlRemove(sym) {
-      wlList = wlList.filter(s => s !== sym);
-      localStorage.setItem('wl_tickers', JSON.stringify(wlList));
-      delete wlRatings[sym];
-      delete wlPrices[sym];
-      delete wlTimes[sym];
+    function wlRemove(sym, section) {
+      if (section === 'position') {
+        wlPositions = wlPositions.filter(s => s !== sym);
+        localStorage.setItem('wl_positions', JSON.stringify(wlPositions));
+      } else {
+        wlList = wlList.filter(s => s !== sym);
+        localStorage.setItem('wl_tickers', JSON.stringify(wlList));
+      }
+      delete wlRatings[sym]; delete wlPrices[sym]; delete wlTimes[sym]; delete wlIndustry[sym];
+      wlAlertedA.delete(sym);
+      localStorage.setItem('wl_alerted_a', JSON.stringify([...wlAlertedA]));
       updateWLCount();
       renderWLRows();
     }
 
     function updateWLCount() {
-      document.getElementById('wl-count').textContent = wlList.length;
+      document.getElementById('wl-count').textContent = wlList.length + wlPositions.length;
     }
 
     function renderWLRows() {
       const el = document.getElementById('wl-rows');
       if (!el) return;
-      if (wlList.length === 0) {
-        el.innerHTML = '<div style="color:#8b949e;font-size:12px;padding:4px 0;">Add tickers above to start monitoring.</div>';
+      let html = '';
+
+      const buildRow = (sym, section) => {
+        const r      = wlRatings[sym];
+        const price  = wlPrices[sym];
+        const ts     = wlTimes[sym];
+        const ind    = wlIndustry[sym] || '';
+        const age    = ts ? Math.round((Date.now() - ts) / 1000) : null;
+        const ageStr = age == null ? '' : age < 60 ? age + 's' : Math.round(age / 60) + 'm';
+        const cls    = r || 'scan';
+        const rowCls = [r || '', section === 'position' ? 'position-row' : ''].filter(Boolean).join(' ');
+        return `<div class="wl-row ${rowCls}"
+            draggable="true"
+            data-sym="${sym}" data-section="${section}"
+            ondragstart="wlDragStart(event,'${sym}','${section}')"
+            ondragover="wlDragOver(event)"
+            ondrop="wlDrop(event,'${sym}','${section}')"
+            ondragend="wlDragEnd(event)"
+            onclick="wlOpenScan('${sym}')">
+          <span class="wl-drag-handle" onclick="event.stopPropagation()">⠿</span>
+          <span class="wl-sym-wrap">
+            <span class="wl-sym">${sym}</span>
+            ${ind ? `<span class="wl-industry">${ind}</span>` : ''}
+          </span>
+          ${price != null ? `<span class="wl-price">$${price.toFixed(2)}</span>` : ''}
+          <span class="wl-badge ${cls}">${r || '…'}</span>
+          ${ageStr ? `<span class="wl-age">${ageStr}</span>` : ''}
+          <button class="wl-rm" onclick="event.stopPropagation();wlRemove('${sym}','${section}')" title="Remove">✕</button>
+        </div>`;
+      };
+
+      if (wlList.length === 0 && wlPositions.length === 0) {
+        el.innerHTML = '<div class="wl-empty">Add tickers above to start monitoring.</div>';
         return;
       }
-      el.innerHTML = wlList.map(sym => {
-        const r     = wlRatings[sym];
-        const price = wlPrices[sym];
-        const ts    = wlTimes[sym];
-        const age   = ts ? Math.round((Date.now() - ts) / 1000) : null;
-        const ageStr = age == null ? '' : age < 60 ? age + 's ago' : Math.round(age / 60) + 'm ago';
-        const badge  = r ? r + ' Setup' : '…';
-        const cls    = r || 'scan';
-        return `<div class="wl-row ${r || ''}" onclick="wlOpenScan('${sym}')">
-          <span class="wl-sym">${sym}</span>
-          ${price != null ? `<span class="wl-price">$${price.toFixed(2)}</span>` : ''}
-          <span class="wl-badge ${cls}">${badge}</span>
-          ${ageStr ? `<span class="wl-age">${ageStr}</span>` : ''}
-          <button class="wl-rm" onclick="event.stopPropagation();wlRemove('${sym}')" title="Remove">✕</button>
-        </div>`;
-      }).join('');
+      if (wlList.length > 0) {
+        html += '<div class="wl-section-label">Watchlist</div>';
+        html += wlList.map(s => buildRow(s, 'watch')).join('');
+      }
+      if (wlPositions.length > 0) {
+        html += '<div class="wl-section-label">Positions</div>';
+        html += wlPositions.map(s => buildRow(s, 'position')).join('');
+      }
+      el.innerHTML = html;
+    }
+
+    function wlDragStart(e, sym, section) {
+      _dragSym = sym; _dragSection = section;
+      e.currentTarget.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+    function wlDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('.wl-row.drag-over').forEach(el => el.classList.remove('drag-over'));
+      e.currentTarget.classList.add('drag-over');
+    }
+    function wlDrop(e, targetSym, targetSection) {
+      e.preventDefault();
+      if (!_dragSym || _dragSym === targetSym || _dragSection !== targetSection) return;
+      const list = _dragSection === 'position' ? wlPositions : wlList;
+      const fromIdx = list.indexOf(_dragSym);
+      const toIdx   = list.indexOf(targetSym);
+      if (fromIdx === -1 || toIdx === -1) return;
+      list.splice(fromIdx, 1);
+      list.splice(toIdx, 0, _dragSym);
+      localStorage.setItem(_dragSection === 'position' ? 'wl_positions' : 'wl_tickers', JSON.stringify(list));
+      renderWLRows();
+    }
+    function wlDragEnd(e) {
+      document.querySelectorAll('.wl-row').forEach(el => { el.classList.remove('dragging'); el.classList.remove('drag-over'); });
+      _dragSym = null; _dragSection = null;
     }
 
     function wlOpenScan(sym) {
@@ -2668,61 +2846,65 @@
       const score = pass + warn * 0.5;
       const total = checks.length;
       const belowMA50 = d.price < d.ma50;
-      if (belowMA50 || d.setupBurned) return 'D';
+      if (belowMA50 || d.setupBurned) return 'C';
       return score >= total * 0.85 ? 'A'
         : score >= total * 0.65 ? 'B'
-        : score >= total * 0.45 ? 'C' : 'D';
+        : 'C';
     }
 
     async function silentScanOne(sym, alertOnA) {
       try {
         const data = await fetchPrice(sym);
-        // Try enrichment for VARS (non-blocking, best-effort)
-        try { const enr = await fetchEnrichment(sym); Object.assign(data, enr); } catch (_) {}
-        const rating   = computeRatingFast(data);
+        try {
+          const enr = await fetchEnrichment(sym);
+          Object.assign(data, enr);
+          if (enr.sector) wlIndustry[sym] = enr.sector;
+        } catch (_) {}
+        const rating    = computeRatingFast(data);
         const oldRating = wlRatings[sym];
-        wlRatings[sym] = rating;
+        // Downgrade A→B display during first 30min if RVOL gate not met
+        const displayRating = (rating === 'A' && !isASignalAllowed(data)) ? 'B' : rating;
+        wlRatings[sym] = displayRating;
         wlPrices[sym]  = data.price;
         wlTimes[sym]   = Date.now();
-        if (alertOnA && rating === 'A' && oldRating !== 'A' && isASignalAllowed(data)) {
-          sendTelegramAlert(sym, oldRating, rating, data);
+        if (alertOnA) {
+          if (rating === 'A' && isASignalAllowed(data) && !wlAlertedA.has(sym)) {
+            wlAlertedA.add(sym);
+            localStorage.setItem('wl_alerted_a', JSON.stringify([...wlAlertedA]));
+            sendTelegramAlert(sym, oldRating, rating, data);
+          }
+          if (rating !== 'A' && wlAlertedA.has(sym)) {
+            wlAlertedA.delete(sym);
+            localStorage.setItem('wl_alerted_a', JSON.stringify([...wlAlertedA]));
+            sendTelegramBurnAlert(sym, data);
+          }
         }
       } catch (_) {}
       if (wlOpen) renderWLRows();
     }
 
     async function refreshWatchlist() {
-      if (wlList.length === 0) return;
+      const allSyms = [...wlList, ...wlPositions];
+      if (allSyms.length === 0) return;
       const st = document.getElementById('wl-status');
-      st.textContent = 'Refreshing…';
-      // Scan all sequentially to avoid rate limits
-      for (const sym of wlList) {
+      if (st) st.textContent = 'Refreshing…';
+      for (const sym of allSyms) {
         await silentScanOne(sym, wlFirstScanDone);
       }
       wlFirstScanDone = true;
       const t = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-      st.textContent = 'Updated ' + t;
+      if (st) st.textContent = 'Updated ' + t;
       if (wlOpen) renderWLRows();
     }
 
-    // Returns true if an A-signal is allowed to fire right now.
-    // Gate: first 30 min after open (9:30–10:00 ET) → only if todVol ≥ 30% of avgVol.
-    // After 10:00 ET → always allowed. Before 9:30 ET → never.
+    // First 30min (9:30–10:00 ET): only if todVol ≥ 30% of avgVol. After 10:00: always. Before 9:30: never.
     function isASignalAllowed(data) {
       const now = new Date();
-      const etStr = now.toLocaleString('en-US', {
-        timeZone: 'America/New_York',
-        hour: '2-digit', minute: '2-digit', hour12: false
-      });
+      const etStr = now.toLocaleString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', hour12: false });
       const [etHour, etMin] = etStr.split(':').map(Number);
       const etTotalMin = etHour * 60 + etMin;
-      const marketOpen   = 9 * 60 + 30;  // 570 min
-      const thirtyMinMark = 10 * 60;      // 600 min
-
-      if (etTotalMin < marketOpen)    return false; // pre-market
-      if (etTotalMin >= thirtyMinMark) return true;  // after first 30 min → normal
-
-      // First 30 min: require early RVOL (todVol ≥ 30% of avgVol)
+      if (etTotalMin < 570)  return false;
+      if (etTotalMin >= 600) return true;
       return data.avgVol > 0 && data.todVol >= data.avgVol * 0.30;
     }
 
@@ -2733,15 +2915,11 @@
       const atr   = typeof data === 'object' ? (data.atr || 0) : 0;
       const lod   = typeof data === 'object' ? (data.lod || price) : price;
       const f     = (n, dec = 2) => n != null ? n.toFixed(dec) : '–';
-      const t1    = price + atr * 2;
-      const t2    = price + atr * 4;
-      const riskPct = price > lod ? ((price - lod) / price * 100).toFixed(1) : '–';
       const from  = oldRating ? `${oldRating} → ${newRating}` : `First scan: ${newRating}`;
       const dist  = price - lod;
-      const s1    = price - dist / 3;
-      const s2    = price - dist * 2 / 3;
-      const s3    = lod;
-      const msg   = [
+      const riskPct = price > lod ? ((price - lod) / price * 100).toFixed(1) : '–';
+      const s1 = price - dist / 3, s2 = price - dist * 2 / 3, s3 = lod;
+      const msg = [
         `🚨 *${sym}* — A-Setup Alert!`,
         `💰 Price: $${f(price)} | Rating: ${from}`,
         ``,
@@ -2757,21 +2935,37 @@
       ].join('\n');
       try {
         await fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: cfg.chat, text: msg })
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: cfg.chat, text: msg, parse_mode: 'Markdown' })
+        });
+      } catch (_) {}
+    }
+
+    async function sendTelegramBurnAlert(sym, data) {
+      const cfg = JSON.parse(localStorage.getItem('tg_config') || '{}');
+      if (!cfg.token || !cfg.chat) return;
+      const f = (n, dec = 2) => n != null ? n.toFixed(dec) : '–';
+      const price = data?.price;
+      const msg = [
+        `🔥 *${sym}* — Setup burned!`,
+        `A-Setup wurde invalidiert. Aktuelles Rating: ${wlRatings[sym] || '?'}`,
+        price ? `💰 Preis: $${f(price)}` : '',
+        `⚡ Jeff Sun × Kullamaggie Scanner`
+      ].filter(Boolean).join('\n');
+      try {
+        await fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: cfg.chat, text: msg, parse_mode: 'Markdown' })
         });
       } catch (_) {}
     }
 
     // ── WATCHLIST INIT ────────────────────────────────────────────────────────
     updateWLCount();
-    document.getElementById('wl-inp').addEventListener('keydown', e => { if (e.key === 'Enter') wlAdd(); });
+    document.getElementById('wl-inp').addEventListener('keydown', e => { if (e.key === 'Enter') wlAdd('watch'); });
     document.getElementById('wl-inp').addEventListener('input',   e => { e.target.value = e.target.value.toUpperCase(); });
-    // Auto-refresh every 60s
     setInterval(refreshWatchlist, 60000);
-    // Initial baseline scan on page load (no alerts — just establish ratings)
-    if (wlList.length > 0) setTimeout(() => refreshWatchlist(), 1000);
+    if ([...wlList, ...wlPositions].length > 0) setTimeout(() => refreshWatchlist(), 1000);
 
     function renderTradingViewChart(sym) {
       const section = document.getElementById('tv-chart-section');
