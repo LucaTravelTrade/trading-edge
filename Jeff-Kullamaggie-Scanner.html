@@ -1243,22 +1243,102 @@
     }
     .wl-tab-arrow { font-size: 9px; color: #8b949e; }
 
-    .wl-sidebar {
-      position: fixed;
+    /* PAGE LAYOUT */
+    .page-layout {
+      display: flex;
+      align-items: flex-start;
+    }
+    .main-area {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* COMBINED SIDEBAR */
+    .wl-combined {
+      position: sticky;
       top: 0;
-      right: 0;
       height: 100vh;
-      width: 300px;
-      background: #0d1117;
+      width: 0;
+      overflow: hidden;
+      transition: width .25s ease;
+      flex-shrink: 0;
+      display: flex;
+    }
+    .wl-combined.open {
+      width: 520px;
       border-left: 1px solid #30363d;
-      z-index: 200;
-      transform: translateX(100%);
-      transition: transform .25s ease;
+    }
+
+    /* POSITIONS PANEL */
+    .wl-pos-panel {
+      width: 220px;
+      flex-shrink: 0;
+      background: #0d1117;
+      border-right: 1px solid #30363d;
       display: flex;
       flex-direction: column;
+      height: 100%;
       overflow: hidden;
     }
-    .wl-sidebar.open { transform: translateX(0); }
+    .wl-pos-top {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 12px 14px 10px;
+      flex-shrink: 0;
+    }
+    .wl-pos-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .wl-pos-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #e6edf3;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+    }
+    .wl-pos-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 12px 16px;
+    }
+    .wl-pos-scroll::-webkit-scrollbar { width: 4px; }
+    .wl-pos-scroll::-webkit-scrollbar-track { background: transparent; }
+    .wl-pos-scroll::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+
+    /* WATCHLIST PANEL */
+    .wl-watch-panel {
+      width: 300px;
+      flex-shrink: 0;
+      background: #0d1117;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* SORT TOOLBAR */
+    .wl-sort-row {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .wl-sort-label { font-size: 10px; color: #484f58; flex-shrink: 0; }
+    .wl-sort-btn {
+      background: none;
+      border: 1px solid #30363d;
+      border-radius: 5px;
+      padding: 3px 7px;
+      color: #8b949e;
+      font-size: 10px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .wl-sort-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+    .wl-sort-btn.active { background: #21262d; color: #e6edf3; border-color: #58a6ff; }
 
     .wl-sidebar-top {
       background: #161b22;
@@ -1483,64 +1563,89 @@
     </div>
   </div>
 
-  <!-- SIDEBAR WATCHLIST TOGGLE TAB -->
+  <!-- TOGGLE TAB (fixed right edge) -->
   <div class="wl-toggle-tab" id="wl-toggle-tab" onclick="toggleWL()">
     <span class="wl-tab-icon">📋</span>
     <span class="wl-count" id="wl-count">0</span>
     <span class="wl-tab-arrow" id="wl-tab-arrow">◀</span>
   </div>
 
-  <!-- SIDEBAR WATCHLIST PANEL -->
-  <div class="wl-sidebar" id="wl-sidebar">
-    <div class="wl-sidebar-top">
-      <div class="wl-sidebar-title-row">
-        <span class="wl-sidebar-title">Watchlist</span>
-        <span class="wl-status" id="wl-status"></span>
-        <button class="wl-close-btn" onclick="toggleWL()">✕</button>
-      </div>
+  <!-- PAGE LAYOUT: main + combined sidebar -->
+  <div class="page-layout">
 
-      <!-- Watchlist Add Row -->
-      <div class="wl-add-row">
-        <input class="wl-inp" id="wl-inp" type="text" placeholder="TICKER" maxlength="10" autocomplete="off" />
-        <button class="wl-add-btn" onclick="wlAdd('watch')">+ Watch</button>
-        <button class="wl-add-pos-btn" onclick="wlAdd('position')">+ Pos</button>
-      </div>
-
-      <!-- Telegram Config -->
-      <div class="wl-add-row" style="margin-bottom:0;">
-        <button class="wl-tg-toggle" onclick="toggleTG()">📨 Telegram</button>
-        <span style="font-size:9px;color:#333d48;margin-left:4px;">Alert on A-Setup</span>
-      </div>
-      <div class="wl-tg-row" id="wl-tg-row">
-        <label>Bot Token:</label>
-        <input id="tg-token" type="password" placeholder="123456789:ABC-xyz..." />
-        <label>Chat ID:</label>
-        <input id="tg-chat" type="text" placeholder="-100123456789" />
-        <div style="display:flex;align-items:center;gap:8px;">
-          <button class="wl-tg-save" onclick="saveTG()">Save</button>
-          <span id="tg-status" style="font-size:10px;color:#8b949e;"></span>
+    <!-- MAIN CONTENT -->
+    <div class="main-area">
+      <div class="container">
+        <div id="mc">
+          <div class="empty">
+            <div class="icon">📊</div>
+            <h2>Enter Ticker &amp; Scan</h2>
+            <p>Enter a US ticker (e.g. NVDA, TSLA, MSTR) — all momentum metrics, options chain, Max Pain, and setup rating are calculated automatically.</p>
+            <p style="margin-top:16px;font-size:12px;">GEX values (SpotGamma) can be entered manually. Everything else loads automatically.</p>
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- Scrollable list -->
-    <div class="wl-scroll" id="wl-rows"></div>
-  </div>
-
-  <div class="container">
-    <div id="mc">
-      <div class="empty">
-        <div class="icon">📊</div>
-        <h2>Enter Ticker &amp; Scan</h2>
-        <p>Enter a US ticker (e.g. NVDA, TSLA, MSTR) — all momentum metrics, options chain, Max Pain, and setup rating are calculated automatically.</p>
-        <p style="margin-top:16px;font-size:12px;">GEX values (SpotGamma) can be entered manually. Everything else loads automatically.</p>
+      <div class="footer">
+        Price + ATR + Options via Yahoo Finance · No API key required · For personal analysis only · © LucaTravelTrade
       </div>
     </div>
-  </div>
 
-  <div class="footer">
-    Price + ATR + Options via Yahoo Finance · No API key required · For personal analysis only · © LucaTravelTrade
-  </div>
+    <!-- COMBINED SIDEBAR: Positions (left) + Watchlist (right) -->
+    <div class="wl-combined" id="wl-combined">
+
+      <!-- POSITIONS PANEL -->
+      <div class="wl-pos-panel">
+        <div class="wl-pos-top">
+          <div class="wl-pos-title-row">
+            <span class="wl-pos-title">Positions</span>
+            <span class="wl-status" id="wl-pos-status" style="font-size:10px;color:#8b949e;margin-left:auto;"></span>
+          </div>
+          <div class="wl-add-row" style="margin-bottom:0;">
+            <input class="wl-inp" id="wl-pos-inp" type="text" placeholder="TICKER" maxlength="10" autocomplete="off" />
+            <button class="wl-add-pos-btn" onclick="wlAddPos()">+ Add</button>
+          </div>
+        </div>
+        <div class="wl-pos-scroll" id="wl-pos-rows"></div>
+      </div>
+
+      <!-- WATCHLIST PANEL -->
+      <div class="wl-watch-panel">
+        <div class="wl-sidebar-top">
+          <div class="wl-sidebar-title-row">
+            <span class="wl-sidebar-title">Watchlist</span>
+            <span class="wl-status" id="wl-status"></span>
+            <button class="wl-close-btn" onclick="toggleWL()">✕</button>
+          </div>
+          <div class="wl-sort-row">
+            <span class="wl-sort-label">Sort:</span>
+            <button class="wl-sort-btn active" id="sort-btn-rating"  onclick="setSortMode('rating')">📊 Rating</button>
+            <button class="wl-sort-btn"        id="sort-btn-industry" onclick="setSortMode('industry')">🏭 Industry</button>
+            <button class="wl-sort-btn"        id="sort-btn-manual"   onclick="setSortMode('manual')">✋ Manual</button>
+          </div>
+          <div class="wl-add-row">
+            <input class="wl-inp" id="wl-inp" type="text" placeholder="TICKER" maxlength="10" autocomplete="off" />
+            <button class="wl-add-btn" onclick="wlAdd('watch')">+ Watch</button>
+          </div>
+          <div class="wl-add-row" style="margin-bottom:0;">
+            <button class="wl-tg-toggle" onclick="toggleTG()">📨 Telegram</button>
+            <span style="font-size:9px;color:#333d48;margin-left:4px;">Alert on A-Setup</span>
+          </div>
+          <div class="wl-tg-row" id="wl-tg-row">
+            <label>Bot Token:</label>
+            <input id="tg-token" type="password" placeholder="123456789:ABC-xyz..." />
+            <label>Chat ID:</label>
+            <input id="tg-chat" type="text" placeholder="-100123456789" />
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button class="wl-tg-save" onclick="saveTG()">Save</button>
+              <span id="tg-status" style="font-size:10px;color:#8b949e;"></span>
+            </div>
+          </div>
+        </div>
+        <div class="wl-scroll" id="wl-rows"></div>
+      </div>
+
+    </div><!-- /wl-combined -->
+  </div><!-- /page-layout -->
 
   <script>
     const PROXY = 'https://corsproxy.io/?';
@@ -2685,15 +2790,26 @@
     let wlAlertedA   = new Set(JSON.parse(localStorage.getItem('wl_alerted_a') || '[]'));
     let wlOpen       = false;
     let wlFirstScanDone = false;
+    let wlSortMode   = localStorage.getItem('wl_sort') || 'rating';
     let _dragSym     = null;
     let _dragSection = null;
 
     function toggleWL() {
       wlOpen = !wlOpen;
-      document.getElementById('wl-sidebar').classList.toggle('open', wlOpen);
-      document.getElementById('wl-toggle-tab').style.right = wlOpen ? '300px' : '0';
+      document.getElementById('wl-combined').classList.toggle('open', wlOpen);
+      document.getElementById('wl-toggle-tab').style.right = wlOpen ? '520px' : '0';
       document.getElementById('wl-tab-arrow').textContent = wlOpen ? '▶' : '◀';
-      if (wlOpen) renderWLRows();
+      if (wlOpen) { renderWLRows(); renderPosRows(); }
+    }
+
+    function setSortMode(mode) {
+      wlSortMode = mode;
+      localStorage.setItem('wl_sort', mode);
+      document.querySelectorAll('.wl-sort-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('sort-btn-' + mode);
+      if (btn) btn.classList.add('active');
+      renderWLRows();
+      renderPosRows();
     }
 
     function toggleTG() {
@@ -2719,20 +2835,25 @@
       const inp = document.getElementById('wl-inp');
       const sym = inp.value.trim().toUpperCase();
       if (!sym) { inp.value = ''; return; }
-      if (section === 'position') {
-        if (wlPositions.includes(sym)) { inp.value = ''; return; }
-        wlList = wlList.filter(s => s !== sym);
-        localStorage.setItem('wl_tickers', JSON.stringify(wlList));
-        wlPositions.push(sym);
-        localStorage.setItem('wl_positions', JSON.stringify(wlPositions));
-      } else {
-        if (wlList.includes(sym) || wlPositions.includes(sym)) { inp.value = ''; return; }
-        wlList.push(sym);
-        localStorage.setItem('wl_tickers', JSON.stringify(wlList));
-      }
+      if (wlList.includes(sym) || wlPositions.includes(sym)) { inp.value = ''; return; }
+      wlList.push(sym);
+      localStorage.setItem('wl_tickers', JSON.stringify(wlList));
       inp.value = '';
       updateWLCount();
       renderWLRows();
+      silentScanOne(sym, false);
+    }
+
+    function wlAddPos() {
+      const inp = document.getElementById('wl-pos-inp');
+      const sym = inp.value.trim().toUpperCase();
+      if (!sym) { inp.value = ''; return; }
+      if (wlPositions.includes(sym) || wlList.includes(sym)) { inp.value = ''; return; }
+      wlPositions.push(sym);
+      localStorage.setItem('wl_positions', JSON.stringify(wlPositions));
+      inp.value = '';
+      updateWLCount();
+      renderPosRows();
       silentScanOne(sym, false);
     }
 
@@ -2749,59 +2870,71 @@
       localStorage.setItem('wl_alerted_a', JSON.stringify([...wlAlertedA]));
       updateWLCount();
       renderWLRows();
+      renderPosRows();
     }
 
     function updateWLCount() {
       document.getElementById('wl-count').textContent = wlList.length + wlPositions.length;
     }
 
+    function buildWLRow(sym, section) {
+      const r      = wlRatings[sym];
+      const price  = wlPrices[sym];
+      const ts     = wlTimes[sym];
+      const ind    = wlIndustry[sym] || '';
+      const age    = ts ? Math.round((Date.now() - ts) / 1000) : null;
+      const ageStr = age == null ? '' : age < 60 ? age + 's' : Math.round(age / 60) + 'm';
+      const cls    = r || 'scan';
+      const rowCls = [r || '', section === 'position' ? 'position-row' : ''].filter(Boolean).join(' ');
+      return `<div class="wl-row ${rowCls}"
+          draggable="true"
+          data-sym="${sym}" data-section="${section}"
+          ondragstart="wlDragStart(event,'${sym}','${section}')"
+          ondragover="wlDragOver(event)"
+          ondrop="wlDrop(event,'${sym}','${section}')"
+          ondragend="wlDragEnd(event)"
+          onclick="wlOpenScan('${sym}')">
+        <span class="wl-drag-handle" onclick="event.stopPropagation()">⠿</span>
+        <span class="wl-sym-wrap">
+          <span class="wl-sym">${sym}</span>
+          ${ind ? `<span class="wl-industry">${ind}</span>` : ''}
+        </span>
+        ${price != null ? `<span class="wl-price">$${price.toFixed(2)}</span>` : ''}
+        <span class="wl-badge ${cls}">${r || '…'}</span>
+        ${ageStr ? `<span class="wl-age">${ageStr}</span>` : ''}
+        <button class="wl-rm" onclick="event.stopPropagation();wlRemove('${sym}','${section}')" title="Remove">✕</button>
+      </div>`;
+    }
+
+    function sortedList(list) {
+      const copy = [...list];
+      if (wlSortMode === 'rating') {
+        const ord = { A: 0, B: 1, C: 2 };
+        copy.sort((a, b) => (ord[wlRatings[a]] ?? 3) - (ord[wlRatings[b]] ?? 3));
+      } else if (wlSortMode === 'industry') {
+        copy.sort((a, b) => (wlIndustry[a] || 'zzz').localeCompare(wlIndustry[b] || 'zzz'));
+      }
+      return copy;
+    }
+
     function renderWLRows() {
       const el = document.getElementById('wl-rows');
       if (!el) return;
-      let html = '';
-
-      const buildRow = (sym, section) => {
-        const r      = wlRatings[sym];
-        const price  = wlPrices[sym];
-        const ts     = wlTimes[sym];
-        const ind    = wlIndustry[sym] || '';
-        const age    = ts ? Math.round((Date.now() - ts) / 1000) : null;
-        const ageStr = age == null ? '' : age < 60 ? age + 's' : Math.round(age / 60) + 'm';
-        const cls    = r || 'scan';
-        const rowCls = [r || '', section === 'position' ? 'position-row' : ''].filter(Boolean).join(' ');
-        return `<div class="wl-row ${rowCls}"
-            draggable="true"
-            data-sym="${sym}" data-section="${section}"
-            ondragstart="wlDragStart(event,'${sym}','${section}')"
-            ondragover="wlDragOver(event)"
-            ondrop="wlDrop(event,'${sym}','${section}')"
-            ondragend="wlDragEnd(event)"
-            onclick="wlOpenScan('${sym}')">
-          <span class="wl-drag-handle" onclick="event.stopPropagation()">⠿</span>
-          <span class="wl-sym-wrap">
-            <span class="wl-sym">${sym}</span>
-            ${ind ? `<span class="wl-industry">${ind}</span>` : ''}
-          </span>
-          ${price != null ? `<span class="wl-price">$${price.toFixed(2)}</span>` : ''}
-          <span class="wl-badge ${cls}">${r || '…'}</span>
-          ${ageStr ? `<span class="wl-age">${ageStr}</span>` : ''}
-          <button class="wl-rm" onclick="event.stopPropagation();wlRemove('${sym}','${section}')" title="Remove">✕</button>
-        </div>`;
-      };
-
-      if (wlList.length === 0 && wlPositions.length === 0) {
-        el.innerHTML = '<div class="wl-empty">Add tickers above to start monitoring.</div>';
+      if (wlList.length === 0) {
+        el.innerHTML = '<div class="wl-empty">Add tickers above to monitor.</div>';
         return;
       }
-      if (wlList.length > 0) {
-        html += '<div class="wl-section-label">Watchlist</div>';
-        html += wlList.map(s => buildRow(s, 'watch')).join('');
+      el.innerHTML = sortedList(wlList).map(s => buildWLRow(s, 'watch')).join('');
+    }
+
+    function renderPosRows() {
+      const el = document.getElementById('wl-pos-rows');
+      if (!el) return;
+      if (wlPositions.length === 0) {
+        el.innerHTML = '<div class="wl-empty">No positions yet.</div>';
+        return;
       }
-      if (wlPositions.length > 0) {
-        html += '<div class="wl-section-label">Positions</div>';
-        html += wlPositions.map(s => buildRow(s, 'position')).join('');
-      }
-      el.innerHTML = html;
+      el.innerHTML = sortedList(wlPositions).map(s => buildWLRow(s, 'position')).join('');
     }
 
     function wlDragStart(e, sym, section) {
@@ -2825,7 +2958,7 @@
       list.splice(fromIdx, 1);
       list.splice(toIdx, 0, _dragSym);
       localStorage.setItem(_dragSection === 'position' ? 'wl_positions' : 'wl_tickers', JSON.stringify(list));
-      renderWLRows();
+      setSortMode('manual');
     }
     function wlDragEnd(e) {
       document.querySelectorAll('.wl-row').forEach(el => { el.classList.remove('dragging'); el.classList.remove('drag-over'); });
@@ -2835,7 +2968,7 @@
     function wlOpenScan(sym) {
       document.getElementById('tin').value = sym;
       runScan();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.querySelector('.main-area')?.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // Compute rating from price data (no options — uses getChecks only)
@@ -2880,7 +3013,7 @@
           }
         }
       } catch (_) {}
-      if (wlOpen) renderWLRows();
+      if (wlOpen) { renderWLRows(); renderPosRows(); }
     }
 
     async function refreshWatchlist() {
@@ -2894,7 +3027,7 @@
       wlFirstScanDone = true;
       const t = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
       if (st) st.textContent = 'Updated ' + t;
-      if (wlOpen) renderWLRows();
+      if (wlOpen) { renderWLRows(); renderPosRows(); }
     }
 
     // First 30min (9:30–10:00 ET): only if todVol ≥ 30% of avgVol. After 10:00: always. Before 9:30: never.
@@ -2964,6 +3097,12 @@
     updateWLCount();
     document.getElementById('wl-inp').addEventListener('keydown', e => { if (e.key === 'Enter') wlAdd('watch'); });
     document.getElementById('wl-inp').addEventListener('input',   e => { e.target.value = e.target.value.toUpperCase(); });
+    document.getElementById('wl-pos-inp').addEventListener('keydown', e => { if (e.key === 'Enter') wlAddPos(); });
+    document.getElementById('wl-pos-inp').addEventListener('input',   e => { e.target.value = e.target.value.toUpperCase(); });
+    // Apply saved sort mode button state
+    document.querySelectorAll('.wl-sort-btn').forEach(b => b.classList.remove('active'));
+    const _sb = document.getElementById('sort-btn-' + wlSortMode);
+    if (_sb) _sb.classList.add('active');
     setInterval(refreshWatchlist, 60000);
     if ([...wlList, ...wlPositions].length > 0) setTimeout(() => refreshWatchlist(), 1000);
 
