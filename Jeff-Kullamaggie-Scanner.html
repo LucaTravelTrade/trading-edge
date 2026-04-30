@@ -1953,10 +1953,10 @@
         </div>
         <div class="wl-scroll" id="wl-rows"></div>
 
-        <!-- SECTOR RS HEATMAP PANEL -->
+        <!-- INDUSTRY RS HEATMAP PANEL -->
         <div class="sector-rs-panel" id="sector-rs-panel">
           <div class="sector-rs-header" onclick="toggleSectorRS()">
-            <span class="sector-rs-title">Sector RS</span>
+            <span class="sector-rs-title">Industry RS</span>
             <span class="sector-rs-toggle-arrow" id="sector-rs-arrow">▲</span>
           </div>
           <div class="sector-rs-body" id="sector-rs-body">
@@ -3119,11 +3119,27 @@
     let wlVWAP = {}; // Feature D: VWAP reclaim status per ticker
     let wlPQ   = {}; // Feature E: Pattern quality score per ticker
     // Sector RS heatmap state
-    const SECTOR_ETFS = {
-      'XLK': 'Tech', 'XLF': 'Finance', 'XLV': 'Health',
-      'XLE': 'Energy', 'XLI': 'Industrial', 'XLY': 'Cons Disc',
-      'XLP': 'Cons Stap', 'XLB': 'Materials', 'XLRE': 'Real Est',
-      'XLU': 'Utilities', 'XLC': 'Comm'
+    const INDUSTRY_ETFS = {
+      'SMH':  'Semiconductors',
+      'IGV':  'Software',
+      'XBI':  'Biotech',
+      'IBB':  'Pharma/Biotech',
+      'XOP':  'Oil & Gas E&P',
+      'ITA':  'Aerospace & Def',
+      'KBE':  'Banks',
+      'XRT':  'Retail',
+      'ITB':  'Homebuilders',
+      'HACK': 'Cybersecurity',
+      'LIT':  'Lithium / EV',
+      'PAVE': 'Infrastructure',
+      'JETS': 'Airlines',
+      'XME':  'Metals & Mining',
+      'ROBO': 'Robotics / AI',
+      'FINX': 'Fintech',
+      'ARKG': 'Genomics',
+      'MOO':  'Agriculture',
+      'WOOD': 'Timber / Housing',
+      'XHB':  'Homebuilders ETF'
     };
     let sectorRSData = []; // array of {etf, name, relPerf} sorted by relPerf desc
     let _sectorRSOpen = true;
@@ -3443,10 +3459,10 @@
       } catch (_) { return null; }
     }
 
-    // ── FEATURE: SECTOR RS HEATMAP ────────────────────────────────────────────
+    // ── FEATURE: INDUSTRY RS HEATMAP ─────────────────────────────────────────
     async function computeSectorRS() {
       try {
-        const tickers = ['SPY', ...Object.keys(SECTOR_ETFS)];
+        const tickers = ['SPY', ...Object.keys(INDUSTRY_ETFS)];
         const results = {};
         // Fetch all quotes in parallel using Finnhub (fastest for single-quote)
         await Promise.all(tickers.map(async sym => {
@@ -3457,7 +3473,7 @@
         }));
         const spyPct = results['SPY']?.pct ?? null;
         if (spyPct === null) return [];
-        const rows = Object.entries(SECTOR_ETFS).map(([etf, name]) => {
+        const rows = Object.entries(INDUSTRY_ETFS).map(([etf, name]) => {
           const etfPct  = results[etf]?.pct ?? null;
           const relPerf = etfPct !== null ? etfPct - spyPct : null;
           return { etf, name, etfPct, relPerf };
@@ -3620,18 +3636,28 @@
       let aBadgeCls = 'rs-grey';
       let aTip = 'RS: loading…';
       if (rs) {
-        if (rs.rsAtHigh)          aBadgeCls = 'rs-green';
+        if (rs.rsAtHigh)           aBadgeCls = 'rs-green';
         else if (rs.rsSlope5d > 0) aBadgeCls = 'rs-yellow';
         else                       aBadgeCls = 'rs-red';
         const nhbpExtra = rs.rsNewHighBeforePrice ? ' rs-nhbp' : '';
         aBadgeCls += nhbpExtra;
         aTip = [
+          '[A] RS LINE vs SPY',
+          'Misst ob diese Aktie den Markt outperformt.',
+          '🟢 Grün   = RS auf 52w-Hoch (echter Leader)',
+          '✨ Gold   = RS-Hoch VOR Preis-Hoch (bestes Setup!)',
+          '🟡 Gelb   = RS steigt (Momentum aufbaut)',
+          '🔴 Rot    = RS fällt (meiden)',
+          '⚪ Grau   = Daten laden...',
+          '────────────────────────────',
           `RS Ratio : ${rs.rsRatio.toFixed(2)}`,
-          `At High  : ${rs.rsAtHigh ? 'yes' : 'no'}`,
-          `RS-NHBP  : ${rs.rsNewHighBeforePrice ? 'YES (best setup)' : 'no'}`,
+          `At High  : ${rs.rsAtHigh ? 'YES' : 'no'}`,
+          `RS-NHBP  : ${rs.rsNewHighBeforePrice ? 'YES ← best setup' : 'no'}`,
           `Slope 5d : ${rs.rsSlope5d > 0 ? '+' : ''}${rs.rsSlope5d.toFixed(4)}`,
-          `Diverge  : ${rs.rsDivergence ? 'yes (red day, RS up)' : 'no'}`
+          `Divergenz: ${rs.rsDivergence ? 'YES (roter Tag, RS hoch)' : 'no'}`
         ].join('\n');
+      } else {
+        aTip = '[A] RS LINE vs SPY\nDaten werden geladen...';
       }
       const aBadge = `<span class="wl-badge-abc wl-badge-a ${aBadgeCls}" onclick="event.stopPropagation()" data-tip="${aTip.replace(/"/g,'&quot;')}">A</span>`;
 
@@ -3645,11 +3671,21 @@
         else if (frr.quadrant === 'distribution') bBadgeCls = 'frr-orange';
         else                                       bBadgeCls = 'frr-grey';
         bTip = [
-          `FRR Today: ${frr.frr.toFixed(2)}x`,
-          `FRR Pace : ${frr.paceFrr > 0 ? frr.paceFrr.toFixed(2) + 'x annl.' : 'n/a'}`,
-          `FRR 5d   : ${frr.frr5d.toFixed(2)}x`,
+          '[B] FLOAT ROTATION RATIO',
+          'Wie viel % des Floats heute gehandelt wurde.',
+          '🟢 Grün   = ABSORPTION: hohes Vol + enge Range',
+          '           → Supply wird aktiv aufgefressen (bestes!)',
+          '🔵 Blau   = AKKUMULATION: hohes Vol + grüner Close',
+          '🟠 Orange = DISTRIBUTION: hohes Vol + roter Close ⚠️',
+          '⚪ Grau   = normale Rotation (<0.3x Float)',
+          '────────────────────────────',
+          `FRR heute: ${frr.frr.toFixed(2)}x`,
+          `FRR Pace : ${frr.paceFrr > 0 ? frr.paceFrr.toFixed(2) + 'x' : 'n/a'}`,
+          `FRR 5 Tg : ${frr.frr5d.toFixed(2)}x`,
           `Quadrant : ${frr.quadrant}`
         ].join('\n');
+      } else {
+        bTip = '[B] FLOAT ROTATION RATIO\nDaten werden geladen...';
       }
       const bBadge = `<span class="wl-badge-abc wl-badge-b ${bBadgeCls}" onclick="event.stopPropagation()" data-tip="${bTip.replace(/"/g,'&quot;')}">B</span>`;
 
@@ -3661,7 +3697,23 @@
         if      (tight.tightWeeks >= 3 && tight.volumeDryUp)  cBadgeCls = 'tight-green';
         else if (tight.tightWeeks >= 3 && !tight.volumeDryUp) cBadgeCls = 'tight-yellow';
         else                                                    cBadgeCls = 'tight-grey';
-        cTip = `${tight.tightWeeks}w tight, ${tight.tightnessPct.toFixed(2)}% range, pivot $${tight.pivot.toFixed(2)}, vol dry-up: ${tight.volumeDryUp}, score: ${tight.score}`;
+        cTip = [
+          '[C] 3-WEEKS-TIGHT (Kullamaggie-Setup)',
+          'Wöchentliche Closes eng beieinander = Coiling.',
+          '🟢 Grün   = 3+ Wochen tight + Vol trocknet aus',
+          '           → Perfekter Coil vor Breakout',
+          '🟡 Gelb   = 3+ Wochen tight, Vol NICHT trocken',
+          '           → Weniger ideal, Vorsicht',
+          '⚪ Grau   = Noch nicht eng genug (<3 Wochen)',
+          '────────────────────────────',
+          `Wochen   : ${tight.tightWeeks}w tight`,
+          `Range    : ${tight.tightnessPct.toFixed(2)}%`,
+          `Pivot    : $${tight.pivot.toFixed(2)}`,
+          `Vol DryUp: ${tight.volumeDryUp ? 'YES ✓' : 'no'}`,
+          `Score    : ${tight.score}/100`
+        ].join('\n');
+      } else {
+        cTip = '[C] 3-WEEKS-TIGHT (Kullamaggie)\nDaten werden geladen...';
       }
       const cBadge = `<span class="wl-badge-abc wl-badge-c ${cBadgeCls}" onclick="event.stopPropagation()" data-tip="${cTip.replace(/"/g,'&quot;')}">C</span>`;
 
@@ -3674,7 +3726,17 @@
         if      (vwapData.vwapState === 'reclaiming') { vwapBadgeCls = 'vwap-reclaim'; vwapLabel = 'VWAP⟳'; }
         else if (vwapData.vwapState === 'above')      { vwapBadgeCls = 'vwap-above';   vwapLabel = 'VWAP↑'; }
         else                                          { vwapBadgeCls = 'vwap-below';   vwapLabel = 'VWAP↓'; }
-        vwapTip = `VWAP: $${vwapData.vwap.toFixed(2)}, dist: ${vwapData.vwapDist.toFixed(2)}%, state: ${vwapData.vwapState}`;
+        vwapTip = [
+          'VWAP POSITION',
+          'Volume Weighted Average Price des heutigen Tages.',
+          '🟢 VWAP↑ = Preis über VWAP (bullisch)',
+          '🟠 VWAP⟳ = Gerade über VWAP zurückgekehrt → Signal!',
+          '🔴 VWAP↓ = Preis unter VWAP (bärisch)',
+          '────────────────────────────',
+          `VWAP  : $${vwapData.vwap.toFixed(2)}`,
+          `Dist  : ${vwapData.vwapDist.toFixed(2)}%`,
+          `State : ${vwapData.vwapState}`
+        ].join('\n');
       }
       const vwapBadge = `<span class="wl-badge-vwap ${vwapBadgeCls}" onclick="event.stopPropagation()" data-tip="${vwapTip.replace(/"/g,'&quot;')}">${vwapLabel}</span>`;
 
@@ -3688,7 +3750,19 @@
         if      (pqData.score >= 70) pqBadgeCls = 'pq-green';
         else if (pqData.score >= 40) pqBadgeCls = 'pq-yellow';
         else                         pqBadgeCls = 'pq-red';
-        pqTip = `Tightness: ${pqData.baseTightness.toFixed(4)}, Depth: ${(pqData.baseDepth*100).toFixed(1)}%, Duration: ${pqData.baseDuration}d, Score: ${pqData.score}`;
+        pqTip = [
+          'PATTERN QUALITY SCORE (0-100)',
+          'Bewertet die Qualität der aktuellen Konsolidierung.',
+          '🟢 70-100 = saubere Base, hohe Qualität',
+          '🟡 40-69  = okay, aber nicht perfekt',
+          '🔴  0-39  = messy / zu extended',
+          'Gewichtung: Enge(40%) + Tiefe(35%) + Dauer(25%)',
+          '────────────────────────────',
+          `Enge (Tightness): ${pqData.baseTightness.toFixed(4)}`,
+          `Tiefe (Depth)   : ${(pqData.baseDepth*100).toFixed(1)}%`,
+          `Dauer (Duration): ${pqData.baseDuration}d`,
+          `Score           : ${pqData.score}/100`
+        ].join('\n');
       }
       const pqBadge = `<span class="wl-badge-pq ${pqBadgeCls}" onclick="event.stopPropagation()" data-tip="${pqTip.replace(/"/g,'&quot;')}">${pqLabel}</span>`;
 
