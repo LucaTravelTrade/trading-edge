@@ -1265,7 +1265,7 @@
       display: flex;
     }
     .wl-combined.open {
-      width: 520px;
+      width: 680px;
       border-left: 1px solid #30363d;
     }
 
@@ -1618,9 +1618,9 @@
     .wl-drag-handle:hover { color: #8b949e; }
     .wl-drag-handle:active { cursor: grabbing; }
 
-    .wl-sym-wrap { flex: 1; min-width: 0; overflow: hidden; }
+    .wl-sym-wrap { flex: 1; min-width: 65px; overflow: hidden; }
     .wl-sym { font-size: 13px; font-weight: 800; color: #e6edf3; display: block; white-space: nowrap; }
-    .wl-industry { font-size: 9px; color: #484f58; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; margin-top: 1px; }
+    .wl-industry { font-size: 9px; color: #6e7681; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; margin-top: 1px; }
     .wl-price { font-size: 11px; color: #58a6ff; font-weight: 600; flex-shrink: 0; }
     .wl-badge {
       font-size: 10px;
@@ -2284,6 +2284,7 @@
       };
       out.sector = fhProfile?.finnhubIndustry || null;
       out.industry = fhProfile?.name ? (fhProfile.finnhubIndustry || null) : null;
+      out.name     = fhProfile?.name || null;
       const sectorEtfSym = SECTOR_ETF[out.sector] || null;
       out.sectorEtfSym = sectorEtfSym;
 
@@ -3109,6 +3110,7 @@
     let wlPrices     = {};
     let wlTimes      = {};
     let wlIndustry   = {};
+    let wlNames      = {};
 
     // ── FEATURE A/B/C DATA STORES ────────────────────────────────────────────
     let wlRS   = {}; // Feature A: RS line data per ticker
@@ -3509,7 +3511,7 @@
     function toggleWL() {
       wlOpen = !wlOpen;
       document.getElementById('wl-combined').classList.toggle('open', wlOpen);
-      document.getElementById('wl-toggle-tab').style.right = wlOpen ? '520px' : '0';
+      document.getElementById('wl-toggle-tab').style.right = wlOpen ? '680px' : '0';
       document.getElementById('wl-tab-arrow').textContent = wlOpen ? '▶' : '◀';
       if (wlOpen) { renderWLRows(); renderPosRows(); }
     }
@@ -3579,7 +3581,7 @@
         wlList = wlList.filter(s => s !== sym);
         localStorage.setItem('wl_tickers', JSON.stringify(wlList));
       }
-      delete wlRatings[sym]; delete wlPrices[sym]; delete wlTimes[sym]; delete wlIndustry[sym];
+      delete wlRatings[sym]; delete wlPrices[sym]; delete wlTimes[sym]; delete wlIndustry[sym]; delete wlNames[sym];
       delete wlRS[sym]; delete wlFRR[sym]; delete wlTight[sym]; delete wlVWAP[sym]; delete wlPQ[sym];
       wlAlertedA.delete(sym);
       localStorage.setItem('wl_alerted_a', JSON.stringify([...wlAlertedA]));
@@ -3607,6 +3609,7 @@
       const price  = wlPrices[sym];
       const ts     = wlTimes[sym];
       const ind    = wlIndustry[sym] || '';
+      const name   = wlNames[sym] || '';
       const age    = ts ? Math.round((Date.now() - ts) / 1000) : null;
       const ageStr = age == null ? '' : age < 60 ? age + 's' : Math.round(age / 60) + 'm';
       const cls    = r || 'scan';
@@ -3699,7 +3702,7 @@
           onclick="wlOpenScan('${sym}')">
         <span class="wl-drag-handle" onclick="event.stopPropagation()">⠿</span>
         <span class="wl-sym-wrap">
-          <span class="wl-sym">${sym}</span>
+          <span class="wl-sym">${sym}${name ? ` <span style="font-size:10px;font-weight:400;color:#8b949e;">${name}</span>` : ''}</span>
           ${ind ? `<span class="wl-industry">${ind}</span>` : ''}
         </span>
         ${price != null ? `<span class="wl-price">$${price.toFixed(2)}</span>` : ''}
@@ -3820,6 +3823,7 @@
           const enr = await fetchEnrichment(sym);
           Object.assign(data, enr);
           if (enr.sector) wlIndustry[sym] = enr.sector;
+          if (enr.name)   wlNames[sym]    = enr.name;
         } catch (_) {}
         const rating    = computeRatingFast(data);
         const oldRating = wlRatings[sym];
