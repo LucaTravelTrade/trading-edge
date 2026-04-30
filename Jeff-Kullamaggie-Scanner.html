@@ -1545,6 +1545,17 @@
       flex-shrink: 0;
     }
     .wl-rm:hover { color: #f85149; }
+    .wl-move {
+      background: none;
+      border: none;
+      color: #4d5969;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 0;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .wl-move:hover { color: #58a6ff; }
     .wl-empty { color: #333d48; font-size: 11px; padding: 6px 0; }
   </style>
 </head>
@@ -2848,10 +2859,12 @@
       const inp = document.getElementById('wl-pos-inp');
       const sym = inp.value.trim().toUpperCase();
       if (!sym) { inp.value = ''; return; }
-      if (wlPositions.includes(sym) || wlList.includes(sym)) { inp.value = ''; return; }
+      inp.value = '';
+      // If already in watchlist, move it instead of duplicating
+      if (wlList.includes(sym)) { wlMoveToPositions(sym); return; }
+      if (wlPositions.includes(sym)) { return; }
       wlPositions.push(sym);
       localStorage.setItem('wl_positions', JSON.stringify(wlPositions));
-      inp.value = '';
       updateWLCount();
       renderPosRows();
       silentScanOne(sym, false);
@@ -2875,6 +2888,16 @@
 
     function updateWLCount() {
       document.getElementById('wl-count').textContent = wlList.length + wlPositions.length;
+    }
+
+    function wlMoveToPositions(sym) {
+      if (!wlList.includes(sym)) return;
+      wlList = wlList.filter(s => s !== sym);
+      if (!wlPositions.includes(sym)) wlPositions.push(sym);
+      localStorage.setItem('wl_tickers',   JSON.stringify(wlList));
+      localStorage.setItem('wl_positions', JSON.stringify(wlPositions));
+      // do NOT delete cached data (ratings, prices, industry etc.)
+      updateWLCount(); renderWLRows(); renderPosRows();
     }
 
     function buildWLRow(sym, section) {
@@ -2902,6 +2925,7 @@
         ${price != null ? `<span class="wl-price">$${price.toFixed(2)}</span>` : ''}
         <span class="wl-badge ${cls}">${r || '…'}</span>
         ${ageStr ? `<span class="wl-age">${ageStr}</span>` : ''}
+        ${section === 'watch' ? `<button class="wl-move" onclick="event.stopPropagation();wlMoveToPositions('${sym}')" title="Move to Positions">→</button>` : ''}
         <button class="wl-rm" onclick="event.stopPropagation();wlRemove('${sym}','${section}')" title="Remove">✕</button>
       </div>`;
     }
@@ -3036,9 +3060,13 @@
       const etStr = now.toLocaleString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', hour12: false });
       const [etHour, etMin] = etStr.split(':').map(Number);
       const etTotalMin = etHour * 60 + etMin;
-      if (etTotalMin < 570)  return false;
-      if (etTotalMin >= 600) return true;
-      return data.avgVol > 0 && data.todVol >= data.avgVol * 0.30;
+      if (etTotalMin < 570)  return false;   // pre-market: never fire
+      if (etTotalMin >= 600) return true;    // after 10:00 ET: always allow
+      // First 30 min (9:30-10:00 ET): brutal pace-adjusted RVOL gate
+      const minutesElapsed = etTotalMin - 570;           // 0..30
+      const expectedFraction = minutesElapsed / 390;     // % of 6.5h session
+      const expectedVol = data.avgVol * expectedFraction;
+      return expectedVol > 0 && data.todVol >= expectedVol * 3;
     }
 
     async function sendTelegramAlert(sym, oldRating, newRating, data) {
