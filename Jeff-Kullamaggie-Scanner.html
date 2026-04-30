@@ -1372,6 +1372,107 @@
     .wl-close-btn:hover { color: #e6edf3; }
     .wl-status { font-size: 10px; color: #8b949e; }
 
+    .wl-help-btn {
+      background: none;
+      border: 1px solid #30363d;
+      border-radius: 50%;
+      color: #8b949e;
+      font-size: 11px;
+      font-weight: 700;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: border-color .15s, color .15s;
+    }
+    .wl-help-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+
+    /* Compound Help Modal */
+    .compound-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    .compound-modal-overlay.open { display: flex; }
+    .compound-modal {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 24px 28px;
+      max-width: 480px;
+      width: 90vw;
+      max-height: 88vh;
+      overflow-y: auto;
+      position: relative;
+      color: #e6edf3;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .compound-modal h2 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #58a6ff;
+      margin-bottom: 4px;
+    }
+    .compound-modal .cm-sub {
+      font-size: 11px;
+      color: #8b949e;
+      margin-bottom: 14px;
+    }
+    .compound-modal .cm-divider {
+      border: none;
+      border-top: 1px solid #21262d;
+      margin: 12px 0;
+    }
+    .compound-modal .cm-signal {
+      margin-bottom: 12px;
+    }
+    .compound-modal .cm-signal-name {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+      display: inline-block;
+      margin-bottom: 4px;
+    }
+    .compound-modal .cm-signal-desc {
+      font-size: 12px;
+      color: #c9d1d9;
+      margin-left: 2px;
+    }
+    .compound-modal .cm-signal-badges {
+      font-size: 10px;
+      color: #8b949e;
+      margin-left: 2px;
+    }
+    .compound-modal .cm-legend {
+      font-size: 11px;
+      color: #8b949e;
+      margin-top: 10px;
+    }
+    .compound-modal .cm-close {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: #8b949e;
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+    }
+    .compound-modal .cm-close:hover { color: #e6edf3; }
+
     .wl-add-row {
       display: flex;
       gap: 6px;
@@ -1821,6 +1922,7 @@
         <div class="wl-sidebar-top">
           <div class="wl-sidebar-title-row">
             <span class="wl-sidebar-title">Watchlist</span>
+            <button class="wl-help-btn" onclick="openCompoundHelp()" title="Compound signal guide">?</button>
             <span class="wl-status" id="wl-status"></span>
             <button class="wl-close-btn" onclick="toggleWL()">✕</button>
           </div>
@@ -3606,7 +3708,30 @@
         ${ageStr ? `<span class="wl-age">${ageStr}</span>` : ''}
         ${section === 'watch' ? `<button class="wl-move" onclick="event.stopPropagation();wlMoveToPositions('${sym}')" title="Move to Positions">→</button>` : ''}
         <button class="wl-rm" onclick="event.stopPropagation();wlRemove('${sym}','${section}')" title="Remove">✕</button>
+        ${(() => { const cs = getCompoundSignal(sym); return cs ? `<div style="margin-top:3px;padding-left:28px;"><span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;background:${cs.color}22;color:${cs.color};border:1px solid ${cs.color}55;" onclick="event.stopPropagation()" title="${cs.desc}">${cs.name}</span></div>` : ''; })()}
       </div>`;
+    }
+
+    function getCompoundSignal(sym) {
+      const rs    = wlRS[sym];
+      const frr   = wlFRR[sym];
+      const tight = wlTight[sym];
+
+      const aOn         = rs    && rs.rsAtHigh;
+      const aRising     = rs    && rs.rsSlope5d > 0;
+      const bAbsorption = frr   && frr.quadrant === 'absorption';
+      const bHigh       = frr   && frr.frr > 0.3;
+      const cOn         = tight && tight.tightWeeks >= 3 && tight.volumeDryUp;
+      const cTight      = tight && tight.tightWeeks >= 3;
+
+      if (aOn && bAbsorption && cOn)  return { name: 'TRIPLE TRIGGER',   color: '#f0c674', desc: 'RS at highs + absorption + tight base with vol dry-up. Rarest setup — drop everything.' };
+      if (aOn && cOn)                 return { name: 'STEALTH COIL',      color: '#58a6ff', desc: 'Leader coiling before breakout. RS at highs while volatility compresses. High hit rate.' };
+      if (bAbsorption && cOn)         return { name: 'ABSORPTION COIL',   color: '#3fb950', desc: 'Float being absorbed inside tight base. Supply exhausted before the move.' };
+      if (aOn && bHigh)               return { name: 'MOMENTUM IGNITION', color: '#db6d28', desc: 'RS leader with heavy float rotation. Breakout in progress — chaseable.' };
+      if (!aRising && bHigh)          return { name: 'DISTRIBUTION WARN', color: '#f85149', desc: 'Heavy volume but RS falling. Smart money may be exiting. Avoid.' };
+      if (cTight && !aOn)             return { name: 'TRAP COIL',         color: '#8b949e', desc: 'Tight base but not leading the market. High failure rate on breakout.' };
+
+      return null;
     }
 
     function sortedList(list) {
@@ -3944,7 +4069,66 @@
         document.head.appendChild(s);
       }
     }
+    function openCompoundHelp() {
+      document.getElementById('compound-help-modal').classList.add('open');
+    }
+    function closeCompoundHelp() {
+      document.getElementById('compound-help-modal').classList.remove('open');
+    }
   </script>
+
+  <!-- COMPOUND SIGNAL HELP MODAL -->
+  <div class="compound-modal-overlay" id="compound-help-modal" onclick="if(event.target===this)closeCompoundHelp()">
+    <div class="compound-modal">
+      <button class="cm-close" onclick="closeCompoundHelp()">✕</button>
+      <h2>COMPOUND SIGNALS</h2>
+      <div class="cm-sub">Combine the [A] RS Line, [B] Float Rotation, and [C] 3-Weeks-Tight badges into named setups.</div>
+      <hr class="cm-divider">
+
+      <div class="cm-signal">
+        <span class="cm-signal-name" style="background:#f0c67422;color:#f0c674;border:1px solid #f0c67455;">&#127942; TRIPLE TRIGGER</span>
+        <div class="cm-signal-badges">[A&#10003; + B absorption + C&#10003;]</div>
+        <div class="cm-signal-desc">The grail setup. RS at highs, float being absorbed, tight base with volume dry-up. Rarest — act immediately.</div>
+      </div>
+
+      <div class="cm-signal">
+        <span class="cm-signal-name" style="background:#58a6ff22;color:#58a6ff;border:1px solid #58a6ff55;">&#128153; STEALTH COIL</span>
+        <div class="cm-signal-badges">[A&#10003; + C&#10003;]</div>
+        <div class="cm-signal-desc">RS leader coiling before breakout. Market doesn't see it yet. Highest historical hit rate.</div>
+      </div>
+
+      <div class="cm-signal">
+        <span class="cm-signal-name" style="background:#3fb95022;color:#3fb950;border:1px solid #3fb95055;">&#128154; ABSORPTION COIL</span>
+        <div class="cm-signal-badges">[B absorption + C&#10003;]</div>
+        <div class="cm-signal-desc">Supply being actively eaten inside a tight base. Classic pre-breakout accumulation.</div>
+      </div>
+
+      <div class="cm-signal">
+        <span class="cm-signal-name" style="background:#db6d2822;color:#db6d28;border:1px solid #db6d2855;">&#128293; MOMENTUM IGNITION</span>
+        <div class="cm-signal-badges">[A&#10003; + B high]</div>
+        <div class="cm-signal-desc">Already breaking with RS confirmation + heavy rotation. Chase with tight stop above VWAP.</div>
+      </div>
+
+      <div class="cm-signal">
+        <span class="cm-signal-name" style="background:#f8514922;color:#f85149;border:1px solid #f8514955;">&#128683; DISTRIBUTION WARN</span>
+        <div class="cm-signal-badges">[B high + A falling]</div>
+        <div class="cm-signal-desc">Heavy volume but RS deteriorating. Smart money exit. Avoid or look to short.</div>
+      </div>
+
+      <div class="cm-signal">
+        <span class="cm-signal-name" style="background:#8b949e22;color:#8b949e;border:1px solid #8b949e55;">&#9888;&#65039; TRAP COIL</span>
+        <div class="cm-signal-badges">[C tight + A not leading]</div>
+        <div class="cm-signal-desc">Tight consolidation but stock not leading market. High failure rate on breakout attempt.</div>
+      </div>
+
+      <hr class="cm-divider">
+      <div class="cm-legend">
+        <strong>BADGE LEGEND</strong><br>
+        [A] = RS Line vs SPY &nbsp; [B] = Float Rotation &nbsp; [C] = 3-Weeks-Tight<br>
+        &#128994; Green = strong &nbsp; &#128993; Yellow = partial &nbsp; &#128308; Red = weak/warn &nbsp; &#9898; Grey = no data
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>
