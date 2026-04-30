@@ -1557,6 +1557,59 @@
     }
     .wl-move:hover { color: #58a6ff; }
     .wl-empty { color: #333d48; font-size: 11px; padding: 6px 0; }
+
+    /* ── A/B/C FEATURE BADGES ───────────────────────────────────────────────── */
+    .wl-badge-abc {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: monospace;
+      font-size: 10px;
+      font-weight: 800;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      flex-shrink: 0;
+      border: 1px solid transparent;
+      position: relative;
+    }
+    /* Feature A — RS Line */
+    .wl-badge-a.rs-grey    { background: #21262d; color: #484f58; border-color: #30363d; }
+    .wl-badge-a.rs-green   { background: #0d2010; color: #3fb950; border-color: #3fb950; }
+    .wl-badge-a.rs-yellow  { background: #1c1a0e; color: #e3b341; border-color: #e3b341; }
+    .wl-badge-a.rs-red     { background: #200d0d; color: #f85149; border-color: #f85149; }
+    .wl-badge-a.rs-nhbp    { box-shadow: 0 0 5px 1px #e3b341; border-color: #e3b341 !important; }
+    /* Feature B — Float Rotation */
+    .wl-badge-b.frr-grey         { background: #21262d; color: #484f58; border-color: #30363d; }
+    .wl-badge-b.frr-green        { background: #0d2010; color: #3fb950; border-color: #3fb950; }
+    .wl-badge-b.frr-blue         { background: #0d1728; color: #58a6ff; border-color: #58a6ff; }
+    .wl-badge-b.frr-orange       { background: #1a0f00; color: #f0883e; border-color: #f0883e; }
+    /* Feature C — 3-Weeks-Tight */
+    .wl-badge-c.tight-grey   { background: #21262d; color: #484f58; border-color: #30363d; }
+    .wl-badge-c.tight-green  { background: #0d2010; color: #3fb950; border-color: #3fb950; }
+    .wl-badge-c.tight-yellow { background: #1c1a0e; color: #e3b341; border-color: #e3b341; }
+
+    /* Shared tooltip for ABC badges */
+    .wl-badge-abc[data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      right: 0;
+      background: #1c2128;
+      color: #e6edf3;
+      border: 1px solid #444c56;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 10px;
+      font-family: monospace;
+      font-weight: 400;
+      line-height: 1.6;
+      white-space: pre;
+      width: 220px;
+      pointer-events: none;
+      z-index: 9999;
+    }
   </style>
 </head>
 
@@ -2798,6 +2851,223 @@
     let wlPrices     = {};
     let wlTimes      = {};
     let wlIndustry   = {};
+
+    // ── FEATURE A/B/C DATA STORES ────────────────────────────────────────────
+    let wlRS   = {}; // Feature A: RS line data per ticker
+    let wlFRR  = {}; // Feature B: Float rotation data per ticker
+    let wlTight = {}; // Feature C: 3-weeks-tight data per ticker
+
+    // SPY daily closes fetched once globally for Feature A
+    let spyDailyCloses = null;      // array of {close, ts} sorted oldest→newest
+    let _spyFetchPromise = null;    // dedup concurrent fetches
+
+    async function ensureSPYDaily() {
+      if (spyDailyCloses !== null) return spyDailyCloses;
+      if (_spyFetchPromise) return _spyFetchPromise;
+      _spyFetchPromise = (async () => {
+        try {
+          const crumb = await getYahooCrumb();
+          const cp = crumb ? `&crumb=${crumb}` : '';
+          const url = `https://query1.finance.yahoo.com/v8/finance/chart/SPY?interval=1d&range=14mo${cp}`;
+          const url2 = `https://query2.finance.yahoo.com/v8/finance/chart/SPY?interval=1d&range=14mo${cp}`;
+          let d = null;
+          for (const u of [url, url2, PROXY + encodeURIComponent(url), PROXY2 + encodeURIComponent(url)]) {
+            try {
+              const r = await fetchJ(u);
+              if (r?.chart?.result?.[0]) { d = r; break; }
+            } catch (_) {}
+          }
+          if (!d) { spyDailyCloses = []; return []; }
+          const res = d.chart.result[0];
+          const ts  = res.timestamp || [];
+          const cls = res.indicators.quote[0].close || [];
+          const out = [];
+          for (let i = 0; i < ts.length; i++) {
+            if (cls[i] != null && cls[i] > 0) out.push({ ts: ts[i] * 1000, close: cls[i] });
+          }
+          spyDailyCloses = out;
+          return out;
+        } catch (_) {
+          spyDailyCloses = [];
+          return [];
+        }
+      })();
+      return _spyFetchPromise;
+    }
+
+    // ── FEATURE A: RS LINE vs SPY ─────────────────────────────────────────────
+    // stockDailyData: array of {ts (ms), close, open, high} from Yahoo 1d 14mo
+    async function computeRS(sym, stockDailyData) {
+      try {
+        const spy = await ensureSPYDaily();
+        if (!spy || spy.length < 70 || !stockDailyData || stockDailyData.length < 70) return null;
+
+        // Align by date: build date-keyed maps
+        const spyMap = {};
+        spy.forEach(b => { spyMap[new Date(b.ts).toDateString()] = b.close; });
+
+        // Build aligned arrays (stock date must exist in SPY)
+        const aligned = [];
+        for (const b of stockDailyData) {
+          const dk = new Date(b.ts).toDateString();
+          if (spyMap[dk] && b.close > 0) aligned.push({ stockClose: b.close, stockOpen: b.open || b.close, spyClose: spyMap[dk], ts: b.ts });
+        }
+        if (aligned.length < 70) return null;
+
+        // rsRatio series: stock/spy normalized to 63-bar ago = 1.0
+        const ratios = aligned.map(b => b.stockClose / b.spyClose);
+        const n = ratios.length;
+        const baseIdx = Math.max(0, n - 63 - 1);
+        const baseRatio = ratios[baseIdx] || ratios[0];
+        const normalized = ratios.map(r => r / baseRatio);
+
+        // 52-week high of normalized RS (252 bars)
+        const lb = Math.min(252, n);
+        const rsHigh52 = Math.max(...normalized.slice(-lb));
+        const rsNow    = normalized[n - 1];
+
+        // rsAtHigh: within 2% of 52w high
+        const rsAtHigh = rsNow >= rsHigh52 * 0.98;
+
+        // stock 52w high
+        const stockCloses = aligned.map(b => b.stockClose);
+        const stockHigh52 = Math.max(...stockCloses.slice(-lb));
+        const stockNow    = stockCloses[n - 1];
+
+        // RS-New-High-Before-Price: RS at high but stock >5% below its 52w high
+        const rsNewHighBeforePrice = rsAtHigh && stockNow < stockHigh52 * 0.95;
+
+        // 5-day RS slope: linear regression slope of last 5 normalized values
+        const last5 = normalized.slice(-5);
+        const slope5 = last5[last5.length - 1] - last5[0]; // simple first-to-last diff
+        const rsSlope5d = slope5;
+
+        // rsDivergence: today stock is red but RS improved vs yesterday
+        const todayBar   = aligned[n - 1];
+        const ystRatio   = normalized[n - 2] || normalized[n - 1];
+        const rsDivergence = (todayBar.stockClose < todayBar.stockOpen) && (rsNow > ystRatio);
+
+        return {
+          rsRatio: rsNow,
+          rsAtHigh,
+          rsNewHighBeforePrice,
+          rsSlope5d,
+          rsDivergence
+        };
+      } catch (_) { return null; }
+    }
+
+    // ── FEATURE B: FLOAT ROTATION RATIO ──────────────────────────────────────
+    // stockDailyData: array of {ts, close, open, high, low, volume}
+    // floatShares: from enrichment (fhProfile.shareOutstanding * 1e6)
+    async function computeFRR(sym, stockDailyData, floatShares, todayVol) {
+      try {
+        if (!floatShares || floatShares <= 0) return null;
+        if (!stockDailyData || stockDailyData.length < 5) return null;
+
+        const float = floatShares;
+        const frr = todayVol > 0 ? todayVol / float : 0;
+
+        // 5-day FRR: last 5 complete trading days
+        const last5 = stockDailyData.slice(-5);
+        let frr5d = 0;
+        for (const b of last5) {
+          if (b.volume > 0) frr5d += b.volume / float;
+        }
+
+        // Pace FRR: intraday pace estimate
+        let paceFrr = 0;
+        const now = new Date();
+        const etStr = now.toLocaleString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', hour12: false });
+        const [etH, etM] = etStr.split(':').map(Number);
+        const etMin = etH * 60 + etM;
+        if (etMin >= 570 && etMin <= 960 && todayVol > 0) { // market hours 9:30-16:00
+          const minsElapsed = Math.max(1, etMin - 570);
+          paceFrr = (todayVol / float) / (minsElapsed / 390);
+        }
+
+        // Today's bar (last in array): determine close vs open
+        const todayBar = stockDailyData[stockDailyData.length - 1];
+        const todayClose = todayBar.close;
+        const todayOpen  = todayBar.open || todayClose;
+        const todayHigh  = todayBar.high || todayClose;
+        const todayLow   = todayBar.low  || todayClose;
+        const priceRange = todayClose > 0 ? (todayHigh - todayLow) / todayClose : 1;
+
+        let quadrant = 'normal';
+        if (frr > 0.3) {
+          if (priceRange < 0.02)         quadrant = 'absorption';
+          else if (todayClose > todayOpen) quadrant = 'accumulation';
+          else                             quadrant = 'distribution';
+        }
+
+        return { float, frr, paceFrr, frr5d, quadrant };
+      } catch (_) { return null; }
+    }
+
+    // ── FEATURE C: 3-WEEKS-TIGHT ──────────────────────────────────────────────
+    // Fetch Yahoo weekly candles for sym, compute tight pattern
+    async function computeTight(sym) {
+      try {
+        const crumb = await getYahooCrumb();
+        const cp = crumb ? `&crumb=${crumb}` : '';
+        const url  = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1wk&range=6mo${cp}`;
+        const url2 = `https://query2.finance.yahoo.com/v8/finance/chart/${sym}?interval=1wk&range=6mo${cp}`;
+        let d = null;
+        for (const u of [url, url2, PROXY + encodeURIComponent(url), PROXY2 + encodeURIComponent(url)]) {
+          try {
+            const r = await fetchJ(u);
+            if (r?.chart?.result?.[0]) { d = r; break; }
+          } catch (_) {}
+        }
+        if (!d) return null;
+
+        const res  = d.chart.result[0];
+        const q    = res.indicators.quote[0];
+        const cls  = (q.close  || []).filter(v => v != null && v > 0);
+        const vols = (q.volume || []).filter((v, i) => q.close[i] != null && q.close[i] > 0);
+        const highs = (q.high  || []);
+
+        if (cls.length < 12) return null; // need ≥12 weeks for 10-week avg vol
+
+        // 10-week average volume (excluding current/last week)
+        const avgVol10 = vols.slice(-11, -1).reduce((a, b) => a + (b || 0), 0) / 10;
+
+        // Count tight weeks from most recent backward
+        // "tight" = weekly close within threshold of the prior week's close
+        const THRESHOLD = 0.015; // 1.5% close-to-close
+        let tightWeeks = 1;
+        for (let i = cls.length - 1; i >= 1 && tightWeeks < 10; i--) {
+          const chg = Math.abs(cls[i] - cls[i - 1]) / cls[i - 1];
+          if (chg <= THRESHOLD) tightWeeks++;
+          else break;
+        }
+
+        // tightnessPct over last 3 weekly closes
+        const last3 = cls.slice(-3);
+        const maxC  = Math.max(...last3);
+        const minC  = Math.min(...last3);
+        const avgC  = last3.reduce((a, b) => a + b, 0) / 3;
+        const tightnessPct = avgC > 0 ? (maxC - minC) / avgC * 100 : 999;
+
+        // volumeDryUp: all tight weeks have volume below 10-week avg
+        const tightVols = vols.slice(-tightWeeks);
+        const volumeDryUp = avgVol10 > 0 && tightVols.every(v => v < avgVol10);
+
+        // pivot: max of weekly highs over tight weeks * 1.01
+        const tightHighs = highs.filter(v => v != null).slice(-tightWeeks);
+        const pivot = tightHighs.length > 0 ? Math.max(...tightHighs) * 1.01 : cls[cls.length - 1] * 1.01;
+
+        // score 0-100
+        const score = Math.round(
+          (1 - Math.min(tightnessPct, 3) / 3) * 60 +
+          (volumeDryUp ? 25 : 0) +
+          Math.min(tightWeeks - 2, 3) / 3 * 15
+        );
+
+        return { tightWeeks, tightnessPct, volumeDryUp, pivot, score };
+      } catch (_) { return null; }
+    }
     let wlAlertedA   = new Set(JSON.parse(localStorage.getItem('wl_alerted_a') || '[]'));
     let wlOpen       = false;
     let wlFirstScanDone = false;
@@ -2879,6 +3149,7 @@
         localStorage.setItem('wl_tickers', JSON.stringify(wlList));
       }
       delete wlRatings[sym]; delete wlPrices[sym]; delete wlTimes[sym]; delete wlIndustry[sym];
+      delete wlRS[sym]; delete wlFRR[sym]; delete wlTight[sym];
       wlAlertedA.delete(sym);
       localStorage.setItem('wl_alerted_a', JSON.stringify([...wlAlertedA]));
       updateWLCount();
@@ -2909,6 +3180,57 @@
       const ageStr = age == null ? '' : age < 60 ? age + 's' : Math.round(age / 60) + 'm';
       const cls    = r || 'scan';
       const rowCls = [r || '', section === 'position' ? 'position-row' : ''].filter(Boolean).join(' ');
+
+      // ── Feature A badge ──────────────────────────────────────────────────
+      const rs = wlRS[sym];
+      let aBadgeCls = 'rs-grey';
+      let aTip = 'RS: loading…';
+      if (rs) {
+        if (rs.rsAtHigh)          aBadgeCls = 'rs-green';
+        else if (rs.rsSlope5d > 0) aBadgeCls = 'rs-yellow';
+        else                       aBadgeCls = 'rs-red';
+        const nhbpExtra = rs.rsNewHighBeforePrice ? ' rs-nhbp' : '';
+        aBadgeCls += nhbpExtra;
+        aTip = [
+          `RS Ratio : ${rs.rsRatio.toFixed(2)}`,
+          `At High  : ${rs.rsAtHigh ? 'yes' : 'no'}`,
+          `RS-NHBP  : ${rs.rsNewHighBeforePrice ? 'YES (best setup)' : 'no'}`,
+          `Slope 5d : ${rs.rsSlope5d > 0 ? '+' : ''}${rs.rsSlope5d.toFixed(4)}`,
+          `Diverge  : ${rs.rsDivergence ? 'yes (red day, RS up)' : 'no'}`
+        ].join('\n');
+      }
+      const aBadge = `<span class="wl-badge-abc wl-badge-a ${aBadgeCls}" onclick="event.stopPropagation()" data-tip="${aTip.replace(/"/g,'&quot;')}">A</span>`;
+
+      // ── Feature B badge ──────────────────────────────────────────────────
+      const frr = wlFRR[sym];
+      let bBadgeCls = 'frr-grey';
+      let bTip = 'FRR: loading…';
+      if (frr) {
+        if      (frr.quadrant === 'absorption')   bBadgeCls = 'frr-green';
+        else if (frr.quadrant === 'accumulation') bBadgeCls = 'frr-blue';
+        else if (frr.quadrant === 'distribution') bBadgeCls = 'frr-orange';
+        else                                       bBadgeCls = 'frr-grey';
+        bTip = [
+          `FRR Today: ${frr.frr.toFixed(2)}x`,
+          `FRR Pace : ${frr.paceFrr > 0 ? frr.paceFrr.toFixed(2) + 'x annl.' : 'n/a'}`,
+          `FRR 5d   : ${frr.frr5d.toFixed(2)}x`,
+          `Quadrant : ${frr.quadrant}`
+        ].join('\n');
+      }
+      const bBadge = `<span class="wl-badge-abc wl-badge-b ${bBadgeCls}" onclick="event.stopPropagation()" data-tip="${bTip.replace(/"/g,'&quot;')}">B</span>`;
+
+      // ── Feature C badge ──────────────────────────────────────────────────
+      const tight = wlTight[sym];
+      let cBadgeCls = 'tight-grey';
+      let cTip = 'Tight: loading…';
+      if (tight) {
+        if      (tight.tightWeeks >= 3 && tight.volumeDryUp)  cBadgeCls = 'tight-green';
+        else if (tight.tightWeeks >= 3 && !tight.volumeDryUp) cBadgeCls = 'tight-yellow';
+        else                                                    cBadgeCls = 'tight-grey';
+        cTip = `${tight.tightWeeks}w tight, ${tight.tightnessPct.toFixed(2)}% range, pivot $${tight.pivot.toFixed(2)}, vol dry-up: ${tight.volumeDryUp}, score: ${tight.score}`;
+      }
+      const cBadge = `<span class="wl-badge-abc wl-badge-c ${cBadgeCls}" onclick="event.stopPropagation()" data-tip="${cTip.replace(/"/g,'&quot;')}">C</span>`;
+
       return `<div class="wl-row ${rowCls}"
           draggable="true"
           data-sym="${sym}" data-section="${section}"
@@ -2924,6 +3246,7 @@
         </span>
         ${price != null ? `<span class="wl-price">$${price.toFixed(2)}</span>` : ''}
         <span class="wl-badge ${cls}">${r || '…'}</span>
+        ${aBadge}${bBadge}${cBadge}
         ${ageStr ? `<span class="wl-age">${ageStr}</span>` : ''}
         ${section === 'watch' ? `<button class="wl-move" onclick="event.stopPropagation();wlMoveToPositions('${sym}')" title="Move to Positions">→</button>` : ''}
         <button class="wl-rm" onclick="event.stopPropagation();wlRemove('${sym}','${section}')" title="Remove">✕</button>
@@ -3036,6 +3359,55 @@
             sendTelegramBurnAlert(sym, data);
           }
         }
+
+        // ── Feature A/B/C enrichment (non-blocking, best-effort) ───────────
+        // Build stockDailyData from the fetchPrice yahoo chart already fetched
+        // Re-fetch daily for A/B (need ts+open+high+low+volume) — use safe wrapper
+        (async () => {
+          try {
+            const crumb = await getYahooCrumb();
+            const cp = crumb ? `&crumb=${crumb}` : '';
+            const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=14mo${cp}`;
+            const yUrl2 = `https://query2.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=14mo${cp}`;
+            let yd = null;
+            for (const u of [yUrl, yUrl2, PROXY + encodeURIComponent(yUrl), PROXY2 + encodeURIComponent(yUrl)]) {
+              try { const r = await fetchJ(u); if (r?.chart?.result?.[0]) { yd = r; break; } } catch (_) {}
+            }
+            let stockDailyData = [];
+            if (yd) {
+              const yr = yd.chart.result[0];
+              const yq = yr.indicators.quote[0];
+              const yts = yr.timestamp || [];
+              for (let i = 0; i < yts.length; i++) {
+                if (yq.close[i] != null && yq.close[i] > 0) {
+                  stockDailyData.push({
+                    ts: yts[i] * 1000,
+                    close:  yq.close[i],
+                    open:   yq.open?.[i]   ?? yq.close[i],
+                    high:   yq.high?.[i]   ?? yq.close[i],
+                    low:    yq.low?.[i]    ?? yq.close[i],
+                    volume: yq.volume?.[i] ?? 0
+                  });
+                }
+              }
+            }
+            // Feature A: RS vs SPY
+            const rsData = await computeRS(sym, stockDailyData);
+            if (rsData) wlRS[sym] = rsData;
+
+            // Feature B: Float Rotation
+            const floatShares = data.floatShares || 0;
+            const frrData = await computeFRR(sym, stockDailyData, floatShares, data.todVol || 0);
+            if (frrData) wlFRR[sym] = frrData;
+
+            // Feature C: 3-Weeks-Tight (fetches its own weekly candles)
+            const tightData = await computeTight(sym);
+            if (tightData) wlTight[sym] = tightData;
+
+            if (wlOpen) { renderWLRows(); renderPosRows(); }
+          } catch (_) {}
+        })();
+
       } catch (_) {}
       if (wlOpen) { renderWLRows(); renderPosRows(); }
     }
