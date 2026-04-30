@@ -3643,21 +3643,21 @@
         aBadgeCls += nhbpExtra;
         aTip = [
           '[A] RS LINE vs SPY',
-          'Misst ob diese Aktie den Markt outperformt.',
-          '🟢 Grün   = RS auf 52w-Hoch (echter Leader)',
-          '✨ Gold   = RS-Hoch VOR Preis-Hoch (bestes Setup!)',
-          '🟡 Gelb   = RS steigt (Momentum aufbaut)',
-          '🔴 Rot    = RS fällt (meiden)',
-          '⚪ Grau   = Daten laden...',
+          'Measures if this stock outperforms the market.',
+          '🟢 Green  = RS at 52w high (true leader)',
+          '✨ Gold   = RS high BEFORE price high (best setup!)',
+          '🟡 Yellow = RS rising (momentum building)',
+          '🔴 Red    = RS falling (avoid)',
+          '⚪ Grey   = loading...',
           '────────────────────────────',
           `RS Ratio : ${rs.rsRatio.toFixed(2)}`,
           `At High  : ${rs.rsAtHigh ? 'YES' : 'no'}`,
           `RS-NHBP  : ${rs.rsNewHighBeforePrice ? 'YES ← best setup' : 'no'}`,
           `Slope 5d : ${rs.rsSlope5d > 0 ? '+' : ''}${rs.rsSlope5d.toFixed(4)}`,
-          `Divergenz: ${rs.rsDivergence ? 'YES (roter Tag, RS hoch)' : 'no'}`
+          `Divergence: ${rs.rsDivergence ? 'YES (red day, RS up)' : 'no'}`
         ].join('\n');
       } else {
-        aTip = '[A] RS LINE vs SPY\nDaten werden geladen...';
+        aTip = '[A] RS LINE vs SPY\nLoading data...';
       }
       const aBadge = `<span class="wl-badge-abc wl-badge-a ${aBadgeCls}" onclick="event.stopPropagation()" data-tip="${aTip.replace(/"/g,'&quot;')}">A</span>`;
 
@@ -3672,20 +3672,20 @@
         else                                       bBadgeCls = 'frr-grey';
         bTip = [
           '[B] FLOAT ROTATION RATIO',
-          'Wie viel % des Floats heute gehandelt wurde.',
-          '🟢 Grün   = ABSORPTION: hohes Vol + enge Range',
-          '           → Supply wird aktiv aufgefressen (bestes!)',
-          '🔵 Blau   = AKKUMULATION: hohes Vol + grüner Close',
-          '🟠 Orange = DISTRIBUTION: hohes Vol + roter Close ⚠️',
-          '⚪ Grau   = normale Rotation (<0.3x Float)',
+          'How much of the float traded today.',
+          '🟢 Green  = ABSORPTION: high vol + tight range',
+          '           → Supply actively eaten (best!)',
+          '🔵 Blue   = ACCUMULATION: high vol + green close',
+          '🟠 Orange = DISTRIBUTION: high vol + red close ⚠️',
+          '⚪ Grey   = normal rotation (<0.3x float)',
           '────────────────────────────',
           `FRR heute: ${frr.frr.toFixed(2)}x`,
           `FRR Pace : ${frr.paceFrr > 0 ? frr.paceFrr.toFixed(2) + 'x' : 'n/a'}`,
-          `FRR 5 Tg : ${frr.frr5d.toFixed(2)}x`,
+          `FRR 5d   : ${frr.frr5d.toFixed(2)}x`,
           `Quadrant : ${frr.quadrant}`
         ].join('\n');
       } else {
-        bTip = '[B] FLOAT ROTATION RATIO\nDaten werden geladen...';
+        bTip = '[B] FLOAT ROTATION RATIO\nLoading data...';
       }
       const bBadge = `<span class="wl-badge-abc wl-badge-b ${bBadgeCls}" onclick="event.stopPropagation()" data-tip="${bTip.replace(/"/g,'&quot;')}">B</span>`;
 
@@ -3699,21 +3699,21 @@
         else                                                    cBadgeCls = 'tight-grey';
         cTip = [
           '[C] 3-WEEKS-TIGHT (Kullamaggie-Setup)',
-          'Wöchentliche Closes eng beieinander = Coiling.',
-          '🟢 Grün   = 3+ Wochen tight + Vol trocknet aus',
-          '           → Perfekter Coil vor Breakout',
-          '🟡 Gelb   = 3+ Wochen tight, Vol NICHT trocken',
-          '           → Weniger ideal, Vorsicht',
-          '⚪ Grau   = Noch nicht eng genug (<3 Wochen)',
+          'Weekly closes tight together = coiling before breakout.',
+          '🟢 Green  = 3+ weeks tight + vol drying up (best!)',
+          '           → Perfect coil before breakout',
+          '🟡 Yellow = 3+ weeks tight, vol NOT drying up',
+          '           → Less ideal, be cautious',
+          '⚪ Grey   = not tight enough yet (<3 weeks)',
           '────────────────────────────',
-          `Wochen   : ${tight.tightWeeks}w tight`,
+          `Weeks    : ${tight.tightWeeks}w tight`,
           `Range    : ${tight.tightnessPct.toFixed(2)}%`,
           `Pivot    : $${tight.pivot.toFixed(2)}`,
           `Vol DryUp: ${tight.volumeDryUp ? 'YES ✓' : 'no'}`,
           `Score    : ${tight.score}/100`
         ].join('\n');
       } else {
-        cTip = '[C] 3-WEEKS-TIGHT (Kullamaggie)\nDaten werden geladen...';
+        cTip = '[C] 3-WEEKS-TIGHT (Kullamaggie)\nLoading data...';
       }
       const cBadge = `<span class="wl-badge-abc wl-badge-c ${cBadgeCls}" onclick="event.stopPropagation()" data-tip="${cTip.replace(/"/g,'&quot;')}">C</span>`;
 
@@ -3728,10 +3728,10 @@
         else                                          { vwapBadgeCls = 'vwap-below';   vwapLabel = 'VWAP↓'; }
         vwapTip = [
           'VWAP POSITION',
-          'Volume Weighted Average Price des heutigen Tages.',
-          '🟢 VWAP↑ = Preis über VWAP (bullisch)',
-          '🟠 VWAP⟳ = Gerade über VWAP zurückgekehrt → Signal!',
-          '🔴 VWAP↓ = Preis unter VWAP (bärisch)',
+          "Volume Weighted Average Price for today's session.",
+          '🟢 VWAP↑ = price above VWAP (bullish)',
+          '🟠 VWAP⟳ = just reclaimed VWAP → signal!',
+          '🔴 VWAP↓ = price below VWAP (bearish)',
           '────────────────────────────',
           `VWAP  : $${vwapData.vwap.toFixed(2)}`,
           `Dist  : ${vwapData.vwapDist.toFixed(2)}%`,
@@ -3752,15 +3752,15 @@
         else                         pqBadgeCls = 'pq-red';
         pqTip = [
           'PATTERN QUALITY SCORE (0-100)',
-          'Bewertet die Qualität der aktuellen Konsolidierung.',
-          '🟢 70-100 = saubere Base, hohe Qualität',
-          '🟡 40-69  = okay, aber nicht perfekt',
-          '🔴  0-39  = messy / zu extended',
-          'Gewichtung: Enge(40%) + Tiefe(35%) + Dauer(25%)',
+          'Rates the quality of the current consolidation base.',
+          '🟢 70-100 = clean base, high quality',
+          '🟡 40-69  = decent but not perfect',
+          '🔴  0-39  = messy / too extended',
+          'Weight: Tightness(40%) + Depth(35%) + Duration(25%)',
           '────────────────────────────',
-          `Enge (Tightness): ${pqData.baseTightness.toFixed(4)}`,
-          `Tiefe (Depth)   : ${(pqData.baseDepth*100).toFixed(1)}%`,
-          `Dauer (Duration): ${pqData.baseDuration}d`,
+          `Tightness: ${pqData.baseTightness.toFixed(4)}`,
+          `Depth    : ${(pqData.baseDepth*100).toFixed(1)}%`,
+          `Duration : ${pqData.baseDuration}d`,
           `Score           : ${pqData.score}/100`
         ].join('\n');
       }
