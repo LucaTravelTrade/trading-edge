@@ -1372,6 +1372,107 @@
     .wl-close-btn:hover { color: #e6edf3; }
     .wl-status { font-size: 10px; color: #8b949e; }
 
+    .wl-help-btn {
+      background: none;
+      border: 1px solid #30363d;
+      border-radius: 50%;
+      color: #8b949e;
+      font-size: 11px;
+      font-weight: 700;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: border-color .15s, color .15s;
+    }
+    .wl-help-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+
+    /* Compound Help Modal */
+    .compound-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    .compound-modal-overlay.open { display: flex; }
+    .compound-modal {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 24px 28px;
+      max-width: 480px;
+      width: 90vw;
+      max-height: 88vh;
+      overflow-y: auto;
+      position: relative;
+      color: #e6edf3;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .compound-modal h2 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #58a6ff;
+      margin-bottom: 4px;
+    }
+    .compound-modal .cm-sub {
+      font-size: 11px;
+      color: #8b949e;
+      margin-bottom: 14px;
+    }
+    .compound-modal .cm-divider {
+      border: none;
+      border-top: 1px solid #21262d;
+      margin: 12px 0;
+    }
+    .compound-modal .cm-signal {
+      margin-bottom: 12px;
+    }
+    .compound-modal .cm-signal-name {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+      display: inline-block;
+      margin-bottom: 4px;
+    }
+    .compound-modal .cm-signal-desc {
+      font-size: 12px;
+      color: #c9d1d9;
+      margin-left: 2px;
+    }
+    .compound-modal .cm-signal-badges {
+      font-size: 10px;
+      color: #8b949e;
+      margin-left: 2px;
+    }
+    .compound-modal .cm-legend {
+      font-size: 11px;
+      color: #8b949e;
+      margin-top: 10px;
+    }
+    .compound-modal .cm-close {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: #8b949e;
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+    }
+    .compound-modal .cm-close:hover { color: #e6edf3; }
+
     .wl-add-row {
       display: flex;
       gap: 6px;
@@ -1545,7 +1646,215 @@
       flex-shrink: 0;
     }
     .wl-rm:hover { color: #f85149; }
+    .wl-move {
+      background: none;
+      border: none;
+      color: #4d5969;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 0;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .wl-move:hover { color: #58a6ff; }
     .wl-empty { color: #333d48; font-size: 11px; padding: 6px 0; }
+
+    /* ── A/B/C FEATURE BADGES ───────────────────────────────────────────────── */
+    .wl-badge-abc {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: monospace;
+      font-size: 10px;
+      font-weight: 800;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      flex-shrink: 0;
+      border: 1px solid transparent;
+      position: relative;
+    }
+    /* Feature A — RS Line */
+    .wl-badge-a.rs-grey    { background: #21262d; color: #484f58; border-color: #30363d; }
+    .wl-badge-a.rs-green   { background: #0d2010; color: #3fb950; border-color: #3fb950; }
+    .wl-badge-a.rs-yellow  { background: #1c1a0e; color: #e3b341; border-color: #e3b341; }
+    .wl-badge-a.rs-red     { background: #200d0d; color: #f85149; border-color: #f85149; }
+    .wl-badge-a.rs-nhbp    { box-shadow: 0 0 5px 1px #e3b341; border-color: #e3b341 !important; }
+    /* Feature B — Float Rotation */
+    .wl-badge-b.frr-grey         { background: #21262d; color: #484f58; border-color: #30363d; }
+    .wl-badge-b.frr-green        { background: #0d2010; color: #3fb950; border-color: #3fb950; }
+    .wl-badge-b.frr-blue         { background: #0d1728; color: #58a6ff; border-color: #58a6ff; }
+    .wl-badge-b.frr-orange       { background: #1a0f00; color: #f0883e; border-color: #f0883e; }
+    /* Feature C — 3-Weeks-Tight */
+    .wl-badge-c.tight-grey   { background: #21262d; color: #484f58; border-color: #30363d; }
+    .wl-badge-c.tight-green  { background: #0d2010; color: #3fb950; border-color: #3fb950; }
+    .wl-badge-c.tight-yellow { background: #1c1a0e; color: #e3b341; border-color: #e3b341; }
+    /* Feature VWAP — VWAP Reclaim */
+    .wl-badge-vwap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: monospace;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 0 5px;
+      height: 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      flex-shrink: 0;
+      border: 1px solid transparent;
+      position: relative;
+      white-space: nowrap;
+    }
+    .wl-badge-vwap.vwap-grey      { background: #21262d; color: #484f58; border-color: #30363d; }
+    .wl-badge-vwap.vwap-above     { background: #0d2010; color: #3fb950; border-color: #3fb950; }
+    .wl-badge-vwap.vwap-reclaim   { background: #1a0f00; color: #f0883e; border-color: #f0883e; box-shadow: 0 0 4px 1px #f0883e55; }
+    .wl-badge-vwap.vwap-below     { background: #200d0d; color: #f85149; border-color: #f85149; }
+    /* Feature PQ — Pattern Quality */
+    .wl-badge-pq {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: monospace;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 0 5px;
+      height: 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      flex-shrink: 0;
+      border: 1px solid transparent;
+      position: relative;
+      white-space: nowrap;
+    }
+    .wl-badge-pq.pq-grey   { background: #21262d; color: #484f58; border-color: #30363d; }
+    .wl-badge-pq.pq-green  { background: #0d2010; color: #3fb950; border-color: #3fb950; }
+    .wl-badge-pq.pq-yellow { background: #1c1a0e; color: #e3b341; border-color: #e3b341; }
+    .wl-badge-pq.pq-red    { background: #200d0d; color: #f85149; border-color: #f85149; }
+    /* Tooltip for VWAP + PQ badges (reuse same style as ABC) */
+    .wl-badge-vwap[data-tip]:hover::after,
+    .wl-badge-pq[data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      right: 0;
+      background: #1c2128;
+      color: #e6edf3;
+      border: 1px solid #444c56;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 10px;
+      font-family: monospace;
+      font-weight: 400;
+      line-height: 1.6;
+      white-space: pre;
+      width: 220px;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    /* Sector RS Heatmap Panel */
+    .sector-rs-panel {
+      border-top: 1px solid #30363d;
+      flex-shrink: 0;
+      background: #0d1117;
+    }
+    .sector-rs-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      cursor: pointer;
+      user-select: none;
+    }
+    .sector-rs-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      flex: 1;
+    }
+    .sector-rs-toggle-arrow {
+      font-size: 9px;
+      color: #484f58;
+      transition: transform .2s;
+    }
+    .sector-rs-panel.open .sector-rs-toggle-arrow {
+      transform: rotate(180deg);
+    }
+    .sector-rs-body {
+      display: none;
+      padding: 8px 10px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    .sector-rs-panel.open .sector-rs-body {
+      display: block;
+    }
+    .sector-rs-body::-webkit-scrollbar { width: 3px; }
+    .sector-rs-body::-webkit-scrollbar-track { background: transparent; }
+    .sector-rs-body::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+    .sector-rs-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 0;
+      font-size: 11px;
+    }
+    .sector-rs-name {
+      width: 90px;
+      color: #8b949e;
+      flex-shrink: 0;
+      font-size: 10px;
+    }
+    .sector-rs-bar-wrap {
+      flex: 1;
+      height: 8px;
+      background: #21262d;
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+    .sector-rs-bar {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      border-radius: 3px;
+    }
+    .sector-rs-val {
+      width: 42px;
+      text-align: right;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .sector-rs-val.pos { color: #3fb950; }
+    .sector-rs-val.neg { color: #f85149; }
+    .sector-rs-loading { color: #484f58; font-size: 10px; padding: 6px 0; }
+
+    /* Shared tooltip for ABC badges */
+    .wl-badge-abc[data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      right: 0;
+      background: #1c2128;
+      color: #e6edf3;
+      border: 1px solid #444c56;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 10px;
+      font-family: monospace;
+      font-weight: 400;
+      line-height: 1.6;
+      white-space: pre;
+      width: 220px;
+      pointer-events: none;
+      z-index: 9999;
+    }
   </style>
 </head>
 
@@ -1613,6 +1922,7 @@
         <div class="wl-sidebar-top">
           <div class="wl-sidebar-title-row">
             <span class="wl-sidebar-title">Watchlist</span>
+            <button class="wl-help-btn" onclick="openCompoundHelp()" title="Compound signal guide">?</button>
             <span class="wl-status" id="wl-status"></span>
             <button class="wl-close-btn" onclick="toggleWL()">✕</button>
           </div>
@@ -1642,6 +1952,18 @@
           </div>
         </div>
         <div class="wl-scroll" id="wl-rows"></div>
+
+        <!-- SECTOR RS HEATMAP PANEL -->
+        <div class="sector-rs-panel" id="sector-rs-panel">
+          <div class="sector-rs-header" onclick="toggleSectorRS()">
+            <span class="sector-rs-title">Sector RS</span>
+            <span class="sector-rs-toggle-arrow" id="sector-rs-arrow">▲</span>
+          </div>
+          <div class="sector-rs-body" id="sector-rs-body">
+            <div class="sector-rs-loading" id="sector-rs-loading">Loading…</div>
+          </div>
+        </div>
+
       </div>
 
     </div><!-- /wl-combined -->
@@ -2787,6 +3109,396 @@
     let wlPrices     = {};
     let wlTimes      = {};
     let wlIndustry   = {};
+
+    // ── FEATURE A/B/C DATA STORES ────────────────────────────────────────────
+    let wlRS   = {}; // Feature A: RS line data per ticker
+    let wlFRR  = {}; // Feature B: Float rotation data per ticker
+    let wlTight = {}; // Feature C: 3-weeks-tight data per ticker
+    let wlVWAP = {}; // Feature D: VWAP reclaim status per ticker
+    let wlPQ   = {}; // Feature E: Pattern quality score per ticker
+    // Sector RS heatmap state
+    const SECTOR_ETFS = {
+      'XLK': 'Tech', 'XLF': 'Finance', 'XLV': 'Health',
+      'XLE': 'Energy', 'XLI': 'Industrial', 'XLY': 'Cons Disc',
+      'XLP': 'Cons Stap', 'XLB': 'Materials', 'XLRE': 'Real Est',
+      'XLU': 'Utilities', 'XLC': 'Comm'
+    };
+    let sectorRSData = []; // array of {etf, name, relPerf} sorted by relPerf desc
+    let _sectorRSOpen = true;
+
+    // SPY daily closes fetched once globally for Feature A
+    let spyDailyCloses = null;      // array of {close, ts} sorted oldest→newest
+    let _spyFetchPromise = null;    // dedup concurrent fetches
+
+    async function ensureSPYDaily() {
+      if (spyDailyCloses !== null) return spyDailyCloses;
+      if (_spyFetchPromise) return _spyFetchPromise;
+      _spyFetchPromise = (async () => {
+        try {
+          const crumb = await getYahooCrumb();
+          const cp = crumb ? `&crumb=${crumb}` : '';
+          const url = `https://query1.finance.yahoo.com/v8/finance/chart/SPY?interval=1d&range=14mo${cp}`;
+          const url2 = `https://query2.finance.yahoo.com/v8/finance/chart/SPY?interval=1d&range=14mo${cp}`;
+          let d = null;
+          for (const u of [url, url2, PROXY + encodeURIComponent(url), PROXY2 + encodeURIComponent(url)]) {
+            try {
+              const r = await fetchJ(u);
+              if (r?.chart?.result?.[0]) { d = r; break; }
+            } catch (_) {}
+          }
+          if (!d) { spyDailyCloses = []; return []; }
+          const res = d.chart.result[0];
+          const ts  = res.timestamp || [];
+          const cls = res.indicators.quote[0].close || [];
+          const out = [];
+          for (let i = 0; i < ts.length; i++) {
+            if (cls[i] != null && cls[i] > 0) out.push({ ts: ts[i] * 1000, close: cls[i] });
+          }
+          spyDailyCloses = out;
+          return out;
+        } catch (_) {
+          spyDailyCloses = [];
+          return [];
+        }
+      })();
+      return _spyFetchPromise;
+    }
+
+    // ── FEATURE A: RS LINE vs SPY ─────────────────────────────────────────────
+    // stockDailyData: array of {ts (ms), close, open, high} from Yahoo 1d 14mo
+    async function computeRS(sym, stockDailyData) {
+      try {
+        const spy = await ensureSPYDaily();
+        if (!spy || spy.length < 70 || !stockDailyData || stockDailyData.length < 70) return null;
+
+        // Align by date: build date-keyed maps
+        const spyMap = {};
+        spy.forEach(b => { spyMap[new Date(b.ts).toDateString()] = b.close; });
+
+        // Build aligned arrays (stock date must exist in SPY)
+        const aligned = [];
+        for (const b of stockDailyData) {
+          const dk = new Date(b.ts).toDateString();
+          if (spyMap[dk] && b.close > 0) aligned.push({ stockClose: b.close, stockOpen: b.open || b.close, spyClose: spyMap[dk], ts: b.ts });
+        }
+        if (aligned.length < 70) return null;
+
+        // rsRatio series: stock/spy normalized to 63-bar ago = 1.0
+        const ratios = aligned.map(b => b.stockClose / b.spyClose);
+        const n = ratios.length;
+        const baseIdx = Math.max(0, n - 63 - 1);
+        const baseRatio = ratios[baseIdx] || ratios[0];
+        const normalized = ratios.map(r => r / baseRatio);
+
+        // 52-week high of normalized RS (252 bars)
+        const lb = Math.min(252, n);
+        const rsHigh52 = Math.max(...normalized.slice(-lb));
+        const rsNow    = normalized[n - 1];
+
+        // rsAtHigh: within 2% of 52w high
+        const rsAtHigh = rsNow >= rsHigh52 * 0.98;
+
+        // stock 52w high
+        const stockCloses = aligned.map(b => b.stockClose);
+        const stockHigh52 = Math.max(...stockCloses.slice(-lb));
+        const stockNow    = stockCloses[n - 1];
+
+        // RS-New-High-Before-Price: RS at high but stock >5% below its 52w high
+        const rsNewHighBeforePrice = rsAtHigh && stockNow < stockHigh52 * 0.95;
+
+        // 5-day RS slope: linear regression slope of last 5 normalized values
+        const last5 = normalized.slice(-5);
+        const slope5 = last5[last5.length - 1] - last5[0]; // simple first-to-last diff
+        const rsSlope5d = slope5;
+
+        // rsDivergence: today stock is red but RS improved vs yesterday
+        const todayBar   = aligned[n - 1];
+        const ystRatio   = normalized[n - 2] || normalized[n - 1];
+        const rsDivergence = (todayBar.stockClose < todayBar.stockOpen) && (rsNow > ystRatio);
+
+        return {
+          rsRatio: rsNow,
+          rsAtHigh,
+          rsNewHighBeforePrice,
+          rsSlope5d,
+          rsDivergence
+        };
+      } catch (_) { return null; }
+    }
+
+    // ── FEATURE B: FLOAT ROTATION RATIO ──────────────────────────────────────
+    // stockDailyData: array of {ts, close, open, high, low, volume}
+    // floatShares: from enrichment (fhProfile.shareOutstanding * 1e6)
+    async function computeFRR(sym, stockDailyData, floatShares, todayVol) {
+      try {
+        if (!floatShares || floatShares <= 0) return null;
+        if (!stockDailyData || stockDailyData.length < 5) return null;
+
+        const float = floatShares;
+        const frr = todayVol > 0 ? todayVol / float : 0;
+
+        // 5-day FRR: last 5 complete trading days
+        const last5 = stockDailyData.slice(-5);
+        let frr5d = 0;
+        for (const b of last5) {
+          if (b.volume > 0) frr5d += b.volume / float;
+        }
+
+        // Pace FRR: intraday pace estimate
+        let paceFrr = 0;
+        const now = new Date();
+        const etStr = now.toLocaleString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', hour12: false });
+        const [etH, etM] = etStr.split(':').map(Number);
+        const etMin = etH * 60 + etM;
+        if (etMin >= 570 && etMin <= 960 && todayVol > 0) { // market hours 9:30-16:00
+          const minsElapsed = Math.max(1, etMin - 570);
+          paceFrr = (todayVol / float) / (minsElapsed / 390);
+        }
+
+        // Today's bar (last in array): determine close vs open
+        const todayBar = stockDailyData[stockDailyData.length - 1];
+        const todayClose = todayBar.close;
+        const todayOpen  = todayBar.open || todayClose;
+        const todayHigh  = todayBar.high || todayClose;
+        const todayLow   = todayBar.low  || todayClose;
+        const priceRange = todayClose > 0 ? (todayHigh - todayLow) / todayClose : 1;
+
+        let quadrant = 'normal';
+        if (frr > 0.3) {
+          if (priceRange < 0.02)         quadrant = 'absorption';
+          else if (todayClose > todayOpen) quadrant = 'accumulation';
+          else                             quadrant = 'distribution';
+        }
+
+        return { float, frr, paceFrr, frr5d, quadrant };
+      } catch (_) { return null; }
+    }
+
+    // ── FEATURE C: 3-WEEKS-TIGHT ──────────────────────────────────────────────
+    // Fetch Yahoo weekly candles for sym, compute tight pattern
+    async function computeTight(sym) {
+      try {
+        const crumb = await getYahooCrumb();
+        const cp = crumb ? `&crumb=${crumb}` : '';
+        const url  = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1wk&range=6mo${cp}`;
+        const url2 = `https://query2.finance.yahoo.com/v8/finance/chart/${sym}?interval=1wk&range=6mo${cp}`;
+        let d = null;
+        for (const u of [url, url2, PROXY + encodeURIComponent(url), PROXY2 + encodeURIComponent(url)]) {
+          try {
+            const r = await fetchJ(u);
+            if (r?.chart?.result?.[0]) { d = r; break; }
+          } catch (_) {}
+        }
+        if (!d) return null;
+
+        const res  = d.chart.result[0];
+        const q    = res.indicators.quote[0];
+        const cls  = (q.close  || []).filter(v => v != null && v > 0);
+        const vols = (q.volume || []).filter((v, i) => q.close[i] != null && q.close[i] > 0);
+        const highs = (q.high  || []);
+
+        if (cls.length < 12) return null; // need ≥12 weeks for 10-week avg vol
+
+        // 10-week average volume (excluding current/last week)
+        const avgVol10 = vols.slice(-11, -1).reduce((a, b) => a + (b || 0), 0) / 10;
+
+        // Count tight weeks from most recent backward
+        // "tight" = weekly close within threshold of the prior week's close
+        const THRESHOLD = 0.015; // 1.5% close-to-close
+        let tightWeeks = 1;
+        for (let i = cls.length - 1; i >= 1 && tightWeeks < 10; i--) {
+          const chg = Math.abs(cls[i] - cls[i - 1]) / cls[i - 1];
+          if (chg <= THRESHOLD) tightWeeks++;
+          else break;
+        }
+
+        // tightnessPct over last 3 weekly closes
+        const last3 = cls.slice(-3);
+        const maxC  = Math.max(...last3);
+        const minC  = Math.min(...last3);
+        const avgC  = last3.reduce((a, b) => a + b, 0) / 3;
+        const tightnessPct = avgC > 0 ? (maxC - minC) / avgC * 100 : 999;
+
+        // volumeDryUp: all tight weeks have volume below 10-week avg
+        const tightVols = vols.slice(-tightWeeks);
+        const volumeDryUp = avgVol10 > 0 && tightVols.every(v => v < avgVol10);
+
+        // pivot: max of weekly highs over tight weeks * 1.01
+        const tightHighs = highs.filter(v => v != null).slice(-tightWeeks);
+        const pivot = tightHighs.length > 0 ? Math.max(...tightHighs) * 1.01 : cls[cls.length - 1] * 1.01;
+
+        // score 0-100
+        const score = Math.round(
+          (1 - Math.min(tightnessPct, 3) / 3) * 60 +
+          (volumeDryUp ? 25 : 0) +
+          Math.min(tightWeeks - 2, 3) / 3 * 15
+        );
+
+        return { tightWeeks, tightnessPct, volumeDryUp, pivot, score };
+      } catch (_) { return null; }
+    }
+
+    // ── FEATURE D: VWAP RECLAIM ───────────────────────────────────────────────
+    async function computeVWAP(sym) {
+      try {
+        const crumb = await getYahooCrumb();
+        const cp = crumb ? `&crumb=${crumb}` : '';
+        const url  = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=5m&range=1d${cp}`;
+        const url2 = `https://query2.finance.yahoo.com/v8/finance/chart/${sym}?interval=5m&range=1d${cp}`;
+        let d = null;
+        for (const u of [url, url2, PROXY + encodeURIComponent(url), PROXY2 + encodeURIComponent(url)]) {
+          try { const r = await fetchJ(u); if (r?.chart?.result?.[0]) { d = r; break; } } catch (_) {}
+        }
+        if (!d) return null;
+        const res = d.chart.result[0];
+        const q   = res.indicators.quote[0];
+        const highs  = q.high   || [];
+        const lows   = q.low    || [];
+        const closes = q.close  || [];
+        const vols   = q.volume || [];
+        // Build valid candles
+        const candles = [];
+        for (let i = 0; i < closes.length; i++) {
+          if (closes[i] != null && closes[i] > 0 && vols[i] != null) {
+            candles.push({
+              tp: ((highs[i] || closes[i]) + (lows[i] || closes[i]) + closes[i]) / 3,
+              vol: vols[i],
+              close: closes[i]
+            });
+          }
+        }
+        if (candles.length < 2) return null;
+        // Rolling VWAP
+        let cumPV = 0, cumV = 0;
+        const vwapSeries = candles.map(c => {
+          cumPV += c.tp * c.vol;
+          cumV  += c.vol;
+          return cumV > 0 ? cumPV / cumV : c.close;
+        });
+        const vwap = vwapSeries[vwapSeries.length - 1];
+        const currentPrice = candles[candles.length - 1].close;
+        const vwapDist = vwap > 0 ? (currentPrice - vwap) / vwap * 100 : 0;
+        // Determine state
+        let vwapState = currentPrice >= vwap ? 'above' : 'below';
+        // Check reclaim: was below in the 3 candles before last, now above
+        if (vwapState === 'above' && candles.length >= 4) {
+          const lookback = Math.min(3, candles.length - 1);
+          const n = candles.length;
+          let wasBelow = false;
+          for (let i = n - 1 - lookback; i < n - 1; i++) {
+            if (i >= 0 && candles[i].close < vwapSeries[i]) { wasBelow = true; break; }
+          }
+          if (wasBelow) vwapState = 'reclaiming';
+        }
+        return { vwap, vwapDist, vwapState };
+      } catch (_) { return null; }
+    }
+
+    // ── FEATURE E: PATTERN QUALITY SCORE ─────────────────────────────────────
+    async function computePQ(sym) {
+      try {
+        const crumb = await getYahooCrumb();
+        const cp = crumb ? `&crumb=${crumb}` : '';
+        const url  = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=2mo${cp}`;
+        const url2 = `https://query2.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=2mo${cp}`;
+        let d = null;
+        for (const u of [url, url2, PROXY + encodeURIComponent(url), PROXY2 + encodeURIComponent(url)]) {
+          try { const r = await fetchJ(u); if (r?.chart?.result?.[0]) { d = r; break; } } catch (_) {}
+        }
+        if (!d) return null;
+        const res    = d.chart.result[0];
+        const q      = res.indicators.quote[0];
+        const highs  = (q.high  || []).filter(v => v != null && v > 0);
+        const lows   = (q.low   || []).filter(v => v != null && v > 0);
+        const closes = (q.close || []).filter(v => v != null && v > 0);
+        if (closes.length < 10) return null;
+        const last20c = closes.slice(-20);
+        const last20h = highs.slice(-20);
+        const last20l = lows.slice(-20);
+        // baseTightness: avg (high-low)/close over last 20 days
+        const n = Math.min(last20c.length, last20h.length, last20l.length);
+        let tightnessSum = 0;
+        for (let i = 0; i < n; i++) {
+          tightnessSum += (last20h[i] - last20l[i]) / last20c[i];
+        }
+        const baseTightness = n > 0 ? tightnessSum / n : 1;
+        // baseDepth: (max_close - min_close) / max_close
+        const maxC = Math.max(...last20c);
+        const minC = Math.min(...last20c);
+        const baseDepth = maxC > 0 ? (maxC - minC) / maxC : 1;
+        // baseDuration: days in a row from most recent where price is within 15% of 20d high
+        const threshold15 = maxC * 0.85;
+        let baseDuration = 0;
+        for (let i = last20c.length - 1; i >= 0; i--) {
+          if (last20c[i] >= threshold15) baseDuration++;
+          else break;
+        }
+        const tightnessScore = Math.max(0, 100 - baseTightness * 1000);
+        const depthScore     = Math.max(0, 100 - baseDepth * 400);
+        const durationScore  = Math.min(100, baseDuration * 5);
+        const score = Math.round(tightnessScore * 0.4 + depthScore * 0.35 + durationScore * 0.25);
+        return { baseTightness, baseDepth, baseDuration, score };
+      } catch (_) { return null; }
+    }
+
+    // ── FEATURE: SECTOR RS HEATMAP ────────────────────────────────────────────
+    async function computeSectorRS() {
+      try {
+        const tickers = ['SPY', ...Object.keys(SECTOR_ETFS)];
+        const results = {};
+        // Fetch all quotes in parallel using Finnhub (fastest for single-quote)
+        await Promise.all(tickers.map(async sym => {
+          try {
+            const r = await fetchJ(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`);
+            if (r && r.c && r.pc) results[sym] = { c: r.c, pc: r.pc, pct: (r.c - r.pc) / r.pc * 100 };
+          } catch (_) {}
+        }));
+        const spyPct = results['SPY']?.pct ?? null;
+        if (spyPct === null) return [];
+        const rows = Object.entries(SECTOR_ETFS).map(([etf, name]) => {
+          const etfPct  = results[etf]?.pct ?? null;
+          const relPerf = etfPct !== null ? etfPct - spyPct : null;
+          return { etf, name, etfPct, relPerf };
+        }).filter(r => r.relPerf !== null);
+        rows.sort((a, b) => b.relPerf - a.relPerf);
+        return rows;
+      } catch (_) { return []; }
+    }
+
+    function renderSectorRS() {
+      const body = document.getElementById('sector-rs-body');
+      if (!body) return;
+      if (sectorRSData.length === 0) {
+        body.innerHTML = '<div class="sector-rs-loading">No data</div>';
+        return;
+      }
+      const maxAbs = Math.max(...sectorRSData.map(r => Math.abs(r.relPerf)), 0.01);
+      body.innerHTML = sectorRSData.map(r => {
+        const pct    = r.relPerf;
+        const isPos  = pct >= 0;
+        // barHalfPct: how much of the 50% half to fill (0–50%)
+        const barHalfPct = Math.min(50, Math.abs(pct) / maxAbs * 50);
+        const barStyle = isPos
+          ? `left:50%;width:${barHalfPct}%;background:#3fb950;`
+          : `left:${50 - barHalfPct}%;width:${barHalfPct}%;background:#f85149;`;
+        const sign = isPos ? '+' : '';
+        return `<div class="sector-rs-row">
+          <span class="sector-rs-name" title="${r.etf}">${r.name}</span>
+          <div class="sector-rs-bar-wrap">
+            <div class="sector-rs-bar" style="${barStyle}"></div>
+          </div>
+          <span class="sector-rs-val ${isPos ? 'pos' : 'neg'}">${sign}${pct.toFixed(2)}%</span>
+        </div>`;
+      }).join('');
+    }
+
+    function toggleSectorRS() {
+      const panel = document.getElementById('sector-rs-panel');
+      if (!panel) return;
+      _sectorRSOpen = !_sectorRSOpen;
+      panel.classList.toggle('open', _sectorRSOpen);
+    }
+
     let wlAlertedA   = new Set(JSON.parse(localStorage.getItem('wl_alerted_a') || '[]'));
     let wlOpen       = false;
     let wlFirstScanDone = false;
@@ -2848,10 +3560,12 @@
       const inp = document.getElementById('wl-pos-inp');
       const sym = inp.value.trim().toUpperCase();
       if (!sym) { inp.value = ''; return; }
-      if (wlPositions.includes(sym) || wlList.includes(sym)) { inp.value = ''; return; }
+      inp.value = '';
+      // If already in watchlist, move it instead of duplicating
+      if (wlList.includes(sym)) { wlMoveToPositions(sym); return; }
+      if (wlPositions.includes(sym)) { return; }
       wlPositions.push(sym);
       localStorage.setItem('wl_positions', JSON.stringify(wlPositions));
-      inp.value = '';
       updateWLCount();
       renderPosRows();
       silentScanOne(sym, false);
@@ -2866,6 +3580,7 @@
         localStorage.setItem('wl_tickers', JSON.stringify(wlList));
       }
       delete wlRatings[sym]; delete wlPrices[sym]; delete wlTimes[sym]; delete wlIndustry[sym];
+      delete wlRS[sym]; delete wlFRR[sym]; delete wlTight[sym]; delete wlVWAP[sym]; delete wlPQ[sym];
       wlAlertedA.delete(sym);
       localStorage.setItem('wl_alerted_a', JSON.stringify([...wlAlertedA]));
       updateWLCount();
@@ -2877,6 +3592,16 @@
       document.getElementById('wl-count').textContent = wlList.length + wlPositions.length;
     }
 
+    function wlMoveToPositions(sym) {
+      if (!wlList.includes(sym)) return;
+      wlList = wlList.filter(s => s !== sym);
+      if (!wlPositions.includes(sym)) wlPositions.push(sym);
+      localStorage.setItem('wl_tickers',   JSON.stringify(wlList));
+      localStorage.setItem('wl_positions', JSON.stringify(wlPositions));
+      // do NOT delete cached data (ratings, prices, industry etc.)
+      updateWLCount(); renderWLRows(); renderPosRows();
+    }
+
     function buildWLRow(sym, section) {
       const r      = wlRatings[sym];
       const price  = wlPrices[sym];
@@ -2886,6 +3611,84 @@
       const ageStr = age == null ? '' : age < 60 ? age + 's' : Math.round(age / 60) + 'm';
       const cls    = r || 'scan';
       const rowCls = [r || '', section === 'position' ? 'position-row' : ''].filter(Boolean).join(' ');
+
+      // ── Feature A badge ──────────────────────────────────────────────────
+      const rs = wlRS[sym];
+      let aBadgeCls = 'rs-grey';
+      let aTip = 'RS: loading…';
+      if (rs) {
+        if (rs.rsAtHigh)          aBadgeCls = 'rs-green';
+        else if (rs.rsSlope5d > 0) aBadgeCls = 'rs-yellow';
+        else                       aBadgeCls = 'rs-red';
+        const nhbpExtra = rs.rsNewHighBeforePrice ? ' rs-nhbp' : '';
+        aBadgeCls += nhbpExtra;
+        aTip = [
+          `RS Ratio : ${rs.rsRatio.toFixed(2)}`,
+          `At High  : ${rs.rsAtHigh ? 'yes' : 'no'}`,
+          `RS-NHBP  : ${rs.rsNewHighBeforePrice ? 'YES (best setup)' : 'no'}`,
+          `Slope 5d : ${rs.rsSlope5d > 0 ? '+' : ''}${rs.rsSlope5d.toFixed(4)}`,
+          `Diverge  : ${rs.rsDivergence ? 'yes (red day, RS up)' : 'no'}`
+        ].join('\n');
+      }
+      const aBadge = `<span class="wl-badge-abc wl-badge-a ${aBadgeCls}" onclick="event.stopPropagation()" data-tip="${aTip.replace(/"/g,'&quot;')}">A</span>`;
+
+      // ── Feature B badge ──────────────────────────────────────────────────
+      const frr = wlFRR[sym];
+      let bBadgeCls = 'frr-grey';
+      let bTip = 'FRR: loading…';
+      if (frr) {
+        if      (frr.quadrant === 'absorption')   bBadgeCls = 'frr-green';
+        else if (frr.quadrant === 'accumulation') bBadgeCls = 'frr-blue';
+        else if (frr.quadrant === 'distribution') bBadgeCls = 'frr-orange';
+        else                                       bBadgeCls = 'frr-grey';
+        bTip = [
+          `FRR Today: ${frr.frr.toFixed(2)}x`,
+          `FRR Pace : ${frr.paceFrr > 0 ? frr.paceFrr.toFixed(2) + 'x annl.' : 'n/a'}`,
+          `FRR 5d   : ${frr.frr5d.toFixed(2)}x`,
+          `Quadrant : ${frr.quadrant}`
+        ].join('\n');
+      }
+      const bBadge = `<span class="wl-badge-abc wl-badge-b ${bBadgeCls}" onclick="event.stopPropagation()" data-tip="${bTip.replace(/"/g,'&quot;')}">B</span>`;
+
+      // ── Feature C badge ──────────────────────────────────────────────────
+      const tight = wlTight[sym];
+      let cBadgeCls = 'tight-grey';
+      let cTip = 'Tight: loading…';
+      if (tight) {
+        if      (tight.tightWeeks >= 3 && tight.volumeDryUp)  cBadgeCls = 'tight-green';
+        else if (tight.tightWeeks >= 3 && !tight.volumeDryUp) cBadgeCls = 'tight-yellow';
+        else                                                    cBadgeCls = 'tight-grey';
+        cTip = `${tight.tightWeeks}w tight, ${tight.tightnessPct.toFixed(2)}% range, pivot $${tight.pivot.toFixed(2)}, vol dry-up: ${tight.volumeDryUp}, score: ${tight.score}`;
+      }
+      const cBadge = `<span class="wl-badge-abc wl-badge-c ${cBadgeCls}" onclick="event.stopPropagation()" data-tip="${cTip.replace(/"/g,'&quot;')}">C</span>`;
+
+      // ── Feature D badge — VWAP Reclaim ──────────────────────────────────────
+      const vwapData = wlVWAP[sym];
+      let vwapBadgeCls = 'vwap-grey';
+      let vwapLabel = 'VWAP';
+      let vwapTip = 'VWAP: loading…';
+      if (vwapData) {
+        if      (vwapData.vwapState === 'reclaiming') { vwapBadgeCls = 'vwap-reclaim'; vwapLabel = 'VWAP⟳'; }
+        else if (vwapData.vwapState === 'above')      { vwapBadgeCls = 'vwap-above';   vwapLabel = 'VWAP↑'; }
+        else                                          { vwapBadgeCls = 'vwap-below';   vwapLabel = 'VWAP↓'; }
+        vwapTip = `VWAP: $${vwapData.vwap.toFixed(2)}, dist: ${vwapData.vwapDist.toFixed(2)}%, state: ${vwapData.vwapState}`;
+      }
+      const vwapBadge = `<span class="wl-badge-vwap ${vwapBadgeCls}" onclick="event.stopPropagation()" data-tip="${vwapTip.replace(/"/g,'&quot;')}">${vwapLabel}</span>`;
+
+      // ── Feature E badge — Pattern Quality ───────────────────────────────────
+      const pqData = wlPQ[sym];
+      let pqBadgeCls = 'pq-grey';
+      let pqLabel = 'PQ:…';
+      let pqTip = 'PQ: loading…';
+      if (pqData) {
+        pqLabel = `PQ:${pqData.score}`;
+        if      (pqData.score >= 70) pqBadgeCls = 'pq-green';
+        else if (pqData.score >= 40) pqBadgeCls = 'pq-yellow';
+        else                         pqBadgeCls = 'pq-red';
+        pqTip = `Tightness: ${pqData.baseTightness.toFixed(4)}, Depth: ${(pqData.baseDepth*100).toFixed(1)}%, Duration: ${pqData.baseDuration}d, Score: ${pqData.score}`;
+      }
+      const pqBadge = `<span class="wl-badge-pq ${pqBadgeCls}" onclick="event.stopPropagation()" data-tip="${pqTip.replace(/"/g,'&quot;')}">${pqLabel}</span>`;
+
       return `<div class="wl-row ${rowCls}"
           draggable="true"
           data-sym="${sym}" data-section="${section}"
@@ -2901,9 +3704,34 @@
         </span>
         ${price != null ? `<span class="wl-price">$${price.toFixed(2)}</span>` : ''}
         <span class="wl-badge ${cls}">${r || '…'}</span>
+        ${aBadge}${bBadge}${cBadge}${vwapBadge}${pqBadge}
         ${ageStr ? `<span class="wl-age">${ageStr}</span>` : ''}
+        ${section === 'watch' ? `<button class="wl-move" onclick="event.stopPropagation();wlMoveToPositions('${sym}')" title="Move to Positions">→</button>` : ''}
         <button class="wl-rm" onclick="event.stopPropagation();wlRemove('${sym}','${section}')" title="Remove">✕</button>
+        ${(() => { const cs = getCompoundSignal(sym); return cs ? `<div style="margin-top:3px;padding-left:28px;"><span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;background:${cs.color}22;color:${cs.color};border:1px solid ${cs.color}55;" onclick="event.stopPropagation()" title="${cs.desc}">${cs.name}</span></div>` : ''; })()}
       </div>`;
+    }
+
+    function getCompoundSignal(sym) {
+      const rs    = wlRS[sym];
+      const frr   = wlFRR[sym];
+      const tight = wlTight[sym];
+
+      const aOn         = rs    && rs.rsAtHigh;
+      const aRising     = rs    && rs.rsSlope5d > 0;
+      const bAbsorption = frr   && frr.quadrant === 'absorption';
+      const bHigh       = frr   && frr.frr > 0.3;
+      const cOn         = tight && tight.tightWeeks >= 3 && tight.volumeDryUp;
+      const cTight      = tight && tight.tightWeeks >= 3;
+
+      if (aOn && bAbsorption && cOn)  return { name: 'TRIPLE TRIGGER',   color: '#f0c674', desc: 'RS at highs + absorption + tight base with vol dry-up. Rarest setup — drop everything.' };
+      if (aOn && cOn)                 return { name: 'STEALTH COIL',      color: '#58a6ff', desc: 'Leader coiling before breakout. RS at highs while volatility compresses. High hit rate.' };
+      if (bAbsorption && cOn)         return { name: 'ABSORPTION COIL',   color: '#3fb950', desc: 'Float being absorbed inside tight base. Supply exhausted before the move.' };
+      if (aOn && bHigh)               return { name: 'MOMENTUM IGNITION', color: '#db6d28', desc: 'RS leader with heavy float rotation. Breakout in progress — chaseable.' };
+      if (!aRising && bHigh)          return { name: 'DISTRIBUTION WARN', color: '#f85149', desc: 'Heavy volume but RS falling. Smart money may be exiting. Avoid.' };
+      if (cTight && !aOn)             return { name: 'TRAP COIL',         color: '#8b949e', desc: 'Tight base but not leading the market. High failure rate on breakout.' };
+
+      return null;
     }
 
     function sortedList(list) {
@@ -3012,6 +3840,63 @@
             sendTelegramBurnAlert(sym, data);
           }
         }
+
+        // ── Feature A/B/C enrichment (non-blocking, best-effort) ───────────
+        // Build stockDailyData from the fetchPrice yahoo chart already fetched
+        // Re-fetch daily for A/B (need ts+open+high+low+volume) — use safe wrapper
+        (async () => {
+          try {
+            const crumb = await getYahooCrumb();
+            const cp = crumb ? `&crumb=${crumb}` : '';
+            const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=14mo${cp}`;
+            const yUrl2 = `https://query2.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=14mo${cp}`;
+            let yd = null;
+            for (const u of [yUrl, yUrl2, PROXY + encodeURIComponent(yUrl), PROXY2 + encodeURIComponent(yUrl)]) {
+              try { const r = await fetchJ(u); if (r?.chart?.result?.[0]) { yd = r; break; } } catch (_) {}
+            }
+            let stockDailyData = [];
+            if (yd) {
+              const yr = yd.chart.result[0];
+              const yq = yr.indicators.quote[0];
+              const yts = yr.timestamp || [];
+              for (let i = 0; i < yts.length; i++) {
+                if (yq.close[i] != null && yq.close[i] > 0) {
+                  stockDailyData.push({
+                    ts: yts[i] * 1000,
+                    close:  yq.close[i],
+                    open:   yq.open?.[i]   ?? yq.close[i],
+                    high:   yq.high?.[i]   ?? yq.close[i],
+                    low:    yq.low?.[i]    ?? yq.close[i],
+                    volume: yq.volume?.[i] ?? 0
+                  });
+                }
+              }
+            }
+            // Feature A: RS vs SPY
+            const rsData = await computeRS(sym, stockDailyData);
+            if (rsData) wlRS[sym] = rsData;
+
+            // Feature B: Float Rotation
+            const floatShares = data.floatShares || 0;
+            const frrData = await computeFRR(sym, stockDailyData, floatShares, data.todVol || 0);
+            if (frrData) wlFRR[sym] = frrData;
+
+            // Feature C: 3-Weeks-Tight (fetches its own weekly candles)
+            const tightData = await computeTight(sym);
+            if (tightData) wlTight[sym] = tightData;
+
+            // Feature D: VWAP Reclaim (5m intraday candles)
+            const vwapData = await computeVWAP(sym);
+            if (vwapData) wlVWAP[sym] = vwapData;
+
+            // Feature E: Pattern Quality Score (daily candles)
+            const pqData = await computePQ(sym);
+            if (pqData) wlPQ[sym] = pqData;
+
+            if (wlOpen) { renderWLRows(); renderPosRows(); }
+          } catch (_) {}
+        })();
+
       } catch (_) {}
       if (wlOpen) { renderWLRows(); renderPosRows(); }
     }
@@ -3028,6 +3913,16 @@
       const t = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
       if (st) st.textContent = 'Updated ' + t;
       if (wlOpen) { renderWLRows(); renderPosRows(); }
+      // Sector RS heatmap — refresh in background
+      (async () => {
+        try {
+          const rows = await computeSectorRS();
+          if (rows && rows.length > 0) {
+            sectorRSData = rows;
+            renderSectorRS();
+          }
+        } catch (_) {}
+      })();
     }
 
     // First 30min (9:30–10:00 ET): only if todVol ≥ 30% of avgVol. After 10:00: always. Before 9:30: never.
@@ -3036,9 +3931,13 @@
       const etStr = now.toLocaleString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', hour12: false });
       const [etHour, etMin] = etStr.split(':').map(Number);
       const etTotalMin = etHour * 60 + etMin;
-      if (etTotalMin < 570)  return false;
-      if (etTotalMin >= 600) return true;
-      return data.avgVol > 0 && data.todVol >= data.avgVol * 0.30;
+      if (etTotalMin < 570)  return false;   // pre-market: never fire
+      if (etTotalMin >= 600) return true;    // after 10:00 ET: always allow
+      // First 30 min (9:30-10:00 ET): brutal pace-adjusted RVOL gate
+      const minutesElapsed = etTotalMin - 570;           // 0..30
+      const expectedFraction = minutesElapsed / 390;     // % of 6.5h session
+      const expectedVol = data.avgVol * expectedFraction;
+      return expectedVol > 0 && data.todVol >= expectedVol * 3;
     }
 
     async function sendTelegramAlert(sym, oldRating, newRating, data) {
@@ -3105,6 +4004,9 @@
     if (_sb) _sb.classList.add('active');
     setInterval(refreshWatchlist, 60000);
     if ([...wlList, ...wlPositions].length > 0) setTimeout(() => refreshWatchlist(), 1000);
+    // Sector RS panel: open by default
+    const _srPanel = document.getElementById('sector-rs-panel');
+    if (_srPanel) _srPanel.classList.add('open');
 
     function renderTradingViewChart(sym) {
       const section = document.getElementById('tv-chart-section');
@@ -3167,7 +4069,66 @@
         document.head.appendChild(s);
       }
     }
+    function openCompoundHelp() {
+      document.getElementById('compound-help-modal').classList.add('open');
+    }
+    function closeCompoundHelp() {
+      document.getElementById('compound-help-modal').classList.remove('open');
+    }
   </script>
+
+  <!-- COMPOUND SIGNAL HELP MODAL -->
+  <div class="compound-modal-overlay" id="compound-help-modal" onclick="if(event.target===this)closeCompoundHelp()">
+    <div class="compound-modal">
+      <button class="cm-close" onclick="closeCompoundHelp()">✕</button>
+      <h2>COMPOUND SIGNALS</h2>
+      <div class="cm-sub">Combine the [A] RS Line, [B] Float Rotation, and [C] 3-Weeks-Tight badges into named setups.</div>
+      <hr class="cm-divider">
+
+      <div class="cm-signal">
+        <span class="cm-signal-name" style="background:#f0c67422;color:#f0c674;border:1px solid #f0c67455;">&#127942; TRIPLE TRIGGER</span>
+        <div class="cm-signal-badges">[A&#10003; + B absorption + C&#10003;]</div>
+        <div class="cm-signal-desc">The grail setup. RS at highs, float being absorbed, tight base with volume dry-up. Rarest — act immediately.</div>
+      </div>
+
+      <div class="cm-signal">
+        <span class="cm-signal-name" style="background:#58a6ff22;color:#58a6ff;border:1px solid #58a6ff55;">&#128153; STEALTH COIL</span>
+        <div class="cm-signal-badges">[A&#10003; + C&#10003;]</div>
+        <div class="cm-signal-desc">RS leader coiling before breakout. Market doesn't see it yet. Highest historical hit rate.</div>
+      </div>
+
+      <div class="cm-signal">
+        <span class="cm-signal-name" style="background:#3fb95022;color:#3fb950;border:1px solid #3fb95055;">&#128154; ABSORPTION COIL</span>
+        <div class="cm-signal-badges">[B absorption + C&#10003;]</div>
+        <div class="cm-signal-desc">Supply being actively eaten inside a tight base. Classic pre-breakout accumulation.</div>
+      </div>
+
+      <div class="cm-signal">
+        <span class="cm-signal-name" style="background:#db6d2822;color:#db6d28;border:1px solid #db6d2855;">&#128293; MOMENTUM IGNITION</span>
+        <div class="cm-signal-badges">[A&#10003; + B high]</div>
+        <div class="cm-signal-desc">Already breaking with RS confirmation + heavy rotation. Chase with tight stop above VWAP.</div>
+      </div>
+
+      <div class="cm-signal">
+        <span class="cm-signal-name" style="background:#f8514922;color:#f85149;border:1px solid #f8514955;">&#128683; DISTRIBUTION WARN</span>
+        <div class="cm-signal-badges">[B high + A falling]</div>
+        <div class="cm-signal-desc">Heavy volume but RS deteriorating. Smart money exit. Avoid or look to short.</div>
+      </div>
+
+      <div class="cm-signal">
+        <span class="cm-signal-name" style="background:#8b949e22;color:#8b949e;border:1px solid #8b949e55;">&#9888;&#65039; TRAP COIL</span>
+        <div class="cm-signal-badges">[C tight + A not leading]</div>
+        <div class="cm-signal-desc">Tight consolidation but stock not leading market. High failure rate on breakout attempt.</div>
+      </div>
+
+      <hr class="cm-divider">
+      <div class="cm-legend">
+        <strong>BADGE LEGEND</strong><br>
+        [A] = RS Line vs SPY &nbsp; [B] = Float Rotation &nbsp; [C] = 3-Weeks-Tight<br>
+        &#128994; Green = strong &nbsp; &#128993; Yellow = partial &nbsp; &#128308; Red = weak/warn &nbsp; &#9898; Grey = no data
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>
