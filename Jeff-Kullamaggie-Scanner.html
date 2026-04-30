@@ -1733,25 +1733,12 @@
     .wl-badge-pq.pq-yellow { background: #1c1a0e; color: #e3b341; border-color: #e3b341; }
     .wl-badge-pq.pq-red    { background: #200d0d; color: #f85149; border-color: #f85149; }
     /* Tooltip for VWAP + PQ badges (reuse same style as ABC) */
-    .wl-badge-vwap[data-tip]:hover::after,
-    .wl-badge-pq[data-tip]:hover::after {
-      content: attr(data-tip);
-      position: absolute;
-      bottom: calc(100% + 6px);
-      right: 0;
-      background: #1c2128;
-      color: #e6edf3;
-      border: 1px solid #444c56;
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 10px;
-      font-family: monospace;
-      font-weight: 400;
-      line-height: 1.6;
-      white-space: pre;
-      width: 220px;
-      pointer-events: none;
-      z-index: 9999;
+    #gtip {
+      display: none; position: fixed; z-index: 99999;
+      background: #1c2128; color: #e6edf3; border: 1px solid #444c56;
+      border-radius: 8px; padding: 8px 10px; font-size: 10px;
+      font-family: monospace; line-height: 1.6; white-space: pre;
+      max-width: 260px; pointer-events: none;
     }
     /* Sector RS Heatmap Panel */
     .sector-rs-panel {
@@ -1835,26 +1822,7 @@
     .sector-rs-val.neg { color: #f85149; }
     .sector-rs-loading { color: #484f58; font-size: 10px; padding: 6px 0; }
 
-    /* Shared tooltip for ABC badges */
-    .wl-badge-abc[data-tip]:hover::after {
-      content: attr(data-tip);
-      position: absolute;
-      bottom: calc(100% + 6px);
-      right: 0;
-      background: #1c2128;
-      color: #e6edf3;
-      border: 1px solid #444c56;
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 10px;
-      font-family: monospace;
-      font-weight: 400;
-      line-height: 1.6;
-      white-space: pre;
-      width: 220px;
-      pointer-events: none;
-      z-index: 9999;
-    }
+    /* ABC/VWAP/PQ tooltips handled by #gtip JS */
   </style>
 </head>
 
@@ -3659,7 +3627,7 @@
       } else {
         aTip = '[A] RS LINE vs SPY\nLoading data...';
       }
-      const aBadge = `<span class="wl-badge-abc wl-badge-a ${aBadgeCls}" onclick="event.stopPropagation()" data-tip="${aTip.replace(/"/g,'&quot;')}">A</span>`;
+      const aBadge = `<span class="wl-badge-abc wl-badge-a ${aBadgeCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${aTip.replace(/"/g,'&quot;')}">A</span>`;
 
       // ── Feature B badge ──────────────────────────────────────────────────
       const frr = wlFRR[sym];
@@ -3687,7 +3655,7 @@
       } else {
         bTip = '[B] FLOAT ROTATION RATIO\nLoading data...';
       }
-      const bBadge = `<span class="wl-badge-abc wl-badge-b ${bBadgeCls}" onclick="event.stopPropagation()" data-tip="${bTip.replace(/"/g,'&quot;')}">B</span>`;
+      const bBadge = `<span class="wl-badge-abc wl-badge-b ${bBadgeCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${bTip.replace(/"/g,'&quot;')}">B</span>`;
 
       // ── Feature C badge ──────────────────────────────────────────────────
       const tight = wlTight[sym];
@@ -3715,7 +3683,7 @@
       } else {
         cTip = '[C] 3-WEEKS-TIGHT (Kullamaggie)\nLoading data...';
       }
-      const cBadge = `<span class="wl-badge-abc wl-badge-c ${cBadgeCls}" onclick="event.stopPropagation()" data-tip="${cTip.replace(/"/g,'&quot;')}">C</span>`;
+      const cBadge = `<span class="wl-badge-abc wl-badge-c ${cBadgeCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${cTip.replace(/"/g,'&quot;')}">C</span>`;
 
       // ── Feature D badge — VWAP Reclaim ──────────────────────────────────────
       const vwapData = wlVWAP[sym];
@@ -3738,7 +3706,7 @@
           `State : ${vwapData.vwapState}`
         ].join('\n');
       }
-      const vwapBadge = `<span class="wl-badge-vwap ${vwapBadgeCls}" onclick="event.stopPropagation()" data-tip="${vwapTip.replace(/"/g,'&quot;')}">${vwapLabel}</span>`;
+      const vwapBadge = `<span class="wl-badge-vwap ${vwapBadgeCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${vwapTip.replace(/"/g,'&quot;')}">${vwapLabel}</span>`;
 
       // ── Feature E badge — Pattern Quality ───────────────────────────────────
       const pqData = wlPQ[sym];
@@ -3764,7 +3732,7 @@
           `Score           : ${pqData.score}/100`
         ].join('\n');
       }
-      const pqBadge = `<span class="wl-badge-pq ${pqBadgeCls}" onclick="event.stopPropagation()" data-tip="${pqTip.replace(/"/g,'&quot;')}">${pqLabel}</span>`;
+      const pqBadge = `<span class="wl-badge-pq ${pqBadgeCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${pqTip.replace(/"/g,'&quot;')}">${pqLabel}</span>`;
 
       return `<div class="wl-row ${rowCls}"
           draggable="true"
@@ -4207,6 +4175,24 @@
       </div>
     </div>
   </div>
+<div id="gtip"></div>
+<script>
+  const _gtip = document.getElementById('gtip');
+  function gtip(el) {
+    const txt = el.getAttribute('data-tip'); if (!txt) return;
+    _gtip.textContent = txt;
+    _gtip.style.display = 'block';
+    const r = el.getBoundingClientRect();
+    let top = r.top - _gtip.offsetHeight - 8;
+    let left = r.right - _gtip.offsetWidth;
+    if (top < 4) top = r.bottom + 6;
+    if (left < 4) left = 4;
+    _gtip.style.top = top + 'px';
+    _gtip.style.left = left + 'px';
+  }
+  function ghide() { _gtip.style.display = 'none'; }
+  document.addEventListener('scroll', ghide, true);
+</script>
 </body>
 
 </html>
