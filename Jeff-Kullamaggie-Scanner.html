@@ -1265,13 +1265,13 @@
       display: flex;
     }
     .wl-combined.open {
-      width: 680px;
+      width: 820px;
       border-left: 1px solid #30363d;
     }
 
     /* POSITIONS PANEL */
     .wl-pos-panel {
-      width: 220px;
+      width: 340px;
       flex-shrink: 0;
       background: #0d1117;
       border-right: 1px solid #30363d;
@@ -1604,7 +1604,8 @@
     .wl-row.A { border-left-color: #3fb950; }
     .wl-row.B { border-left-color: #e3b341; }
     .wl-row.C { border-left-color: #f85149; }
-    .wl-row.position-row { border-left-color: #3fb950; background: #040e06; }
+    .wl-row.position-row { border-left-color: #3fb950; background: #040e06; flex-wrap: wrap; }
+    .wl-pos-badges-row { width: 100%; display: flex; gap: 5px; flex-wrap: wrap; padding-left: 20px; margin-top: 3px; }
     .wl-row.dragging { opacity: .35; }
     .wl-row.drag-over { border-color: #58a6ff !important; background: #131d28; }
 
@@ -1732,13 +1733,30 @@
     .wl-badge-pq.pq-green  { background: #0d2010; color: #3fb950; border-color: #3fb950; }
     .wl-badge-pq.pq-yellow { background: #1c1a0e; color: #e3b341; border-color: #e3b341; }
     .wl-badge-pq.pq-red    { background: #200d0d; color: #f85149; border-color: #f85149; }
+    /* Position exit/re-entry badges */
+    .wl-pos-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: monospace; font-size: 9px; font-weight: 800;
+      padding: 0 5px; height: 18px; border-radius: 4px; cursor: pointer;
+      flex-shrink: 0; border: 1px solid transparent; white-space: nowrap;
+    }
+    .wl-pos-badge.tp-grey   { background: #21262d; color: #484f58; border-color: #30363d; }
+    .wl-pos-badge.tp-yellow { background: #1c1a0e; color: #e3b341; border-color: #e3b341; }
+    .wl-pos-badge.tp-orange { background: #1a0800; color: #f0883e; border-color: #f0883e; box-shadow: 0 0 4px 1px #f0883e55; }
+    .wl-pos-badge.re-grey   { background: #21262d; color: #484f58; border-color: #30363d; }
+    .wl-pos-badge.re-green  { background: #0d2010; color: #3fb950; border-color: #3fb950; box-shadow: 0 0 4px 1px #3fb95055; }
+    .wl-pos-badge.hist-grey { background: #21262d; color: #484f58; border-color: #30363d; }
+    .wl-pos-badge.hist-blue { background: #0d1728; color: #58a6ff; border-color: #58a6ff; }
+    .wl-pos-badge.ind-grey  { background: #21262d; color: #484f58; border-color: #30363d; }
+    .wl-pos-badge.ind-green { background: #0d2010; color: #3fb950; border-color: #3fb950; }
+    .wl-pos-badge.ind-red   { background: #200d0d; color: #f85149; border-color: #f85149; }
     /* Tooltip for VWAP + PQ badges (reuse same style as ABC) */
     #gtip {
       display: none; position: fixed; z-index: 99999;
       background: #1c2128; color: #e6edf3; border: 1px solid #444c56;
       border-radius: 8px; padding: 8px 10px; font-size: 10px;
-      font-family: monospace; line-height: 1.6; white-space: pre;
-      max-width: 260px; pointer-events: none;
+      font-family: monospace; line-height: 1.6; white-space: pre-wrap;
+      max-width: 280px; pointer-events: none;
     }
     /* Sector RS Heatmap Panel */
     .sector-rs-panel {
@@ -2070,7 +2088,7 @@
       const lo52 = Math.min(...lows.slice(-lb).filter(v => v > 0));
       const rangePos = hi52 > lo52 ? (price - lo52) / (hi52 - lo52) : 0.5;
 
-      const atrExt         = atr > 0 ? (price - ma50) / atr : 0;
+      const atrExt         = (atr > 0 && ma50 > 0 && price > 0) ? ((price - ma50) / ma50) / (atr / price) : 0;
       const lodDist        = atr > 0 ? (price - lod) / atr : 0;
       const intradayHighDist = atr > 0 ? (intradayHigh - lod) / atr : 0;
       const setupBurned    = intradayHighDist >= 0.5;
@@ -2721,7 +2739,7 @@
       </div>
       <div class="card">
         <h3>Position Size</h3>
-        <div class="inp-g"><label>Account ($)</label><input type="number" id="pk" placeholder="25000" step="100"></div>
+        <div class="inp-g"><label>Account ($)</label><input type="number" id="pk" placeholder="25000" value="25000" step="100"></div>
         <div class="inp-g"><label>R-Risk (%)</label><input type="number" id="pr" value="1.5" step="0.1"></div>
         <div class="inp-g"><label>Entry ($)</label><input type="number" id="pe" value="${f(d.price)}" step="0.01" class="af"></div>
         <div class="inp-g"><label>Stop / LoD ($)</label><input type="number" id="ps" value="${f(d.lod)}" step="0.01" class="af"></div>
@@ -3059,15 +3077,21 @@
       else if (ext >= 3) { v.style.color = '#e3b341'; d2.textContent = '⚠ WARN — 3–4x, caution. Tight stop required.'; }
       else { v.style.color = '#3fb950'; d2.textContent = '✅ PASS — below 3x, gutes Einstiegsfenster.'; }
     }
-    function cPos() {
+    window.cPos = function cPos() {
       const k = parseFloat(document.getElementById('pk')?.value), r = parseFloat(document.getElementById('pr')?.value), e = parseFloat(document.getElementById('pe')?.value), s = parseFloat(document.getElementById('ps')?.value);
-      if (!k || !r || !e || !s || e <= s) return;
+      const el = document.getElementById('rps');
+      const v = document.getElementById('rpsv'), d2 = document.getElementById('rpsd');
+      if (!k || !r || !e || !s || e <= s) {
+        el.classList.add('show');
+        v.textContent = '—'; v.style.color = '#f85149';
+        d2.textContent = e <= s ? 'Entry must be above Stop.' : 'Please fill all fields.';
+        return;
+      }
       const risk = k * (r / 100), dist = e - s, shares = Math.floor(risk / dist), total = shares * e;
-      const el = document.getElementById('rps'); el.classList.add('show');
-      document.getElementById('rpsv').textContent = shares.toLocaleString() + ' Shares';
-      document.getElementById('rpsv').style.color = '#58a6ff';
-      document.getElementById('rpsd').textContent = `Risk: $${risk.toFixed(0)} (${r}R) · Stop-Dist: $${dist.toFixed(2)} · Position Value: $${total.toFixed(0)}`;
-    }
+      el.classList.add('show');
+      v.textContent = shares.toLocaleString() + ' Shares'; v.style.color = '#58a6ff';
+      d2.textContent = `Risk: $${risk.toFixed(0)} (${r}R) · Stop-Dist: $${dist.toFixed(2)} · Position Value: $${total.toFixed(0)}`;
+    };
 
     function setHTML(h) { document.getElementById('mc').innerHTML = h; }
 
@@ -3086,6 +3110,9 @@
     let wlTight = {}; // Feature C: 3-weeks-tight data per ticker
     let wlVWAP = {}; // Feature D: VWAP reclaim status per ticker
     let wlPQ   = {}; // Feature E: Pattern quality score per ticker
+    let wlRSInd      = {}; // Feature A (Ind): RS vs own industry ETF
+    let wlPosSignals = {}; // Position: exit/re-entry signals
+    let wlHistSupport = {}; // Position: historical MA support character
     // Sector RS heatmap state
     const INDUSTRY_ETFS = {
       'SMH':  'Semiconductors',
@@ -3116,6 +3143,44 @@
     let spyDailyCloses = null;      // array of {close, ts} sorted oldest→newest
     let _spyFetchPromise = null;    // dedup concurrent fetches
 
+    // ── Industry ETF mapping (Finnhub industry → one of the 20 ETFs) ──────────
+    const INDUSTRY_ETF_MAP = {
+      'Semiconductors': 'SMH', 'Semiconductor Equipment & Materials': 'SMH',
+      'Software': 'IGV', 'Software—Application': 'IGV', 'Software—Infrastructure': 'IGV',
+      'Technology': 'IGV', 'Internet Content & Information': 'IGV', 'Communication Services': 'IGV',
+      'Telecommunications': 'IGV',
+      'Cybersecurity': 'HACK', 'Security & Protection Services': 'HACK',
+      'Biotechnology': 'XBI',
+      'Drug Manufacturers—General': 'IBB', 'Drug Manufacturers—Specialty & Generic': 'IBB',
+      'Pharmaceuticals': 'IBB', 'Healthcare': 'IBB', 'Medical Devices': 'IBB',
+      'Health Information Services': 'IBB', 'Diagnostics & Research': 'IBB',
+      'Genomics': 'ARKG', 'Biotechnology—Research': 'ARKG',
+      'Oil & Gas E&P': 'XOP', 'Oil & Gas': 'XOP', 'Oil & Gas Integrated': 'XOP',
+      'Oil & Gas Midstream': 'XOP', 'Oil, Gas & Consumable Fuels': 'XOP', 'Energy': 'XOP',
+      'Aerospace & Defense': 'ITA',
+      'Banks—Diversified': 'KBE', 'Banks—Regional': 'KBE', 'Banks': 'KBE',
+      'Financial Services': 'FINX', 'Financial Data & Stock Exchanges': 'FINX',
+      'Capital Markets': 'FINX', 'Credit Services': 'FINX', 'Insurance': 'FINX',
+      'Financials': 'FINX',
+      'Specialty Retail': 'XRT', 'Department Stores': 'XRT', 'Grocery Stores': 'XRT',
+      'Retail': 'XRT', 'Consumer Discretionary': 'XRT', 'Internet Retail': 'XRT',
+      'Consumer Staples': 'XRT',
+      'Residential Construction': 'ITB', 'Homebuilding': 'ITB',
+      'Real Estate': 'XHB', 'REIT': 'XHB',
+      'Steel': 'XME', 'Gold': 'XME', 'Silver': 'XME', 'Copper': 'XME',
+      'Metals & Mining': 'XME', 'Basic Materials': 'XME', 'Materials': 'XME',
+      'Lithium': 'LIT', 'Electrical Equipment & Parts': 'LIT',
+      'Infrastructure': 'PAVE', 'Engineering & Construction': 'PAVE',
+      'Building Products & Equipment': 'PAVE', 'Industrials': 'PAVE', 'Machinery': 'PAVE',
+      'Airlines': 'JETS', 'Air Freight & Logistics': 'JETS', 'Transportation': 'JETS',
+      'Industrial Machinery': 'ROBO', 'Scientific & Technical Instruments': 'ROBO',
+      'Farm Products': 'MOO', 'Agricultural Inputs': 'MOO',
+      'Lumber & Wood Production': 'WOOD', 'Paper & Paper Products': 'WOOD',
+    };
+    function getIndustryETF(ind) { return ind ? (INDUSTRY_ETF_MAP[ind] || null) : null; }
+    let _industryEtfCloses = {};
+    const _industryEtfPromises = {};
+
     async function ensureSPYDaily() {
       if (spyDailyCloses !== null) return spyDailyCloses;
       if (_spyFetchPromise) return _spyFetchPromise;
@@ -3135,10 +3200,14 @@
           if (!d) { spyDailyCloses = []; return []; }
           const res = d.chart.result[0];
           const ts  = res.timestamp || [];
-          const cls = res.indicators.quote[0].close || [];
+          const q0  = res.indicators.quote[0];
           const out = [];
           for (let i = 0; i < ts.length; i++) {
-            if (cls[i] != null && cls[i] > 0) out.push({ ts: ts[i] * 1000, close: cls[i] });
+            const c = q0.close?.[i];
+            if (c != null && c > 0) out.push({
+              ts: ts[i] * 1000, close: c,
+              high: q0.high?.[i] ?? c, low: q0.low?.[i] ?? c
+            });
           }
           spyDailyCloses = out;
           return out;
@@ -3210,6 +3279,269 @@
           rsDivergence
         };
       } catch (_) { return null; }
+    }
+
+    // ── FEATURE: RS vs Industry ETF ──────────────────────────────────────────
+    async function ensureIndustryETF(etf) {
+      if (_industryEtfCloses[etf]) return _industryEtfCloses[etf];
+      if (_industryEtfPromises[etf]) return _industryEtfPromises[etf];
+      _industryEtfPromises[etf] = (async () => {
+        try {
+          const url = `https://query1.finance.yahoo.com/v8/finance/chart/${etf}?interval=1d&range=14mo`;
+          let r = null;
+          for (const u of [url, PROXY + encodeURIComponent(url), PROXY2 + encodeURIComponent(url)]) {
+            try { r = await fetchJ(u); if (r?.chart?.result?.[0]) break; } catch(_) {}
+          }
+          const res = r?.chart?.result?.[0];
+          if (!res) { _industryEtfCloses[etf] = []; return []; }
+          const q = res.indicators.quote[0];
+          const out = [];
+          for (let i = 0; i < (res.timestamp || []).length; i++) {
+            const c = q.close[i];
+            if (c != null && c > 0)
+              out.push({ ts: res.timestamp[i]*1000, close: c, high: q.high?.[i] ?? c, low: q.low?.[i] ?? c });
+          }
+          _industryEtfCloses[etf] = out;
+          return out;
+        } catch(_) { _industryEtfCloses[etf] = []; return []; }
+      })();
+      const result = await _industryEtfPromises[etf];
+      delete _industryEtfPromises[etf];
+      return result;
+    }
+
+    async function computeRSvsIndustry(sym, stockDailyData, industryEtf) {
+      if (!industryEtf || !stockDailyData || stockDailyData.length < 70) return null;
+      try {
+        const etfCloses = await ensureIndustryETF(industryEtf);
+        if (!etfCloses || etfCloses.length < 70) return null;
+        const etfMap = {};
+        etfCloses.forEach(b => { etfMap[new Date(b.ts).toDateString()] = b.close; });
+        const aligned = [];
+        for (const b of stockDailyData) {
+          const dk = new Date(b.ts).toDateString();
+          if (etfMap[dk] && b.close > 0)
+            aligned.push({ stockClose: b.close, stockOpen: b.open || b.close, etfClose: etfMap[dk], ts: b.ts });
+        }
+        if (aligned.length < 70) return null;
+        const ratios = aligned.map(b => b.stockClose / b.etfClose);
+        const n = ratios.length;
+        const baseIdx = Math.max(0, n - 64);
+        const baseRatio = ratios[baseIdx] || ratios[0];
+        const normalized = ratios.map(r => r / baseRatio);
+        const lb = Math.min(252, n);
+        const rsHigh52 = Math.max(...normalized.slice(-lb));
+        const rsNow = normalized[n - 1];
+        const rsAtHigh = rsNow >= rsHigh52 * 0.98;
+        const stockHigh52 = Math.max(...aligned.map(b => b.stockClose).slice(-lb));
+        const stockNow = aligned[n - 1].stockClose;
+        const rsNewHighBeforePrice = rsAtHigh && stockNow < stockHigh52 * 0.95;
+        const last5 = normalized.slice(-5);
+        const rsSlope5d = last5[last5.length - 1] - last5[0];
+        const todayBar = aligned[n - 1];
+        const rsDivergence = (todayBar.stockClose < todayBar.stockOpen) && (rsNow > (normalized[n - 2] || rsNow));
+        return { rsRatio: rsNow, rsAtHigh, rsNewHighBeforePrice, rsSlope5d, rsDivergence, industryEtf };
+      } catch(_) { return null; }
+    }
+
+    // ── POSITION SIGNAL HELPERS ───────────────────────────────────────────────
+    function _calcEMALast(closes, period) {
+      if (closes.length < period) return null;
+      const k = 2 / (period + 1);
+      let ema = closes.slice(0, period).reduce((a,b) => a+b, 0) / period;
+      for (let i = period; i < closes.length; i++) ema = closes[i]*k + ema*(1-k);
+      return ema;
+    }
+    function _calcSMALast(closes, period) {
+      if (closes.length < period) return null;
+      return closes.slice(-period).reduce((a,b) => a+b, 0) / period;
+    }
+    function _calcATR14Last(bars) {
+      if (bars.length < 15) return null;
+      const recent = bars.slice(-15);
+      let sum = 0;
+      for (let i = 1; i < recent.length; i++) {
+        const h = recent[i].high || recent[i].close;
+        const l = recent[i].low  || recent[i].close;
+        const pc = recent[i-1].close;
+        sum += Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc));
+      }
+      return sum / 14;
+    }
+
+    // VARS over last N trading days between two aligned bar arrays (each: {close,high,low})
+    function _computeVARS5d(etfBars, spyBars) {
+      // Align by trading date
+      const spyMap = {};
+      spyBars.forEach(b => { spyMap[new Date(b.ts).toDateString()] = b; });
+      const aligned = [];
+      for (const b of etfBars) {
+        const s = spyMap[new Date(b.ts).toDateString()];
+        if (s) aligned.push({ e: b, s });
+      }
+      if (aligned.length < 20) return null;
+      const recent = aligned.slice(-20);
+      const ATR = 14;
+      const eATR = [], sATR = [];
+      for (let i = 0; i < recent.length; i++) {
+        let es = 0, ss = 0, cnt = 0;
+        for (let j = Math.max(1, i - ATR + 1); j <= i; j++) {
+          const ep = recent[j-1]?.e, eq = recent[j].e;
+          const sp2 = recent[j-1]?.s, sq = recent[j].s;
+          if (!ep || !sp2) continue;
+          es += Math.max(eq.high-eq.low, Math.abs(eq.high-ep.close), Math.abs(eq.low-ep.close));
+          ss += Math.max(sq.high-sq.low, Math.abs(sq.high-sp2.close), Math.abs(sq.low-sp2.close));
+          cnt++;
+        }
+        eATR.push(cnt > 0 ? es/cnt : 0.0001);
+        sATR.push(cnt > 0 ? ss/cnt : 0.0001);
+      }
+      const n = recent.length;
+      let vars5 = 0;
+      for (let i = Math.max(1, n-5); i < n; i++) {
+        vars5 += (recent[i].e.close - recent[i-1].e.close) / eATR[i]
+               - (recent[i].s.close - recent[i-1].s.close) / sATR[i];
+      }
+      return vars5;
+    }
+
+    function computePosSignals(stockDailyData, industryEtf) {
+      if (!stockDailyData || stockDailyData.length < 55) return null;
+      try {
+        const closes = stockDailyData.map(b => b.close);
+        const n = closes.length;
+        const price = closes[n-1];
+        const ema10 = _calcEMALast(closes, 10);
+        const ema20 = _calcEMALast(closes, 20);
+        const sma50 = _calcSMALast(closes, 50);
+        const atr14 = _calcATR14Last(stockDailyData);
+        // ATR multiple: how many ATR% (vs 50SMA) is price above 50SMA
+        // = ((price-sma50)/sma50) / (atr14/price)  → matches ATR% display in scanner
+        const atrMultiple = (sma50 && atr14 && atr14 > 0 && price > 0)
+          ? ((price - sma50) / sma50) / (atr14 / price) : null;
+        const dist10 = ema10 ? Math.abs(price - ema10) / price : null;
+        const dist20 = ema20 ? Math.abs(price - ema20) / price : null;
+        const dist50 = sma50 ? Math.abs(price - sma50) / price : null;
+        let indTrend = null;
+        const ec = industryEtf ? _industryEtfCloses[industryEtf] : null;
+        if (ec?.length >= 20 && spyDailyCloses?.length >= 20) {
+          const vars5 = _computeVARS5d(ec, spyDailyCloses);
+          if (vars5 !== null) indTrend = { vars5, etf: industryEtf };
+        }
+        return { atrMultiple, ema10, ema20, sma50, atr14, dist10, dist20, dist50, indTrend, price };
+      } catch(_) { return null; }
+    }
+
+    async function computeHistSupport(sym) {
+      try {
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=2y`;
+        let r = null;
+        for (const u of [url, PROXY + encodeURIComponent(url), PROXY2 + encodeURIComponent(url)]) {
+          try { r = await fetchJ(u); if (r?.chart?.result?.[0]) break; } catch(_) {}
+        }
+        if (!r?.chart?.result?.[0]) return null;
+        const res = r.chart.result[0];
+        const q = res.indicators.quote[0];
+        const bars = [];
+        for (let i = 0; i < (res.timestamp || []).length; i++) {
+          if (q.close[i] != null && q.close[i] > 0)
+            bars.push({ ts: res.timestamp[i]*1000, close: q.close[i], high: q.high?.[i] ?? q.close[i], low: q.low?.[i] ?? q.close[i] });
+        }
+        if (bars.length < 120) return null;
+        const n = bars.length;
+
+        // ── Bar-by-bar indicators (no look-ahead bias) ─────────────────────
+        const ema10arr = new Array(n), ema20arr = new Array(n);
+        const sma50arr = new Array(n), atr14arr = new Array(n);
+        const k10 = 2/11, k20 = 2/21;
+        let e10 = bars.slice(0,10).map(b=>b.close).reduce((a,b)=>a+b,0)/10;
+        let e20 = bars.slice(0,20).map(b=>b.close).reduce((a,b)=>a+b,0)/20;
+        for (let i = 0; i < n; i++) {
+          if (i >= 10) e10 = bars[i].close*k10 + e10*(1-k10);
+          if (i >= 20) e20 = bars[i].close*k20 + e20*(1-k20);
+          ema10arr[i] = e10; ema20arr[i] = e20;
+          sma50arr[i] = i >= 49 ? bars.slice(i-49,i+1).map(b=>b.close).reduce((a,b)=>a+b,0)/50 : null;
+          let atrS = 0, atrC = 0;
+          for (let j = Math.max(1, i-13); j <= i; j++) {
+            atrS += Math.max(bars[j].high-bars[j].low, Math.abs(bars[j].high-bars[j-1].close), Math.abs(bars[j].low-bars[j-1].close));
+            atrC++;
+          }
+          atr14arr[i] = atrC > 0 ? atrS/atrC : (bars[i].high-bars[i].low || 0.01);
+        }
+
+        // ── Pass 1: Identify pullback candidates with flexible trend filter ─
+        // Trend: Price > SMA50 AND 20EMA slope > 0 (current > 5 bars ago)
+        // Pullback trigger: bar high drops > 0.8 * ATR(that bar) from rolling high
+        // Hit: Low OR Close of pullback-low candle within 0.5 * ATR(that bar) of any MA
+        const candidates = [];
+        let rollingHigh = null, inPull = false;
+        let pullLow = Infinity, pullLowIdx = -1, pullLowHigh = null;
+        for (let i = 55; i < n; i++) {
+          const s50 = sma50arr[i];
+          if (!s50) continue;
+          const e20i = ema20arr[i], atr = atr14arr[i];
+          if (!(bars[i].close > s50 && (i >= 5 ? e20i > ema20arr[i-5] : false))) {
+            rollingHigh = null; inPull = false;
+            pullLow = Infinity; pullLowIdx = -1; pullLowHigh = null; continue;
+          }
+          if (bars[i].high > (rollingHigh ?? 0)) {
+            if (inPull && pullLowIdx >= 0) {
+              const li = pullLowIdx, thresh = 0.5 * atr14arr[li];
+              const low = bars[li].low, cls = bars[li].close;
+              const d10 = Math.min(Math.abs(low - ema10arr[li]), Math.abs(cls - ema10arr[li]));
+              const d20 = Math.min(Math.abs(low - ema20arr[li]), Math.abs(cls - ema20arr[li]));
+              const s50l = sma50arr[li];
+              const d50 = s50l ? Math.min(Math.abs(low - s50l), Math.abs(cls - s50l)) : Infinity;
+              const w10 = d10 < thresh, w20 = d20 < thresh, w50 = d50 < thresh;
+              if (w10 || w20 || w50) {
+                const minD = Math.min(w10?d10:Infinity, w20?d20:Infinity, w50?d50:Infinity);
+                const ma = (minD===d10&&w10)?'ema10':(minD===d20&&w20)?'ema20':'sma50';
+                candidates.push({ barIdx: li, pullLowHigh: pullLowHigh, ma, ts: bars[li].ts });
+              }
+            }
+            rollingHigh = bars[i].high; inPull = false;
+            pullLow = Infinity; pullLowIdx = -1; pullLowHigh = null;
+          } else {
+            if (!inPull && rollingHigh !== null && bars[i].high < rollingHigh - 0.8 * atr) inPull = true;
+            if (inPull && bars[i].low < pullLow) {
+              pullLow = bars[i].low; pullLowIdx = i; pullLowHigh = bars[i].high;
+            }
+          }
+        }
+
+        // ── Pass 2: Confirm bounces — 2 consecutive closes > pullLow candle's high
+        const bounces = [];
+        for (const c of candidates) {
+          const plHigh = c.pullLowHigh;
+          for (let k = c.barIdx + 1; k < Math.min(c.barIdx + 15, n - 1); k++) {
+            if (bars[k].close > plHigh && bars[k+1].close > plHigh) {
+              bounces.push({ barIdx: c.barIdx, ma: c.ma, ts: c.ts });
+              break;
+            }
+          }
+        }
+        if (bounces.length === 0) return null;
+
+        // ── Time-weighted scoring (linear: 1mo=1.0, 24mo=0.1) ─────────────
+        const lastTs = bars[n-1].ts;
+        const scores = { ema10: 0, ema20: 0, sma50: 0 };
+        const voteCounts = { ema10: 0, ema20: 0, sma50: 0 };
+        for (const b of bounces) {
+          const ageMonths = (lastTs - b.ts) / (1000*60*60*24*30.44);
+          const weight = Math.max(0.1, 1.0 - (ageMonths/24)*0.9);
+          scores[b.ma] += weight; voteCounts[b.ma]++;
+        }
+        const scoreTotal = scores.ema10 + scores.ema20 + scores.sma50;
+        if (scoreTotal === 0) return null;
+
+        // ── Winner, cluster detection, confidence ──────────────────────────
+        const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+        const [winner, winScore] = sorted[0];
+        const [second, secScore] = sorted[1];
+        const isCluster = winScore > 0 && secScore > 0 && (winScore-secScore)/winScore <= 0.15;
+        const confidence = Math.round(winScore / scoreTotal * 100);
+        return { support: winner, winner, second, isCluster, confidence, scores, votes: voteCounts, total: bounces.length };
+      } catch(_) { return null; }
     }
 
     // ── FEATURE B: FLOAT ROTATION RATIO ──────────────────────────────────────
@@ -3495,7 +3827,7 @@
     function toggleWL() {
       wlOpen = !wlOpen;
       document.getElementById('wl-combined').classList.toggle('open', wlOpen);
-      document.getElementById('wl-toggle-tab').style.right = wlOpen ? '680px' : '0';
+      document.getElementById('wl-toggle-tab').style.right = wlOpen ? '820px' : '0';
       document.getElementById('wl-tab-arrow').textContent = wlOpen ? '▶' : '◀';
       if (wlOpen) { renderWLRows(); renderPosRows(); }
     }
@@ -3533,7 +3865,8 @@
       const inp = document.getElementById('wl-inp');
       const sym = inp.value.trim().toUpperCase();
       if (!sym) { inp.value = ''; return; }
-      if (wlList.includes(sym) || wlPositions.includes(sym)) { inp.value = ''; return; }
+      if (wlList.includes(sym)) { inp.value = ''; return; }
+      if (wlPositions.includes(sym)) { inp.value = ''; wlMoveToWatchlist(sym); return; }
       wlList.push(sym);
       localStorage.setItem('wl_tickers', JSON.stringify(wlList));
       inp.value = '';
@@ -3567,6 +3900,7 @@
       }
       delete wlRatings[sym]; delete wlPrices[sym]; delete wlTimes[sym]; delete wlIndustry[sym]; delete wlNames[sym];
       delete wlRS[sym]; delete wlFRR[sym]; delete wlTight[sym]; delete wlVWAP[sym]; delete wlPQ[sym];
+      delete wlRSInd[sym]; delete wlPosSignals[sym]; delete wlHistSupport[sym];
       wlAlertedA.delete(sym);
       localStorage.setItem('wl_alerted_a', JSON.stringify([...wlAlertedA]));
       updateWLCount();
@@ -3576,6 +3910,15 @@
 
     function updateWLCount() {
       document.getElementById('wl-count').textContent = wlList.length + wlPositions.length;
+    }
+
+    function wlMoveToWatchlist(sym) {
+      if (!wlPositions.includes(sym)) return;
+      wlPositions = wlPositions.filter(s => s !== sym);
+      if (!wlList.includes(sym)) wlList.push(sym);
+      localStorage.setItem('wl_tickers',   JSON.stringify(wlList));
+      localStorage.setItem('wl_positions', JSON.stringify(wlPositions));
+      updateWLCount(); renderWLRows(); renderPosRows();
     }
 
     function wlMoveToPositions(sym) {
@@ -3600,7 +3943,9 @@
       const rowCls = [r || '', section === 'position' ? 'position-row' : ''].filter(Boolean).join(' ');
 
       // ── Feature A badge ──────────────────────────────────────────────────
-      const rs = wlRS[sym];
+      const rsInd = wlRSInd[sym];
+      const rs = rsInd || wlRS[sym];
+      const rsRef = rsInd?.industryEtf || 'SPY';
       let aBadgeCls = 'rs-grey';
       let aTip = 'RS: loading…';
       if (rs) {
@@ -3610,12 +3955,13 @@
         const nhbpExtra = rs.rsNewHighBeforePrice ? ' rs-nhbp' : '';
         aBadgeCls += nhbpExtra;
         aTip = [
-          '[A] RS LINE vs SPY',
-          'Measures if this stock outperforms the market.',
-          '🟢 Green  = RS at 52w high (true leader)',
+          `[A] RS vs ${rsRef} (own industry)`,
+          `Is this stock a leader within its industry?`,
+          `Compared to: ${rsRef}`,
+          '🟢 Green  = RS at 52w high vs industry (true leader)',
           '✨ Gold   = RS high BEFORE price high (best setup!)',
-          '🟡 Yellow = RS rising (momentum building)',
-          '🔴 Red    = RS falling (avoid)',
+          '🟡 Yellow = RS rising vs industry',
+          '🔴 Red    = underperforming its industry → find leader',
           '⚪ Grey   = loading...',
           '────────────────────────────',
           `RS Ratio : ${rs.rsRatio.toFixed(2)}`,
@@ -3625,7 +3971,7 @@
           `Divergence: ${rs.rsDivergence ? 'YES (red day, RS up)' : 'no'}`
         ].join('\n');
       } else {
-        aTip = '[A] RS LINE vs SPY\nLoading data...';
+        aTip = '[A] RS vs Industry\nLoading data...';
       }
       const aBadge = `<span class="wl-badge-abc wl-badge-a ${aBadgeCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${aTip.replace(/"/g,'&quot;')}">A</span>`;
 
@@ -3734,6 +4080,106 @@
       }
       const pqBadge = `<span class="wl-badge-pq ${pqBadgeCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${pqTip.replace(/"/g,'&quot;')}">${pqLabel}</span>`;
 
+      // ── Position badges (exit/re-entry signals) — order: TP · HIST · RE · IND
+      let posBadges = '';
+      if (section === 'position') {
+        const ps = wlPosSignals[sym];
+        const hs = wlHistSupport[sym];
+        const maLabels = { ema10: '10EMA', ema20: '20EMA', sma50: '50SMA' };
+
+        // TP badge
+        let tpCls = 'tp-grey', tpLabel = 'TP:–';
+        let tpTip = '[TP] TAKE PROFIT SIGNAL\nLoading data...';
+        if (ps && ps.atrMultiple !== null) {
+          const m = ps.atrMultiple;
+          tpLabel = `TP:${m.toFixed(1)}×`;
+          tpCls = m >= 8 ? 'tp-orange' : m >= 4 ? 'tp-yellow' : 'tp-grey';
+          tpTip = [
+            '[TP] TAKE PROFIT SIGNAL',
+            'Distance from 50SMA in ATR(14) multiples.',
+            '🟠 8×+  = extended — consider taking profits!',
+            '🟡 4-8× = elevated — watch for distribution',
+            '⚪ <4×  = room to run',
+            '────────────────────────────',
+            `50SMA   : $${ps.sma50?.toFixed(2) || 'n/a'}`,
+            `ATR14   : $${ps.atr14?.toFixed(2) || 'n/a'}`,
+            `Multiple: ${m.toFixed(2)}× ATR above 50SMA`
+          ].join('\n');
+        }
+        const tpBadge = `<span class="wl-pos-badge ${tpCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${tpTip.replace(/"/g,'&quot;')}">${tpLabel}</span>`;
+
+        // HIST badge (shows characteristic support MA from 2y analysis)
+        let histCls = 'hist-grey', histLabel = 'HIST:…';
+        let histTip = '[HIST] HISTORICAL MA SUPPORT\nLoading 2y data...';
+        if (hs) {
+          const maShort = { ema10: '10', ema20: '20', sma50: '50' };
+          histLabel = hs.isCluster
+            ? `${maShort[hs.winner]}+${maShort[hs.second]}`
+            : (maLabels[hs.winner] || '?');
+          histCls = 'hist-blue';
+          histTip = [
+            '[HIST] CHARACTERISTIC SUPPORT LEVEL',
+            'Volatility-adaptive 2y pullback analysis.',
+            'Trend-filtered: only counts momentum phases.',
+            hs.isCluster ? `⚡ CLUSTER: ${maLabels[hs.winner]} & ${maLabels[hs.second]} both key` : `🔵 Clear winner: ${maLabels[hs.winner]}`,
+            `Confidence: ${hs.confidence}%`,
+            '────────────────────────────',
+            `10EMA: ${hs.votes.ema10}× bounces (score ${hs.scores.ema10.toFixed(2)})`,
+            `20EMA: ${hs.votes.ema20}× bounces (score ${hs.scores.ema20.toFixed(2)})`,
+            `50SMA: ${hs.votes.sma50}× bounces (score ${hs.scores.sma50.toFixed(2)})`,
+            `Total pullbacks analyzed: ${hs.total}`
+          ].join('\n');
+        }
+        const histBadge = `<span class="wl-pos-badge ${histCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${histTip.replace(/"/g,'&quot;')}">${histLabel}</span>`;
+
+        // RE badge — uses HIST character to decide WHICH MA to watch
+        let reCls = 're-grey', reLabel = 'RE:–';
+        let reTip = '[RE] RE-ENTRY OPPORTUNITY\nLoading data...';
+        if (ps && hs) {
+          const distMap  = { ema10: ps.dist10, ema20: ps.dist20, sma50: ps.dist50 };
+          const priceMap = { ema10: ps.ema10,  ema20: ps.ema20,  sma50: ps.sma50  };
+          const watchMAs = hs.isCluster ? [hs.winner, hs.second] : [hs.winner];
+          const nearMA = watchMAs.find(ma => distMap[ma] !== null && distMap[ma] <= 0.025);
+          const watchLabel = hs.isCluster ? `${maLabels[hs.winner]}/${maLabels[hs.second]}` : maLabels[hs.winner];
+          reLabel = nearMA ? maLabels[nearMA] : 'RE:–';
+          reCls = nearMA ? 're-green' : 're-grey';
+          reTip = [
+            '[RE] RE-ENTRY OPPORTUNITY',
+            `Based on HIST: watch ${watchLabel}.`,
+            `🟢 = within 2.5% of characteristic support → add`,
+            `⚪ = not at support yet`,
+            '────────────────────────────',
+            ...watchMAs.map(ma => `${maLabels[ma]}: $${priceMap[ma]?.toFixed(2)||'n/a'} (${distMap[ma]!==null?(distMap[ma]*100).toFixed(1)+'% away':'n/a'})`),
+            `Price : $${ps.price?.toFixed(2)||'n/a'}`
+          ].join('\n');
+        } else if (ps) {
+          reTip = '[RE] RE-ENTRY OPPORTUNITY\nWaiting for HIST data...';
+        }
+        const reBadge = `<span class="wl-pos-badge ${reCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${reTip.replace(/"/g,'&quot;')}">${reLabel}</span>`;
+
+        // IND badge — VARS(5 trading days) of industry ETF vs SPY
+        let indCls = 'ind-grey', indLabel = 'IND:–';
+        let indTip = '[IND] INDUSTRY VARS TREND\nLoading data...';
+        if (ps?.indTrend) {
+          const v = ps.indTrend.vars5;
+          indLabel = v >= 0 ? 'IND↑' : 'IND↓';
+          indCls = v >= 0.5 ? 'ind-green' : v <= -0.5 ? 'ind-red' : 'ind-grey';
+          indTip = [
+            '[IND] INDUSTRY VARS TREND (5 trading days)',
+            'Vol-adjusted RS of industry vs SPY.',
+            '🟢 IND↑ = industry outperforming → stay',
+            '🔴 IND↓ = industry fading → rotation risk!',
+            '⚪ IND:– = neutral',
+            '────────────────────────────',
+            `Industry : ${ps.indTrend.etf}`,
+            `VARS 5d  : ${v >= 0 ? '+' : ''}${v.toFixed(3)}`
+          ].join('\n');
+        }
+        const indBadge = `<span class="wl-pos-badge ${indCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${indTip.replace(/"/g,'&quot;')}">${indLabel}</span>`;
+
+        posBadges = `${tpBadge}${histBadge}${reBadge}${indBadge}`;
+      }
+
       return `<div class="wl-row ${rowCls}"
           draggable="true"
           data-sym="${sym}" data-section="${section}"
@@ -3749,16 +4195,17 @@
         </span>
         ${price != null ? `<span class="wl-price">$${price.toFixed(2)}</span>` : ''}
         <span class="wl-badge ${cls}">${r || '…'}</span>
-        ${aBadge}${bBadge}${cBadge}${vwapBadge}${pqBadge}
+        ${section === 'position' ? '' : `${aBadge}${bBadge}${cBadge}${vwapBadge}${pqBadge}`}
+        ${section === 'position' ? `<div class="wl-pos-badges-row">${posBadges}</div>` : ''}
         ${ageStr ? `<span class="wl-age">${ageStr}</span>` : ''}
-        ${section === 'watch' ? `<button class="wl-move" onclick="event.stopPropagation();wlMoveToPositions('${sym}')" title="Move to Positions">→</button>` : ''}
+        ${section === 'watch' ? `<button class="wl-move" onclick="event.stopPropagation();wlMoveToPositions('${sym}')" title="Move to Positions">→</button>` : `<button class="wl-move" onclick="event.stopPropagation();wlMoveToWatchlist('${sym}')" title="Move to Watchlist">←</button>`}
         <button class="wl-rm" onclick="event.stopPropagation();wlRemove('${sym}','${section}')" title="Remove">✕</button>
         ${(() => { const cs = getCompoundSignal(sym); return cs ? `<div style="margin-top:3px;padding-left:28px;"><span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;background:${cs.color}22;color:${cs.color};border:1px solid ${cs.color}55;" onclick="event.stopPropagation()" title="${cs.desc}">${cs.name}</span></div>` : ''; })()}
       </div>`;
     }
 
     function getCompoundSignal(sym) {
-      const rs    = wlRS[sym];
+      const rs    = wlRSInd[sym] || wlRS[sym];
       const frr   = wlFRR[sym];
       const tight = wlTight[sym];
 
@@ -3921,6 +4368,19 @@
             // Feature A: RS vs SPY
             const rsData = await computeRS(sym, stockDailyData);
             if (rsData) wlRS[sym] = rsData;
+
+            // Feature A (Ind): RS vs own industry ETF
+            const indEtf2 = getIndustryETF(wlIndustry[sym]);
+            const rsIndData = await computeRSvsIndustry(sym, stockDailyData, indEtf2);
+            if (rsIndData) wlRSInd[sym] = rsIndData;
+
+            // Position-only signals (exit, re-entry, historical support)
+            if (wlPositions.includes(sym)) {
+              const posData = computePosSignals(stockDailyData, indEtf2);
+              if (posData) wlPosSignals[sym] = posData;
+              const histData = await computeHistSupport(sym);
+              if (histData) wlHistSupport[sym] = histData;
+            }
 
             // Feature B: Float Rotation
             const floatShares = data.floatShares || 0;
