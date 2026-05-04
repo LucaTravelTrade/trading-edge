@@ -3593,7 +3593,7 @@
     }
 
     // ── FEATURE C: 3-WEEKS-TIGHT ──────────────────────────────────────────────
-    // Fetch Yahoo weekly candles for sym, compute tight pattern
+    // Volatility-adaptive: threshold = 50% of the stock's own normal weekly swing
     async function computeTight(sym) {
       try {
         const crumb = await getYahooCrumb();
@@ -3609,50 +3609,79 @@
         }
         if (!d) return null;
 
-        const res  = d.chart.result[0];
-        const q    = res.indicators.quote[0];
-        const cls  = (q.close  || []).filter(v => v != null && v > 0);
-        const vols = (q.volume || []).filter((v, i) => q.close[i] != null && q.close[i] > 0);
-        const highs = (q.high  || []);
+        const res = d.chart.result[0];
+        const q   = res.indicators.quote[0];
 
-        if (cls.length < 12) return null; // need ≥12 weeks for 10-week avg vol
+        // Build aligned weekly bars, excluding the current partial week (last candle)
+        const rawLen = Math.min(
+          (q.close  || []).length,
+          (q.volume || []).length,
+          (q.high   || []).length
+        );
+        const weeks = [];
+        for (let i = 0; i < rawLen - 1; i++) {
+          const c = q.close[i];
+          if (c != null && c > 0) weeks.push({ c, v: q.volume[i] || 0, h: q.high[i] || c });
+        }
+        if (weeks.length < 12) return null;
 
-        // 10-week average volume (excluding current/last week)
-        const avgVol10 = vols.slice(-11, -1).reduce((a, b) => a + (b || 0), 0) / 10;
+        const cls   = weeks.map(w => w.c);
+        const vols  = weeks.map(w => w.v);
+        const highs = weeks.map(w => w.h);
 
-        // Count tight weeks from most recent backward
-        // "tight" = weekly close within threshold of the prior week's close
-        const THRESHOLD = 0.015; // 1.5% close-to-close
+        // Volatility baseline: avg weekly close-to-close from ~3–13 weeks ago
+        // (pre-consolidation window so the coil itself doesn't lower the baseline)
+        const baseStart = Math.max(1, cls.length - 13);
+        const baseEnd   = cls.length - 2;
+        const baseChgs  = [];
+        for (let i = baseStart; i < baseEnd; i++) {
+          baseChgs.push(Math.abs(cls[i] - cls[i - 1]) / cls[i - 1]);
+        }
+        const avgBaseChg = baseChgs.length > 0
+          ? baseChgs.reduce((a, b) => a + b, 0) / baseChgs.length
+          : 0.025;
+
+        // Tight = weekly move ≤ 50% of its own normal swing (min 0.8%, max 4%)
+        const THRESHOLD = Math.min(Math.max(avgBaseChg * 0.5, 0.008), 0.04);
+
+        // 10-week average volume (last 10 completed weeks, excluding most recent)
+        const avgVol10 = vols.slice(-11, -1).reduce((a, b) => a + b, 0) / 10;
+
+        // Count consecutive tight weeks backward from most recent completed week
         let tightWeeks = 1;
         for (let i = cls.length - 1; i >= 1 && tightWeeks < 10; i--) {
-          const chg = Math.abs(cls[i] - cls[i - 1]) / cls[i - 1];
-          if (chg <= THRESHOLD) tightWeeks++;
+          if (Math.abs(cls[i] - cls[i - 1]) / cls[i - 1] <= THRESHOLD) tightWeeks++;
           else break;
         }
 
-        // tightnessPct over last 3 weekly closes
+        // tightnessPct: range of last 3 closes relative to their average
         const last3 = cls.slice(-3);
         const maxC  = Math.max(...last3);
         const minC  = Math.min(...last3);
         const avgC  = last3.reduce((a, b) => a + b, 0) / 3;
         const tightnessPct = avgC > 0 ? (maxC - minC) / avgC * 100 : 999;
 
-        // volumeDryUp: all tight weeks have volume below 10-week avg
+        // volumeDryUp: all tight weeks below 10-week avg volume
         const tightVols = vols.slice(-tightWeeks);
         const volumeDryUp = avgVol10 > 0 && tightVols.every(v => v < avgVol10);
 
-        // pivot: max of weekly highs over tight weeks * 1.01
-        const tightHighs = highs.filter(v => v != null).slice(-tightWeeks);
-        const pivot = tightHighs.length > 0 ? Math.max(...tightHighs) * 1.01 : cls[cls.length - 1] * 1.01;
+        // pivot: max weekly high over tight weeks × 1.01
+        const pivot = Math.max(...highs.slice(-tightWeeks)) * 1.01;
 
-        // score 0-100
+        // Score 0–100, normalized to stock's own volatility
+        // tightnessRatio: 0 = flat, 1 = moving at its normal pace
+        const tightnessRatio = avgBaseChg > 0 ? (tightnessPct / 100) / avgBaseChg : 1;
         const score = Math.round(
-          (1 - Math.min(tightnessPct, 3) / 3) * 60 +
+          Math.max(0, 1 - tightnessRatio) * 60 +
           (volumeDryUp ? 25 : 0) +
           Math.min(tightWeeks - 2, 3) / 3 * 15
         );
 
-        return { tightWeeks, tightnessPct, volumeDryUp, pivot, score };
+        return {
+          tightWeeks, tightnessPct, volumeDryUp, pivot, score,
+          avgBaseChg: +(avgBaseChg * 100).toFixed(2),
+          threshold:  +(THRESHOLD   * 100).toFixed(2)
+        };
       } catch (_) { return null; }
     }
 
@@ -3973,7 +4002,7 @@
       } else {
         aTip = '[A] RS vs Industry\nLoading data...';
       }
-      const aBadge = `<span class="wl-badge-abc wl-badge-a ${aBadgeCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${aTip.replace(/"/g,'&quot;')}">A</span>`;
+      const aBadge = `<span class="wl-badge-abc wl-badge-a ${aBadgeCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${aTip.replace(/"/g,'&quot;')}">RS</span>`;
 
       // ── Feature B badge ──────────────────────────────────────────────────
       const frr = wlFRR[sym];
@@ -4001,7 +4030,7 @@
       } else {
         bTip = '[B] FLOAT ROTATION RATIO\nLoading data...';
       }
-      const bBadge = `<span class="wl-badge-abc wl-badge-b ${bBadgeCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${bTip.replace(/"/g,'&quot;')}">B</span>`;
+      const bBadge = `<span class="wl-badge-abc wl-badge-b ${bBadgeCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${bTip.replace(/"/g,'&quot;')}">FR</span>`;
 
       // ── Feature C badge ──────────────────────────────────────────────────
       const tight = wlTight[sym];
@@ -4024,12 +4053,15 @@
           `Range    : ${tight.tightnessPct.toFixed(2)}%`,
           `Pivot    : $${tight.pivot.toFixed(2)}`,
           `Vol DryUp: ${tight.volumeDryUp ? 'YES ✓' : 'no'}`,
-          `Score    : ${tight.score}/100`
+          `Score    : ${tight.score}/100`,
+          `────────────────────────────`,
+          `Normal wk: ~${tight.avgBaseChg ?? '?'}% avg move`,
+          `Threshold: ≤${tight.threshold ?? '?'}% (adaptive)`
         ].join('\n');
       } else {
         cTip = '[C] 3-WEEKS-TIGHT (Kullamaggie)\nLoading data...';
       }
-      const cBadge = `<span class="wl-badge-abc wl-badge-c ${cBadgeCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${cTip.replace(/"/g,'&quot;')}">C</span>`;
+      const cBadge = `<span class="wl-badge-abc wl-badge-c ${cBadgeCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${cTip.replace(/"/g,'&quot;')}">3W</span>`;
 
       // ── Feature D badge — VWAP Reclaim ──────────────────────────────────────
       const vwapData = wlVWAP[sym];
@@ -4080,12 +4112,36 @@
       }
       const pqBadge = `<span class="wl-badge-pq ${pqBadgeCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${pqTip.replace(/"/g,'&quot;')}">${pqLabel}</span>`;
 
+      // ── HIST badge — characteristic support level (shown for both watchlist and positions)
+      const hs = wlHistSupport[sym];
+      const maLabels = { ema10: '10EMA', ema20: '20EMA', sma50: '50SMA' };
+      let histCls = 'hist-grey', histLabel = 'HIST:…';
+      let histTip = '[HIST] HISTORICAL MA SUPPORT\nLoading 2y data...';
+      if (hs) {
+        const maShort = { ema10: '10', ema20: '20', sma50: '50' };
+        histLabel = hs.isCluster
+          ? `${maShort[hs.winner]}+${maShort[hs.second]}`
+          : (maLabels[hs.winner] || '?');
+        histCls = 'hist-blue';
+        histTip = [
+          '[HIST] CHARACTERISTIC SUPPORT LEVEL',
+          'Volatility-adaptive 2y pullback analysis.',
+          'Trend-filtered: only counts momentum phases.',
+          hs.isCluster ? `⚡ CLUSTER: ${maLabels[hs.winner]} & ${maLabels[hs.second]} both key` : `🔵 Clear winner: ${maLabels[hs.winner]}`,
+          `Confidence: ${hs.confidence}%`,
+          '────────────────────────────',
+          `10EMA: ${hs.votes.ema10}× bounces (score ${hs.scores.ema10.toFixed(2)})`,
+          `20EMA: ${hs.votes.ema20}× bounces (score ${hs.scores.ema20.toFixed(2)})`,
+          `50SMA: ${hs.votes.sma50}× bounces (score ${hs.scores.sma50.toFixed(2)})`,
+          `Total pullbacks analyzed: ${hs.total}`
+        ].join('\n');
+      }
+      const histBadge = `<span class="wl-pos-badge ${histCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${histTip.replace(/"/g,'&quot;')}">${histLabel}</span>`;
+
       // ── Position badges (exit/re-entry signals) — order: TP · HIST · RE · IND
       let posBadges = '';
       if (section === 'position') {
         const ps = wlPosSignals[sym];
-        const hs = wlHistSupport[sym];
-        const maLabels = { ema10: '10EMA', ema20: '20EMA', sma50: '50SMA' };
 
         // TP badge
         let tpCls = 'tp-grey', tpLabel = 'TP:–';
@@ -4107,30 +4163,6 @@
           ].join('\n');
         }
         const tpBadge = `<span class="wl-pos-badge ${tpCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${tpTip.replace(/"/g,'&quot;')}">${tpLabel}</span>`;
-
-        // HIST badge (shows characteristic support MA from 2y analysis)
-        let histCls = 'hist-grey', histLabel = 'HIST:…';
-        let histTip = '[HIST] HISTORICAL MA SUPPORT\nLoading 2y data...';
-        if (hs) {
-          const maShort = { ema10: '10', ema20: '20', sma50: '50' };
-          histLabel = hs.isCluster
-            ? `${maShort[hs.winner]}+${maShort[hs.second]}`
-            : (maLabels[hs.winner] || '?');
-          histCls = 'hist-blue';
-          histTip = [
-            '[HIST] CHARACTERISTIC SUPPORT LEVEL',
-            'Volatility-adaptive 2y pullback analysis.',
-            'Trend-filtered: only counts momentum phases.',
-            hs.isCluster ? `⚡ CLUSTER: ${maLabels[hs.winner]} & ${maLabels[hs.second]} both key` : `🔵 Clear winner: ${maLabels[hs.winner]}`,
-            `Confidence: ${hs.confidence}%`,
-            '────────────────────────────',
-            `10EMA: ${hs.votes.ema10}× bounces (score ${hs.scores.ema10.toFixed(2)})`,
-            `20EMA: ${hs.votes.ema20}× bounces (score ${hs.scores.ema20.toFixed(2)})`,
-            `50SMA: ${hs.votes.sma50}× bounces (score ${hs.scores.sma50.toFixed(2)})`,
-            `Total pullbacks analyzed: ${hs.total}`
-          ].join('\n');
-        }
-        const histBadge = `<span class="wl-pos-badge ${histCls}" onclick="event.stopPropagation()" onmouseenter="gtip(this)" onmouseleave="ghide()" data-tip="${histTip.replace(/"/g,'&quot;')}">${histLabel}</span>`;
 
         // RE badge — uses HIST character to decide WHICH MA to watch
         let reCls = 're-grey', reLabel = 'RE:–';
@@ -4195,7 +4227,7 @@
         </span>
         ${price != null ? `<span class="wl-price">$${price.toFixed(2)}</span>` : ''}
         <span class="wl-badge ${cls}">${r || '…'}</span>
-        ${section === 'position' ? '' : `${aBadge}${bBadge}${cBadge}${vwapBadge}${pqBadge}`}
+        ${section === 'position' ? '' : `${aBadge}${bBadge}${cBadge}${vwapBadge}${pqBadge}${histBadge}`}
         ${section === 'position' ? `<div class="wl-pos-badges-row">${posBadges}</div>` : ''}
         ${ageStr ? `<span class="wl-age">${ageStr}</span>` : ''}
         ${section === 'watch' ? `<button class="wl-move" onclick="event.stopPropagation();wlMoveToPositions('${sym}')" title="Move to Positions">→</button>` : `<button class="wl-move" onclick="event.stopPropagation();wlMoveToWatchlist('${sym}')" title="Move to Watchlist">←</button>`}
@@ -4374,12 +4406,14 @@
             const rsIndData = await computeRSvsIndustry(sym, stockDailyData, indEtf2);
             if (rsIndData) wlRSInd[sym] = rsIndData;
 
-            // Position-only signals (exit, re-entry, historical support)
+            // Historical support — loaded for all tickers (watchlist + positions)
+            const histData = await computeHistSupport(sym);
+            if (histData) wlHistSupport[sym] = histData;
+
+            // Position-only signals (exit, re-entry)
             if (wlPositions.includes(sym)) {
               const posData = computePosSignals(stockDailyData, indEtf2);
               if (posData) wlPosSignals[sym] = posData;
-              const histData = await computeHistSupport(sym);
-              if (histData) wlHistSupport[sym] = histData;
             }
 
             // Feature B: Float Rotation
